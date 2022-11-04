@@ -1,4 +1,3 @@
-import $ from 'jquery'
 import { Component } from 'react';
 import * as THREE from './three.module.js';
 import {TrackballControls}  from './TrackballControls.js';
@@ -16,18 +15,6 @@ class Main extends Component {
         this.vt = null;
     }
     componentDidMount() {
-
-        const that = this;
-        $("#rect").unbind().click(()=>{
-            if( that.type == cShape.RECT) {
-                $(".menubar").addClass('hidden');
-                that.type = cShape.NONE;
-            } 
-            else {
-                $(".menubar").removeClass('hidden');
-                that.type = cShape.RECT;
-            }
-        });
 
         this.initTHREE('main_panel', 1);
         this.animate();

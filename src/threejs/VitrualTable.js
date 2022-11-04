@@ -1,6 +1,7 @@
 import './main.css';
-import * as THREE from './three.module.js';
+import $ from 'jquery'
 
+import * as THREE from './three.module.js';
 import {Shape} from './Nodes.js'
 import {Rectangle} from './Rectangle.js'
 

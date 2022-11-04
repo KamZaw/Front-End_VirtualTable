@@ -26,6 +26,7 @@ function App() {
   
   //eventSource.close();
 
+  
   return (
     <div id="menu" className="App">
       <Main/>

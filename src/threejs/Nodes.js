@@ -77,7 +77,7 @@ class Shape {
     
     
         let box = new this.THREE.Mesh(geometry, material);
-        box.name = name;
+        box.name = "name";
         box.position.set(this.x * a, this.y * a);
         this.scene.add(box);
         const pkt = [];

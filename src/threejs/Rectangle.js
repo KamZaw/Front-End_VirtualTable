@@ -7,6 +7,7 @@ class Rectangle extends Shape{
     constructor(THREE, scene, y, x, label, a, b, color ) {
         super(THREE, scene, y, x, label);
         this.defaultFillColor = color;
+        this.scene = scene;
         this.b = b;
         this.a = a;
     }
@@ -66,11 +67,11 @@ class Rectangle extends Shape{
         const material = new this.THREE.MeshStandardMaterial({
             color: this.defaultFillColor,//0xE9E9E9,
         });
-        material.side = this.THREE.DoubleSide;
+        material.side = this.THREE.DoubleSide; 
     
     
         let box = new this.THREE.Mesh(geometry, material);
-        box.name = name;
+        box.name = "name";
         this.scene.add(box);
         const pkt = [];
         
