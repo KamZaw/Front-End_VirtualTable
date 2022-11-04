@@ -21,9 +21,7 @@ class Home extends Component {
         if(this.eventSource != null)
             this.eventSource.close();
      } 
-    render() { {
-        
-    }
+    render() { 
         return (
             <div>
                 <p>Główna zakładka</p>

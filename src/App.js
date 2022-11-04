@@ -1,5 +1,6 @@
 import './App.css';
 import React from 'react';
+import Main from './threejs/main';
 import Home from './Home';
 import Shape from './Shape';
 import Global from './Global';
@@ -27,7 +28,8 @@ function App() {
 
   return (
     <div id="menu" className="App">
-        <Router>
+      <Main/>
+        {/* <Router>
           
           <ul>
             <li><Link to='/home'>Główna</Link></li>
@@ -40,7 +42,7 @@ function App() {
             <Route path='/shapes' element={<Shape/>}/>
             <Route path='/shapes/delete' element={<ShapeDelete/>}/>
           </Routes>
-        </Router>
+        </Router> */}
     </div>
   );
 }

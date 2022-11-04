@@ -14,7 +14,10 @@
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
+    
     <link rel="manifest" href="%PUBLIC_URL%/manifest1.json" />
+    <script src="node_modules/jquery/dist/jquery.min.js" defer="true"></script>
+
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
@@ -29,6 +32,28 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+      <div id="toolbar" class = "toolbar">
+        <button id="rect" class="toolbutton">Sq</button>
+        <button id="ngon" class="toolbutton">ngon</button>
+        <br>
+        <button id="del" class="toolbutton">Del</button>
+    </div>
+    <div id="main" class="row">
+        <div id="menubar" class = "menubar hidden">
+            <!-- <button id="rect" class="toolbutton">Sq</button>
+            <button id="rect" class="toolbutton">del</button> -->
+            Ustawienia prostokąta
+            <input id="rect_width" class="button_menu" placeholder="Szer..." value="50"/>
+            
+            <input id="rect_height" class="button_menu" placeholder="Wys..." value="80" />
+
+            <div id="colorpicker">&nbsp;</div>
+            <input id="rect_color" class="button_menu" placeholder="kolor..." value="17b854" />
+        </div>
+            <div id="main_panel"  ></div>
+      </div> 
+
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
