@@ -1,7 +1,7 @@
 import { Component } from "react";
-import Global from "./Global";
+import Global from "../Global";
 //komponent statyczny dla strony głownej w aplikacji
-class Home extends Component {
+class FirebaseUpdate extends Component {
     constructor()
     { 
         super();
@@ -14,7 +14,9 @@ class Home extends Component {
           this.eventSource = new EventSource(`${Global.baseURL}/update_shapes`, {withCredentials: !true});
           this.eventSource.onmessage = (e) => {
             const shape = JSON.parse(e.data); 
-            console.log(shape.sDescription+" " + shape.Date);
+            if(shape == null) return;
+            console.log(shape.ticks+" color: " + shape.iColor);
+            this.props.action(shape);   //powiadom rodzica (<Main) o aktualizacji obiektu (onFBUpdate)
           }
      } 
      componentWillUnmount() {
@@ -23,11 +25,9 @@ class Home extends Component {
      } 
     render() { 
         return (
-            <div>
-                <p>Główna zakładka</p>
-            </div>
+            <></>
         );
     }
 }
 
-export default Home;
+export default FirebaseUpdate;

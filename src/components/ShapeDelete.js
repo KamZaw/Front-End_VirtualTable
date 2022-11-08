@@ -1,6 +1,5 @@
 import { Component } from "react";
-import  Global from "./Global";
-import  axios  from "axios";
+import  Global from "../Global";
 
 
 //komponent pobierający kształty z backendu
@@ -29,7 +28,8 @@ class ShapeDelete extends Component {
     }
 
     async delShape(id) {
-        let response = await this.getShapesRequest(`${Global.baseURL}//Shape/id?id=${id}`);
+        id = 638026404272933140;
+        let response = await this.getShapesRequest(`${Global.baseURL}/Shape/${id}`);
         console.log("Usunuięty "+ response);
     }
     

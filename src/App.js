@@ -1,11 +1,8 @@
-import './App.css';
+import './assets/App.css';
 import React from 'react';
-import Main from './threejs/main';
-import Home from './Home';
-import Shape from './Shape';
-import Global from './Global';
-import ShapeDelete from './ShapeDelete';
-import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
+import Main from './components/Main';
+// import Global from './Global';
+// import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
 
 function App() {
 
@@ -25,12 +22,14 @@ function App() {
   // f();
   
   //eventSource.close();
-
+  
   
   return (
     <div id="menu" className="App">
+      
       <Main/>
-        {/* <Router>
+        
+        {/* { <Router>
           
           <ul>
             <li><Link to='/home'>Główna</Link></li>
@@ -43,7 +42,7 @@ function App() {
             <Route path='/shapes' element={<Shape/>}/>
             <Route path='/shapes/delete' element={<ShapeDelete/>}/>
           </Routes>
-        </Router> */}
+        </Router> } */}
     </div>
   );
 }

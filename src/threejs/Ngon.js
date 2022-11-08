@@ -1,56 +1,48 @@
 import {Shape} from './Shape.js'
 import Point from './Point';
 
-class Rectangle extends Shape{
+class Ngon extends Shape{
 
-    constructor(THREE, scene, y, x, label, a, b, color ) {
+    constructor(THREE, scene, y, x, label, radius, ngons, color ) {
         super(THREE, scene, y, x, label);
         this.iColor = parseInt(color);
         this.scene = scene;
-        this.b = b;
-        this.a = a;
+        this.radius = radius;
+        this.n = ngons;
         this.points = [];
     }
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany
-        const a = this.a;
-        const b = this.b;
-
         const verts = [];
         const normals = [];
-    
-        //2
-        verts.push(0,a,0);
-        this.points.push(new Point(0 + this.y,a - this.x));
-        normals.push(0,0,1);
-        //1
-        verts.push(0,0,0);
-        this.points.push(new Point(0 + this.y,0 - this.x));
-        normals.push(0,0,1);
-        //4
-        verts.push(b,a,0);
-        this.points.push(new Point(parseInt(b)+ this.y,a - this.x));
-        normals.push(0,0,1);
+        const pkt = [];    
 
-        //4
-        verts.push(b,a,0);
-        this.points.push(new Point(parseInt(b) + this.y,a - this.x));
-        normals.push(0,0,1);
-        verts.push(b,0,0);
-        this.points.push(new Point(parseInt(b) + this.y,0 - this.x));
-        normals.push(0,0,1);
+        let segmentCount = this.n;
+        let radius = this.radius;
+        for (let i = segmentCount; i > 0; i--) {
+            let theta = (i / segmentCount) * Math.PI * 2;
+            let x = ~~(Math.cos(theta) * radius);
+            let y = ~~(Math.sin(theta) * radius);
+            verts.push( x,y, 0);
+            normals.push(0,0,1);
+            this.points.push(new Point(x + this.y,y - this.x));
+            pkt.push(new this.THREE.Vector3(x, y, 0));
+
+            theta = ((i-1) / segmentCount) * Math.PI * 2;
+            x = ~~(Math.cos(theta) * radius);
+            y = ~~(Math.sin(theta) * radius);
+            verts.push( x, y, 0);
+            normals.push(0,0,1);
+            this.points.push(new Point(x + this.y,y - this.x));
+            pkt.push(new this.THREE.Vector3(x, y, 0));
+
+            verts.push(0,0, 0);
+            normals.push(0,0,1);
+            this.points.push(new Point( this.y, - this.x));
+        }
         
-        //2
-        verts.push(0,0,0);
-        this.points.push(new Point(0 + this.y,0 - this.x));
-        normals.push(0,0,1);
-        //3
-        verts.push(b,0,0);
-        this.points.push(new Point(parseInt(b)+ this.y,0 - this.x));
-        normals.push(0,0,1);
-            
-         
+
         if (this.THREE == null)
             return;
         let geometry = new this.THREE.BufferGeometry();
@@ -67,20 +59,9 @@ class Rectangle extends Shape{
         let box = new this.THREE.Mesh(geometry, material);
         box.name = "name";
         this.scene.add(box);
-        const pkt = [];
+
         
         
-        pkt.push(new this.THREE.Vector3(0, 0, 0));
-        pkt.push(new this.THREE.Vector3(0, a, 0));
-        
-        pkt.push(new this.THREE.Vector3(0, a, 0));
-        pkt.push(new this.THREE.Vector3(b, a, 0));
-        
-        pkt.push(new this.THREE.Vector3(b, a, 0));
-        pkt.push(new this.THREE.Vector3(b, 0, 0));
-        
-        pkt.push(new this.THREE.Vector3(b, 0, 0));
-        pkt.push(new this.THREE.Vector3(0, 0, 0));
     
     
         const materialL = new this.THREE.LineBasicMaterial({
@@ -104,4 +85,4 @@ class Rectangle extends Shape{
 }
 
 
-export {Rectangle}
+export {Ngon}

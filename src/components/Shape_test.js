@@ -1,10 +1,10 @@
 import  { Component } from "react";
-import  Global from "./Global";
+import  Global from "../Global";
 import  axios  from "axios";
 
 
 //komponent pobierający kształty z backendu
-class Shape extends Component {
+class Shape_test extends Component {
     constructor() {
         super();
         this.state = {
@@ -79,4 +79,4 @@ class Shape extends Component {
     }
 }
 
-export default Shape;
+export default Shape_test;

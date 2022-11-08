@@ -39,6 +39,9 @@ body {
   min-height: 30px;
   margin: 5px;
  }
+ input {
+  margin: 5px;
+ }
 
 .hidden {
   visibility: hidden;
