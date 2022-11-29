@@ -67,7 +67,7 @@ class Ngon extends Shape{
         const materialL = new this.THREE.LineBasicMaterial({
             color: 0x000000,
             transparent: true,
-            width: 1,
+            linewidth: 3,
             opacity: 0.7,
         });
         const geometryL = new this.THREE.BufferGeometry().setFromPoints(pkt);

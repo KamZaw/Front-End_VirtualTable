@@ -68,4 +68,25 @@ class NGONMenu extends Component {
     }
 }
 
-export {DefaultMenu, RectangleMenu, NGONMenu}
+class FreePenMenu extends Component {
+    constructor(){
+        super();
+    }
+    onChange() {
+        $("#colorpicker").css("background-color", "#"+$("#freepen_color").val());
+    }
+    render() {
+        return(
+            <>
+            <div id="menubar" className = "menubar">
+                <b>&nbsp; </b>
+                r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="4"/>px
+                
+                <div id="colorpicker">&nbsp;</div>
+                <input id="freepen_color" className="button_menu" placeholder="kolor..." defaultValue="17b854" onChange = {this.onChange}/>
+            </div>
+            </>
+            );
+    }
+}
+export {DefaultMenu, RectangleMenu, NGONMenu, FreePenMenu}

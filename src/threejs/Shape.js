@@ -90,7 +90,7 @@ class Shape {
         const materialL = new this.THREE.LineBasicMaterial({
             color: 0x000000,
             transparent: true,
-            linewidth: 1,
+            linewidth: 3,
             opacity: 0.7,
         });
         const geometryL = new this.THREE.BufferGeometry().setFromPoints(pkt);
@@ -184,13 +184,13 @@ class Shape {
     }
     setDefaultColor() {
         //this.mesh.material.color.setHex( this.iColor );
-        this.linie.material.color.setHex( 0x000000 );
+        this.linie && this.linie.material.color.setHex( 0x000000 );
     }
     setFillColor(fillColor){
-        this.linie.material.color.setHex( fillColor );
+        this.linie && this.linie.material.color.setHex( fillColor );
     }
     getFillColor(){
-        return this.linie.material.color;
+        return this.linie? this.linie.material.color:0;
     }
 }
 export {Shape}

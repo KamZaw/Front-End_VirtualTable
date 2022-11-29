@@ -25,7 +25,9 @@ class FirebaseUpdate extends Component {
      } 
     render() { 
         return (
-            <></>
+            <>
+            
+            </>
         );
     }
 }

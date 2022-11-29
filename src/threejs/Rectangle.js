@@ -83,11 +83,11 @@ class Rectangle extends Shape{
         pkt.push(new this.THREE.Vector3(0, 0, 0));
     
     
-        const materialL = new this.THREE.LineBasicMaterial({
+        const materialL = new this.THREE.LineDashedMaterial({
             color: 0x000000,
-            transparent: true,
-            width: 1,
-            opacity: 0.7,
+            linewidth: 3,
+            dashSize: 3,
+            gapSize: 1,
         });
         const geometryL = new this.THREE.BufferGeometry().setFromPoints(pkt);
         const linie = new this.THREE.LineSegments(geometryL, materialL);

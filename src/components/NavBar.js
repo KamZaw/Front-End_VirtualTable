@@ -1,7 +1,7 @@
 import { Component } from "react";
-import cShape from '../shapetype';
+import {cShape} from '../shapetype';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu, DefaultMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, DefaultMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(){
         super();
@@ -29,7 +29,10 @@ class NavBar extends Component {
             case cShape.NGON:
                 this.component = <NGONMenu />;
                 break;
-            case cShape.DELETE:     //nie zmieniaj menu
+            case cShape.FREEPEN:
+                this.component = <FreePenMenu />;
+                break;
+                case cShape.DELETE:     //nie zmieniaj menu
                 break;
             case cShape.NONE:
             default:
@@ -44,6 +47,7 @@ class NavBar extends Component {
                     <MenuOption id="rect" type = {cShape.RECT} action={this.menuItemSelectedHandler}>sq</MenuOption>
                     <MenuOption id="ngon" type = {cShape.NGON} action={this.menuItemSelectedHandler}>ngon</MenuOption>
                     <br/>
+                    <MenuOption id="freepen" type = {cShape.FREEPEN} action={this.menuItemSelectedHandler}>pen</MenuOption>
                     <MenuOption id="del" type = {cShape.DELETE} action={this.menuItemSelectedHandler}>del</MenuOption>
                 </div>
             </>

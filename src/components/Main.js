@@ -6,7 +6,7 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import FirebaseUpdate from './FirebaseUpdate';
-import cShape from '../shapetype';
+import {cShape} from '../shapetype';
 
 
 class Main extends Component {
@@ -85,6 +85,9 @@ class Main extends Component {
             case cShape.NGON:
                 vt.type = type;
                 break;
+            case cShape.FREEPEN:
+                vt.type = type;
+                break;
             case cShape.DELETE:     //usówaj zaznaczony obiekt
                 if (vt.selectedNode) {
                     this.delete(vt.selectedNode);
@@ -101,8 +104,9 @@ class Main extends Component {
         if(selectedNode == null) return;
         const vt = this.vt;
         vt.scene.remove(selectedNode.mesh);
-        vt.scene.remove(selectedNode.linie);
+        selectedNode.linie && vt.scene.remove(selectedNode.linie);
         vt.OBJECTS = vt.OBJECTS.filter((obj) => obj != selectedNode);
+        vt.meshes = vt.meshes.filter((obj) => obj != selectedNode.mesh);
         if(!keepIt)
             vt.deleteShape(selectedNode.ticks);
     }
@@ -171,6 +175,8 @@ class Main extends Component {
         this.vt = new VitrualTable(THREE, this.scene);
         const vt = this.vt;
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
+        renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
+        renderer.domElement.addEventListener('mousemove', function(event) { vt.onMouseMove(event, targetPanel, camera, wd, hd); }, false);
     }
 
 
