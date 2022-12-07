@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import React from 'react';
 import * as THREE from '../threejs/three.module.js';
 import {TrackballControls}  from '../threejs/TrackballControls.js';
 import {VitrualTable} from '../threejs/VitrualTable.js'
@@ -8,6 +9,7 @@ import NavBar from './NavBar';
 import FirebaseUpdate from './FirebaseUpdate';
 import {cShape} from '../shapetype';
 
+const targetPanelString = 'main_panel';
 
 class Main extends Component {
 
@@ -19,12 +21,14 @@ class Main extends Component {
         this.controls = null; 
         this.vt = null;
         this.itemPicked = this.itemPicked.bind(this);
-        this.onFBUpdate = this.onFBUpdate.bind(this);     
+        this.onFBUpdate = this.onFBUpdate.bind(this);
+        this.selectMenuCallback = this.selectMenuCallback.bind(this);     
+        this.navbar = React.createRef();
     }
     componentDidMount() {
 
         //console.log("MAIN* * * ")
-        this.initTHREE('main_panel', 1);
+        this.initTHREE(targetPanelString, 1);
         //aktualizacja ekranu threejs
         this.animate();
 
@@ -79,23 +83,68 @@ class Main extends Component {
         //alert(type);
         const vt = this.vt;
         switch(type) {
-            case cShape.RECT:
-                vt.type = type;
+            case cShape.NEW:{
+                //może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
+                this.cleanTHREE();
+                this.OBJECTS = [];
+                this.meshes = [];
+                this.type = cShape.SELECT;
+                
+            }
+            break;
+            case cShape.SAVE_SVG:            
+                alert("Zapis do SVG jeszcze nie zaimplementowany");
                 break;
-            case cShape.NGON:
-                vt.type = type;
+            case cShape.ZPLUS:
+                vt.selectedNode && vt.selectedNode.ZPlus();
                 break;
-            case cShape.FREEPEN:
-                vt.type = type;
+            case cShape.ZMINUS:
+                vt.selectedNode && vt.selectedNode.ZMinus();
                 break;
-            case cShape.DELETE:     //usówaj zaznaczony obiekt
+            case cShape.SCALEX:
+                vt.selectedNode && vt.selectedNode.setScaleX(.7);
+                break;
+            case cShape.SCALEY:
+                vt.selectedNode && vt.selectedNode.setScaleY(.7);
+                break;
+    
+                    case cShape.DELETE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode) {
                     this.delete(vt.selectedNode);
                 }
                 break;
-            case cShape.NONE:
-                this.vt.type = type;
+            case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
+                if (vt.selectedNode && document.getElementById("color").value) {
+                    vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value,);
+                    vt.selectedNode.mesh.material.color.setHex(vt.selectedNode.iColor);
+                }
+                break;
+
+            case cShape.FREEPEN_CLOSE:
+                const target = document.getElementById(targetPanelString);
+                vt.finalizeFreePenFig(target);
+                break;
+            case cShape.FREEPEN_CANCEL: 
+            {
+                const target = document.getElementById(targetPanelString);
+                vt.cancelFreePenFig(target);
+            }
+            break;
+            case cShape.COPY:      //kopiuje i powiela zaznaczoną figurę
+            {
+                vt.carbonCopy();
+            }
+            case cShape.CLONE:      //kopiuje i powiela zaznaczoną figurę
+            {
+                vt.Clone();
+            }
+            
+            // case cShape.RECT:
+            // case cShape.NGON:
+            // case cShape.FREEPEN:
+            // case cShape.NONE:
             default:
+                vt.type = type;
                 break;
         }    
     }
@@ -107,8 +156,12 @@ class Main extends Component {
         selectedNode.linie && vt.scene.remove(selectedNode.linie);
         vt.OBJECTS = vt.OBJECTS.filter((obj) => obj != selectedNode);
         vt.meshes = vt.meshes.filter((obj) => obj != selectedNode.mesh);
+        selectedNode.rmShape();
+
         if(!keepIt)
             vt.deleteShape(selectedNode.ticks);
+            selectedNode = null;
+            Global.selectedShape = selectedNode;
     }
 
     async getShapes() {
@@ -172,7 +225,7 @@ class Main extends Component {
 
         this.lightOn(this.scene);
 
-        this.vt = new VitrualTable(THREE, this.scene);
+        this.vt = new VitrualTable(THREE, this.scene, this.selectMenuCallback);
         const vt = this.vt;
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
@@ -180,6 +233,10 @@ class Main extends Component {
     }
 
 
+    //wybór menu z obiektu vt po selekcji obiektu danego typu
+    selectMenuCallback(type) {
+        this.navbar.current.menuItemSelectedHandler(type);
+    }
     lightOn(scene) {
         //ambientne światło
         const lightA = new THREE.AmbientLight( 0xffffff );
@@ -197,7 +254,9 @@ class Main extends Component {
         return (
            <>
            <FirebaseUpdate action={this.onFBUpdate}/>
-           <NavBar action={this.itemPicked}/>
+           <NavBar action={this.itemPicked} ref={this.navbar}/>
+
+           
            </>
         );
     }

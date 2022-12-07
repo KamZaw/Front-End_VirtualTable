@@ -1,10 +1,10 @@
 import { Component } from "react";
 import {cShape} from '../shapetype';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, DefaultMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu } from "./DefaultMenu";
 class NavBar extends Component {
-    constructor(){
-        super();
+    constructor(props){
+        super(props);
         this.component = null;
         this.state = {
             type: cShape.NONE,
@@ -18,25 +18,27 @@ class NavBar extends Component {
             // hidden: hidden
         });
         this.props.action(type);        //callback do komponentu Main
+        
         //this.setState(type);
     }
     render() {
-        
+        // this.menuItemSelectedHandler(this.props.pickedObject);
         switch(this.state.type) {
             case cShape.RECT:
-                this.component = <RectangleMenu />;
+                this.component = <RectangleMenu action={this.props.action}/>;
                 break;
             case cShape.NGON:
-                this.component = <NGONMenu />;
+                this.component = <NGONMenu action={this.props.action}/>;
                 break;
             case cShape.FREEPEN:
-                this.component = <FreePenMenu />;
+                this.component = <FreePenMenu action={this.props.action}/>;
                 break;
                 case cShape.DELETE:     //nie zmieniaj menu
                 break;
             case cShape.NONE:
+            case cShape.SELECT:
             default:
-                this.component = <DefaultMenu/>;
+                this.component = <EmptyMenu action={this.props.action}/>;
                 break;
         }
         
@@ -44,6 +46,9 @@ class NavBar extends Component {
             <>
                 {this.component}
                 <div id="toolbar" className = "toolbar">
+                    <MenuOption id="sel" type = {cShape.SELECT} action={this.menuItemSelectedHandler}>sel</MenuOption>
+                    <MenuOption id="mov" type = {cShape.MOVE} action={this.menuItemSelectedHandler}>mv</MenuOption>
+                    <br/>
                     <MenuOption id="rect" type = {cShape.RECT} action={this.menuItemSelectedHandler}>sq</MenuOption>
                     <MenuOption id="ngon" type = {cShape.NGON} action={this.menuItemSelectedHandler}>ngon</MenuOption>
                     <br/>

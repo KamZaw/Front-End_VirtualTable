@@ -14,11 +14,10 @@ import {
     cShape,
     cAction
 } from '../shapetype';
-
-const pxSize = 4;
+import Point from './Point';
 
 class VitrualTable {
-    constructor(THREE, scene) {
+    constructor(THREE, scene, selectMenuCallback) {
         this.type = cShape.NONE;
         this.action = cAction.NONE;
         this.THREE = THREE;
@@ -26,19 +25,20 @@ class VitrualTable {
         this.OBJECTS = [];
         this.scene = scene;
         this.selectedNode = null;
+        this.selectedCorner = null;
         this.meshes = [];
         this.freePenPoints = []; //tablica na punkty FreePena
         this.prevPoint = null;
         this.tmpNodes = null;
+        this.freePenSeparator = false;      //klika gdy luzujemy przycisk myszki, ważne 
+        this.selectMenu = selectMenuCallback;
         this.init();
+
     }
 
 
     init() {
-        // $('#rect_color').on('input', function() { 
-        //     //$(this).val()
-        //     $("#colorpicker").css("background-color", "#"+$(this).val());
-        // });
+
     }
 
     async deleteShape(ticks) {
@@ -114,17 +114,20 @@ class VitrualTable {
         node.drawShape();
         this.addShape(node);
         this.selectedNode = node;
+        Global.selectedShape = this.selectedNode;
         this.select(null);
-        this.action != cAction.FREEPEN && this.type != cShape.FREEPEN && node.setFillColor(0xffffff);
-        this.action == cAction.NONE && this.putData(node);
+        this.action !== cAction.FREEPEN && this.type !== cShape.FREEPEN && node.setFillColor(0xffffff);
+        this.action === cAction.NONE && this.putData(node);
     }
     onMouseMove(event, targetPanel, camera, wd, hd) {
         this.action == cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
-        
+        //this.action == cAction.MOVE && 
+        this.type != cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig();     //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
     }
 
     onMouseDown(event, targetPanel, camera, wd, hd) {
         
+
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
@@ -139,15 +142,22 @@ class VitrualTable {
                     case cShape.FREEPEN: {
                         if(this.prevPoint) {
                             //this.prevPoint = [this.OBJECTS[this.OBJECTS.length-1].y,-this.OBJECTS[this.OBJECTS.length-1].x];
-                            this.prevPoint = this.freePenPoints[this.freePenPoints.length - 1];
+                            if(this.freePenSeparator === true)
+                            {
+                                this.freePenSeparator = false;
+                                this.prevPoint = [(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)];
+                                this.freePenPoints.push([(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)]);  
+                            }
+                            else
+                                this.prevPoint = this.freePenPoints[this.freePenPoints.length - 1];
                         }
-                        else {
-                            this.freePenPoints.push([(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)]);
+                        //else 
+                        {
+                            
                         }
                         const node = new FreePen(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), [this.prevPoint], "freePen",  parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#freepen_color').val());
+                            (event.clientY - targetPanel.offsetTop), [this.prevPoint], "freePen",  parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#color').val(), true);
                         this.onNewShape(node);
-                        //const pts = [[824,-229],[746,-196],[700,-199],[680,-207],[659,-219],[650,-226],[640,-236],[630,-258],[629,-266],[628,-279],[628,-289],[633,-304],[636,-307],[637,-310],[639,-310],[639,-311]]
 
                         if(this.tmpNodes == null) {
                             this.tmpNodes = [];
@@ -159,6 +169,22 @@ class VitrualTable {
                         this.freePenPoints.push([(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)]);
                         break;
                     }
+                    case cShape.SELECT:
+                        if(!this.selectedNode) 
+                            this.onSelection(event, targetPanel);
+                    case cShape.MOVE:
+                            
+                        if(!this.selectedNode) break;
+                        const selected = this.selectedCorner != null?this.selectedCorner:this.selectedNode;
+                        if(!this.prevPoint) {
+                            (this.prevPoint = [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                        }
+                        else {
+                            selected.mvShape(this.prevPoint, [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                            this.prevPoint = null;
+                        }
+                        break;
+
                     case cShape.POLYGON:
                         break;
                     default:
@@ -176,93 +202,153 @@ class VitrualTable {
     //obsluga zdarzenia kliku na planszę
     onClick(event, targetPanel, camera, wd, hd) {
 
-        let bLeft = true;
-
-        // console.log(bLeft);
-        const mouse3D = new this.THREE.Vector3((event.clientX - targetPanel.offsetLeft - 0),
-            (event.clientY - targetPanel.offsetTop - 0), 1000); //z == camera.far
-
-        //console.log(mouse3D);
-
         this.action = cAction.NONE;
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
                     case cShape.RECT: {
-                        const node = new Rectangle(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft - 21),
-                            -(event.clientY - targetPanel.offsetTop - 24), "prostokat", $("#rect_height").val(), $("#rect_width").val(), "0x" + $('#rect_color').val());
+                        const node = new Rectangle(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                            (event.clientY - targetPanel.offsetTop), "prostokat", $("#rect_height").val(), $("#rect_width").val(), "0x" + $('#color').val(), 0);
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.NGON: {
-                        const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft - 21),
-                            -(event.clientY - targetPanel.offsetTop - 24), "ngon", $("#radius").val(), $("#ngons").val(), "0x" + $('#ngon_color').val());
+                        const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                            (event.clientY - targetPanel.offsetTop), "ngon", $("#radius").val(), $("#ngons").val(), "0x" + $('#color').val());
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.CIRCLE:
                         break;
                     case cShape.FREEPEN: {
-                        const node = new FreePen(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), this.freePenPoints, "freePen", parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#freepen_color').val());
-                        this.deleteTempNodes();
-                        this.tmpNodes = null;   
-                        this.onNewShape(node);
-                        console.log(this.freePenPoints);
-                        //this.tmpNodes.push(node);
-
-                        this.freePenPoints = [];
-                        this.prevPoint = null;
+                        //this.finalizeFreePenFig(targetPanel);
+                        this.freePenSeparator = true;
                         break;
                     }
                     case cShape.POLYGON:
                         break;
+                    case cShape.SELECT:
+                        if(this.prevPoint && Point.distance(this.prevPoint, [event.clientX, event.clientY])<10) {
+                            this.onSelection(event, targetPanel);
+                        } 
+                    case cShape.MOVE:    
+                        if(!this.prevPoint) return;
+                        const selected = this.selectedCorner !== null?this.selectedCorner:this.selectedNode;
+                        selected && selected.mvShape(this.prevPoint, [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                        this.prevPoint = null;
+                        break;
+    
                     default:
                         break;
                 }
                 return;
             case 3: //right
-                bLeft = false;
                 break;
             default:
                 break;
         }
-
-
+    }
+    cancelFreePenFig( targetPanel) {
+        this.deleteTempNodes();
+        this.tmpNodes = null;
+        this.freePenPoints = [];
+        this.prevPoint = null;
+    }
+    finalizeFreePenFig( targetPanel) {
+        const node = new FreePen(this.THREE, this.scene, this.prevPoint[0],
+            this.prevPoint[1], this.freePenPoints, "freePen", parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#color').val());
+        this.deleteTempNodes();
+        this.tmpNodes = null;
+        this.onNewShape(node);
+        //console.log(this.freePenPoints);
+        //this.tmpNodes.push(node);
+        this.freePenPoints = [];
+        this.prevPoint = null;
+    }
+    onSelection(event, targetPanel) {
+        const mouse3D = new this.THREE.Vector3((event.clientX - targetPanel.offsetLeft - 0),
+            (event.clientY - targetPanel.offsetTop - 0), -1000); //z == camera.far
         const raycaster = new this.THREE.Raycaster();
-        raycaster.set(mouse3D, new this.THREE.Vector3(0, 0, -1));
+        raycaster.set(mouse3D, new this.THREE.Vector3(0, 0, 1));
 
         const intersects = raycaster.intersectObjects(this.scene.children);
 
         if (intersects.length > 0) {
             //TODO: dodac sortowanie po buferze Z
-            this.select(intersects[0].object);
-        } else
+            this.select(intersects[intersects.length-1].object);
+        }
+        else
             this.select(null);
     }
+    carbonCopy() {
+        if(!this.selectedNode) return;
+        const node = this.selectedNode.carbonCopy();
 
+        this.onNewShape(node);
+        this.type = cShape.SELECT;        
+    }
+    Clone() {
+        if(!this.selectedNode) return;
+        const node = this.selectedNode.clone();
+
+        this.onNewShape(node);
+        this.type = cShape.SELECT;        
+    }
     deleteTempNodes() {
         if(!this.tmpNodes) return;
 
         this.tmpNodes.map( (selectedNode) => {
-            if(selectedNode == null) return;
+            if(selectedNode === null) return;
             this.scene.remove(selectedNode.mesh);
             selectedNode.linie && this.scene.remove(selectedNode.linie);
-            this.OBJECTS = this.OBJECTS.filter((obj) => obj != selectedNode);
-            this.meshes = this.meshes.filter((obj) => obj != selectedNode.mesh);
+            this.OBJECTS = this.OBJECTS.filter((obj) => obj !== selectedNode);
+            this.meshes = this.meshes.filter((obj) => obj !== selectedNode.mesh);
         });
     }
     select(pole) {
+        //sprawdź czy nie chwytamy za róg
+        if(this.selectedNode && pole != null && pole.name.indexOf("corner") === 0) {
+            for (let shape of this.selectedNode.node) {
+                if(pole === shape.mesh) {
+                    shape.select(true);
+                    shape.setFillColor(0xffffff);
+                    this.selectedCorner = shape;
+                    break;
+                }
+                else {
+                    shape.setFillColor(0x000000);
+                    shape === this.selectedCorner && (this.selectedCorner = null);
+                }
+            }
+            return;
+        }
+        
         for (let shape of this.OBJECTS) {
-            if (pole == null || shape.mesh !== pole)
-                shape.setDefaultColor();
+            if (pole === null || shape.mesh !== pole)
+                shape.select(false);
             else if (pole != null) {
                 if(shape.label == "freePen")
                     shape.setFillColor(0xAAAAAA);
                 else
                     shape.setFillColor(0xffffff);
                 this.selectedNode = shape;
+                Global.selectedShape = this.selectedNode;
+                //this.selectMenu(shape.type);
+                //this.type = cShape.SELECT;
+
+                this.selectedCorner = null;
+                if(this.selectedNode.node )
+                    for (let shape of this.selectedNode.node) {
+                        shape.setFillColor(0x000000);
+                    }
+
+                shape.select(true);
             }
+        }
+        if(pole === null) {
+            this.selectedNode = null;
+            Global.selectedShape = this.selectedNode;
+            this.selectedCorner = null;
         }
     }
 }

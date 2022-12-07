@@ -1,26 +1,153 @@
+import { cShape } from '../shapetype.js';
+import * as THREE from '../threejs/three.module.js';
+import Global from '../Global.js';
+import {    Rectangle} from './Rectangle'
+
 const rozmiarPola = 50;
 
 class Shape {
-    constructor(THREE, scene,  y, x, label, ) {
+    static Z = -100;       //pozycja na osi Z
+    static Zmin = -100;       //pozycja na osi Z
+    static Zmax = -100;       //pozycja na osi Z
+    constructor(shapeType, THREE, scene,  y, x, label, ignoreZ) {
         const dt = new Date();
-        this.THREE = THREE;
+        this.type = shapeType;
         this.scene = scene;
         this.siz = rozmiarPola;                             //rozmiar boku kwadratu węzła
         this.label = label?label: this.constructor.name;    //domyślnba etykieta to nazwa klasy, unikalna - sam obiekt Rectangle
         this.x = x;
         this.y = y;
+        this.scaleX = 1;
+        this.scaleY = 1;
         this.mesh = null;       //rysowane obiekty threejs
         this.linie = null;
         this.iColor = 0xE9E9E9;
         this.date = dt.toISOString();
         this.ticks = `${this.dateToTicks(dt)}`;
+        this.Z = Shape.Z;
+        
+        !ignoreZ ? Shape.Z++:this.Z--;
+        !ignoreZ && (Shape.Zmax = Shape.Z+1);
     }
     dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
-    rmShape() {
-        this.scene.remove(this.mesh);
-        this.scene.remove(this.linie);
 
+    ZPlus(){
+//        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu
+        this.Z+=2;
+        this.mesh && (this.mesh.position.z = this.Z);
+        this.linie && (this.linie.position.z = this.Z);
+        this.node.length > 0 && this.node.map(pt=> {
+            pt.mesh && (pt.mesh.position.z = this.Z);
+            pt.linie && (pt.linie.position.z = this.Z);
+        });
+    }
+    ZMinus(){
+  //      if(this.Z <= -100) return;       //nie ma potrzeby dodawać, już jest na dnie
+        this.Z-=2;
+        this.mesh && (this.mesh.position.z = this.Z);
+        this.linie && (this.linie.position.z = this.Z);
+        this.node.length > 0 && this.node.map(pt=> {
+            pt.mesh && (pt.mesh.position.z = this.Z);
+            pt.linie && (pt.linie.position.z = this.Z);
+        });
+    }
+    setScaleX(val) {
+        this.scaleX = val;
+        this.rescale();
+    }
+    rescale() {
+        this.mesh.scale.set(this.scaleX, this.scaleY);
+        this.line.scale.set(this.scaleX, this.scaleY);
+        this.mvShape([0, 0], [0, 0]);
+    }
+
+    setScaleY(val) {
+        this.scaleY = val;
+        this.rescale();
+    }
+
+    rmShape() {
+        this.mesh && this.scene.remove(this.mesh);
+        this.linie && this.scene.remove(this.linie);
         this.mesh = this.linie = null;
+    }
+    mvShape(start, stop) {
+        this.x += stop[0] - start[0];
+        this.y += stop[1] - start[1];
+        this.mesh && this.mesh.position.set(this.x, this.y, this.Z);
+        this.linie && this.linie.position.set(this.x, this.y, this.Z);
+    }
+    //tworzy i wraca kopię obiektu
+    carbonCopy() {
+        const obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label+"_cc");
+
+        obj.mesh= new THREE.Mesh( 
+            this.mesh.geometry.clone(), 
+            new THREE.MeshStandardMaterial().copy( this.mesh.material )
+        );
+        obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+        obj.scene = this.scene;
+        obj.scene.add(obj.mesh);
+        if(this.linie) {
+            obj.linie = new THREE.LineSegments( 
+                this.linie.geometry.clone(), 
+                new THREE.LineBasicMaterial().copy( this.mesh.material )
+            );
+            obj.scene.add(obj.linie);
+            obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
+        }
+        switch(obj.type) {
+            case cShape.RECT:
+                {
+                    const halfSize = Global.halfSize;
+                    const cornerSize = Global.cornerSize;
+                    const rot = 0;
+                    const x = obj.x;
+                    const y = obj.y;
+                    // obj.node = [];
+                    // obj.node.push(new Rectangle(THREE, obj.scene, x-halfSize,            y-halfSize + this.a, "corner",cornerSize,cornerSize, "0x000000", rot, true,1 ));
+                    // obj.node.push(new Rectangle(THREE, obj.scene, x-halfSize,            y-halfSize, "corner",cornerSize,cornerSize, "0x000000", rot, true , 0));    //(0,0)
+                    // obj.node.push(new Rectangle(THREE, obj.scene, x-halfSize + obj.b,   y-halfSize + this.a, "corner",cornerSize,cornerSize, "0x000000", rot, true,2 ));
+                    // obj.node.push(new Rectangle(THREE, obj.scene, x-halfSize + obj.b,   y-halfSize, "corner",cornerSize,cornerSize, "0x000000", rot, true,3 ));
+                    // for(let c of obj.node)
+                    //     c.parent = obj;
+                    // obj.node.map((pt) => pt.drawShape());
+                }
+                break;
+            default:
+                break;
+        }
+        return obj;
+    }
+    clone() {
+        const obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label+"_cc");
+        obj.mesh = this.mesh.clone();
+        obj.scene = this.scene;
+        obj.scene.add(obj.mesh);
+        this.linie && (obj.linie = this.linie.clone());
+        this.linie && obj.scene.add(obj.linie);
+        
+        //klonuj na lewo
+
+        switch(obj.type) {
+            case cShape.RECT:
+                {
+                    obj.mesh.position.set(this.mesh.position.x - this.b,this.mesh.position.y,this.mesh.position.z);
+                    obj.linie && obj.linie.position.set(this.linie.position.x - this.b,this.linie.position.y,this.linie.position.z);
+                            }
+                break;
+            case cShape.NGON:
+                {
+                    obj.mesh.position.set(this.mesh.position.x - this.radius*2,this.mesh.position.y,this.mesh.position.z);
+                    obj.linie && obj.linie.position.set(this.linie.position.x - this.radius*2,this.linie.position.y,this.linie.position.z);
+                }
+
+            default:
+                break;
+        }
+
+
+        return obj;
     }
 
     recreateShape(obj) {
@@ -54,47 +181,47 @@ class Shape {
             
         }
         if(obj.points.length == 7) {
-            pkt.push(new this.THREE.Vector3(obj.points[1].x, obj.points[1].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[2].x, obj.points[2].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[2].x, obj.points[2].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[4].x, obj.points[4].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[4].x, obj.points[4].y, 0));
-            pkt.push(new this.THREE.Vector3(obj.points[1].x, obj.points[1].y, 0));//zamykamy obwód
+            pkt.push(new THREE.Vector3(obj.points[1].x, obj.points[1].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[2].x, obj.points[2].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[2].x, obj.points[2].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[4].x, obj.points[4].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[4].x, obj.points[4].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[1].x, obj.points[1].y, 0));//zamykamy obwód
         }
         else {
             for(let i=0; i < obj.points.length - 1 ; i++) {
-                pkt.push(new this.THREE.Vector3(obj.points[i].x, obj.points[i].y, 0));
+                pkt.push(new THREE.Vector3(obj.points[i].x, obj.points[i].y, 0));
                 
-                pkt.push(new this.THREE.Vector3(obj.points[i+1].x, obj.points[i+1].y, 0));
+                pkt.push(new THREE.Vector3(obj.points[i+1].x, obj.points[i+1].y, 0));
             }
-            pkt.push(new this.THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
+            pkt.push(new THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
         }         
-        let geometry = new this.THREE.BufferGeometry();
-        geometry.setAttribute('position', new this.THREE.Float32BufferAttribute(verts, 3));
-        geometry.setAttribute('normal', new this.THREE.Float32BufferAttribute(normals, 3));
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     
     
-        const material = new this.THREE.MeshStandardMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: this.iColor,
         });
-        material.side = this.THREE.DoubleSide;
+        material.side = THREE.DoubleSide;
     
     
-        let box = new this.THREE.Mesh(geometry, material);
+        let box = new THREE.Mesh(geometry, material);
         box.name = "name";
         //box.position.set(this.x , this.y );
         this.scene.add(box);
     
-        const materialL = new this.THREE.LineBasicMaterial({
+        const materialL = new THREE.LineBasicMaterial({
             color: 0x000000,
             transparent: true,
             linewidth: 3,
             opacity: 0.7,
         });
-        const geometryL = new this.THREE.BufferGeometry().setFromPoints(pkt);
-        const linie = new this.THREE.LineSegments(geometryL, materialL);
+        const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
+        const linie = new THREE.LineSegments(geometryL, materialL);
     
         this.scene.add(linie);
        
@@ -106,6 +233,9 @@ class Shape {
         this.linie.name = `${obj.name}_linie`;
     }
 
+    select(flag) {
+        !flag && this.setDefaultColor();
+    }
     drawShape() {
 
         if(this.mesh !== null)
@@ -139,38 +269,38 @@ class Shape {
         verts.push(a,0,0);
         normals.push(0,0,1);
             
-        let geometry = new this.THREE.BufferGeometry();
-        geometry.setAttribute('position', new this.THREE.Float32BufferAttribute(verts, 3));
-        geometry.setAttribute('normal', new this.THREE.Float32BufferAttribute(normals, 3));
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     
-        const material = new this.THREE.MeshStandardMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: this.iColor,
         });
-        material.side = this.THREE.DoubleSide;
+        material.side = THREE.DoubleSide;
     
     
-        let box = new this.THREE.Mesh(geometry, material);
+        let box = new THREE.Mesh(geometry, material);
         box.name = "name";
         box.position.set(this.x * a, this.y * a);
         this.scene.add(box);
         const pkt = [];
         
         
-        pkt.push(new this.THREE.Vector3(0, 0, 0));
-        pkt.push(new this.THREE.Vector3(0, a, 0));
-        pkt.push(new this.THREE.Vector3(a, a, 0));
-        pkt.push(new this.THREE.Vector3(a, 0, 0));
-        pkt.push(new this.THREE.Vector3(0, 0, 0));
+        pkt.push(new THREE.Vector3(0, 0, 0));
+        pkt.push(new THREE.Vector3(0, a, 0));
+        pkt.push(new THREE.Vector3(a, a, 0));
+        pkt.push(new THREE.Vector3(a, 0, 0));
+        pkt.push(new THREE.Vector3(0, 0, 0));
     
     
-        const materialL = new this.THREE.LineBasicMaterial({
+        const materialL = new THREE.LineBasicMaterial({
             color: 0x000000,
             transparent: true,
             linewidth: 3,
             opacity: 0.7,
         });
-        const geometryL = new this.THREE.BufferGeometry().setFromPoints(pkt);
-        const linie = new this.THREE.LineSegments(geometryL, materialL);
+        const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
+        const linie = new THREE.LineSegments(geometryL, materialL);
     
         this.scene.add(linie);
        

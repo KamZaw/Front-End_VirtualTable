@@ -6,7 +6,20 @@ const cShape ={
     POLYGON:    4,
     FREEPEN:    5,
     
-    DELETE:     15,
+    ZPLUS:          11,
+    ZMINUS:         12,
+    SELECT:         13,
+    MOVE:           14,
+    DELETE:         15,
+    FREEPEN_CLOSE:  16,
+    FREEPEN_CANCEL: 17,
+    COPY:           18,
+    CLONE:          19,
+    COLORCHANGE:    20,
+    SCALEX:         21,
+    SCALEY:         22,
+    NEW:            23,
+    SAVE_SVG:       24,
 };
 
 const cAction = {

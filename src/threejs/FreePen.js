@@ -1,21 +1,24 @@
 import {Shape} from './Shape.js'
 import Point from './Point';
+import { cShape } from '../shapetype.js';
+import * as THREE from '../threejs/three.module.js';
 
 class FreePen extends Shape{
 
-    constructor(THREE, scene, x, y, prev, label, a, b, color ) {
-        super(THREE, scene, x, y, label);
+    constructor(THREE, scene, x, y, prev, label, a, b, color, ignoreZ ) {
+        super(cShape.FREEPEN, THREE, scene, x, y, label,ignoreZ);
         this.iColor = parseInt(color);
         this.scene = scene;
         this.b = b;
         this.a = a;
+        this.x = this.y = 0;
         this.points = [];
         this.prev = prev[0]?[...prev,[x,y]]:[[x,y], [x,y]];
     }
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany
-        if (this.THREE == null)
+        if (THREE == null)
             return;
 
         const prev = this.prev;
@@ -38,6 +41,12 @@ class FreePen extends Shape{
             
             const sX = prev[i+1][0];
             const sY = prev[i+1][1];
+            if (i < prev.length-2)
+                if(sX == prev[i+2][0] && sY == prev[i+2][1]) {
+                    i++;
+                    continue;
+                }
+
 
             if(x < sX) {
                 a = -a;
@@ -99,22 +108,28 @@ class FreePen extends Shape{
             }
         }            
          
-        let geometry = new this.THREE.BufferGeometry();
-        geometry.setAttribute('position', new this.THREE.Float32BufferAttribute(verts, 3));
-        geometry.setAttribute('normal', new this.THREE.Float32BufferAttribute(normals, 3));
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     
     
-        const material = new this.THREE.MeshStandardMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: this.iColor,//0xE9E9E9,
             wireframe: !true,
         });
-        material.side = this.THREE.DoubleSide; 
+        material.side = THREE.DoubleSide; 
     
     
-        let box = new this.THREE.Mesh(geometry, material);
+        let box = new THREE.Mesh(geometry, material);
         box.name = "name";
+        box.position.set(0,0, this.Z);
         this.scene.add(box);
+        
+        
+        console.log(box.boundingBox);
+
         // box.position.set(this.y , -this.x );
+        
         this.mesh = box;
 
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;

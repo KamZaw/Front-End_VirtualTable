@@ -1,6 +1,7 @@
 import './assets/App.css';
 import React from 'react';
 import Main from './components/Main';
+import LoginForm from './components/LoginForm';
 // import Global from './Global';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
 
