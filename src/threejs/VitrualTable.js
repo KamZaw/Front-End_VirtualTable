@@ -1,5 +1,5 @@
 import '../assets/main.css';
-import $ from 'jquery'
+// import $ from 'jquery'
 import Global from '../Global';
 import {
     Rectangle
@@ -32,8 +32,8 @@ class VitrualTable {
         this.tmpNodes = null;
         this.freePenSeparator = false;      //klika gdy luzujemy przycisk myszki, ważne 
         this.selectMenu = selectMenuCallback;
+        this.histStack = [];
         this.init();
-
     }
 
 
@@ -113,12 +113,17 @@ class VitrualTable {
     onNewShape(node) {
         node.drawShape();
         this.addShape(node);
-        this.selectedNode = node;
+        
+        this.select(node.mesh);
+        
+        
         Global.selectedShape = this.selectedNode;
-        this.select(null);
+        
         this.action !== cAction.FREEPEN && this.type !== cShape.FREEPEN && node.setFillColor(0xffffff);
         this.action === cAction.NONE && this.putData(node);
+        // this.type = cShape.SELECT;
     }
+    
     onMouseMove(event, targetPanel, camera, wd, hd) {
         this.action == cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
         //this.action == cAction.MOVE && 
@@ -156,7 +161,7 @@ class VitrualTable {
                             
                         }
                         const node = new FreePen(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), [this.prevPoint], "freePen",  parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#color').val(), true);
+                            (event.clientY - targetPanel.offsetTop), [this.prevPoint], "freePen",  parseInt(document.getElementById("radius").value), parseInt(document.getElementById("radius").value), "0x" + document.getElementById('color').value, true);
                         this.onNewShape(node);
 
                         if(this.tmpNodes == null) {
@@ -207,14 +212,14 @@ class VitrualTable {
             case 1: //left
                 switch (this.type) {
                     case cShape.RECT: {
-                        const node = new Rectangle(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), "prostokat", $("#rect_height").val(), $("#rect_width").val(), "0x" + $('#color').val(), 0);
+                        const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                            (event.clientY - targetPanel.offsetTop), "prostokat", document.getElementById("rect_height").value, 4, "0x" + document.getElementById('color').value, document.getElementById("rect_width").value,true);                            
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.NGON: {
                         const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), "ngon", $("#radius").val(), $("#ngons").val(), "0x" + $('#color').val());
+                            (event.clientY - targetPanel.offsetTop), "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value);
                         this.onNewShape(node);
                         break;
                     }
@@ -256,7 +261,7 @@ class VitrualTable {
     }
     finalizeFreePenFig( targetPanel) {
         const node = new FreePen(this.THREE, this.scene, this.prevPoint[0],
-            this.prevPoint[1], this.freePenPoints, "freePen", parseInt($("#radius").val()), parseInt($("#radius").val()), "0x" + $('#color').val());
+            this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("radius").value), parseInt(document.getElementById("radius").value), "0x" + document.getElementById('color').value);
         this.deleteTempNodes();
         this.tmpNodes = null;
         this.onNewShape(node);

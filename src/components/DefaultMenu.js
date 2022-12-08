@@ -3,6 +3,7 @@ import Global from "../Global";
 // import $ from 'jquery'
 import { cShape } from "../shapetype";
 import LoginForm from "./LoginForm"
+import MessageBox from "./MessageBox"
 
 
 
@@ -14,10 +15,15 @@ class DefaultMenu extends Component {
         this.onZChangeMinus = this.onZChangeMinus.bind(this);
         this.onChange = this.onChange.bind(this);
         this.openLogin = this.openLogin.bind(this);
-
         this.state = {
-            isLoginVisible: false,
+            isLogin: false,
+            isLoginWindow: false,
             defaultValue: "FF0000",
+            isOpenWindow: false,
+
+            isOpenMsgWindow: false,
+            title: "",
+            msg: "",
         };
     }
  
@@ -25,21 +31,27 @@ class DefaultMenu extends Component {
         this.props.action(cShape.ZPLUS);
     }
     onNew() {
-        this.props.action(cShape.NEW);
+        this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true,});
     }
     onSaveSVG() {
         this.props.action(cShape.SAVE_SVG);
+    }
+    onRedo(){
+        this.props.action(cShape.REDO);
+    }
+    onUndo() {
+        this.props.action(cShape.UNDO);
     }
     onZChangeMinus() {
         this.props.action(cShape.ZMINUS);
     }
     onChange = event => {
-        this.setState({ defaultValue: (event.target.value), isLoginVisible: false });  
+        this.setState({ defaultValue: (event.target.value), isLogin: false });  
         document.getElementById("colorpicker").style.background = "#"+this.state.defaultValue;
         this.props.action(cShape.COLORCHANGE);
     }
     openLogin() {
-        this.setState({ defaultValue: this.state.defaultValue, isLoginVisible: true });  
+        this.setState({ ...this.state, isLoginWindow: !this.state.isLogin, isOpenWindow: true, });  
     }
     componentDidUpdate(){
         
@@ -49,13 +61,26 @@ class DefaultMenu extends Component {
     }
     componentDidMount() {
         this.componentDidUpdate();
+
     }
+    hideLoginWindow(val, val2) {
+        this.setState({...this.state, isLogin: val,isLoginWindow: val2, isOpenWindow: false,});
+    }
+    responseMsgWindow(val) {
+        if(val)
+            this.props.action(cShape.NEW);
+        this.setState({...this.state, title:"", msg: "", isOpenMsgWindow: false,});
+    }
+
     render() {
         return(
             <>
                 <span className="left">
                     <button  id="new" onClick = {this.onNew.bind(this) }>Nowe</button>
                     <button  id="save" onClick = {this.onSaveSVG.bind(this) }>Zapisz</button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button  id="history_undo" onClick = {this.onUndo.bind(this) }>&lt; Cofnij</button>
+                    <button  id="history_redo" onClick = {this.onRedo.bind(this) }>Powrót &gt;</button>
                 </span>
                 
                 <div id="colorpicker" onClick = {this.onChange}>&nbsp;</div>
@@ -66,9 +91,10 @@ class DefaultMenu extends Component {
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
 
-                <button className="right" id="open_loginform" onClick = {this.openLogin }>Login</button>
+                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={this.state.isLogin==false?"Login":"LogOut"}></input>
                 
-                <LoginForm isVisible={this.state.isLoginVisible}/>
+                <LoginForm isVisible={this.state.isLoginWindow} isLogin={this.state.isOpenWindow && this.state.isLogin} action={this.hideLoginWindow.bind(this)}/>
+                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} action={this.responseMsgWindow.bind(this)}/>
             </>
             
             );
@@ -78,7 +104,7 @@ class DefaultMenu extends Component {
 class EmptyMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state = {
+        this.state = { ...this.state,
             defaultValue: Global.selectedShape?""+Global.selectedShape.toString(16):"17B854",
         };
         this.copyFig = this.copyFig.bind(this);
@@ -120,9 +146,7 @@ class EmptyMenu extends DefaultMenu {
 class RectangleMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state = {
-            defaultValue: "17B854",
-        };
+        this.state.defaultValue= "17B854";
     }
     render() {
         return(
@@ -132,7 +156,7 @@ class RectangleMenu extends DefaultMenu {
                 szer:
                 <input id="rect_width" className="button_menu" placeholder="Szer..." defaultValue="320"/>
                  wys:
-                <input id="rect_height" className="button_menu" placeholder="Wys..." defaultValue="180" />
+                <input id="rect_height" className="button_menu" placeholder="Wys..." defaultValue="150" />
                 {super.render()}
             </div>
             </>
@@ -143,10 +167,7 @@ class RectangleMenu extends DefaultMenu {
 class NGONMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state = {
-            defaultValue: "1778F4",
-        };
-        
+        this.state.defaultValue= "1778F4";
     }
     render() {
         
@@ -154,7 +175,7 @@ class NGONMenu extends DefaultMenu {
             <>
             <div id="menubar" className = "menubar">
                 <b>Wielokąt </b>
-                n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
+                n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="4"/>
                 r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
                 {super.render()}
                 
@@ -167,9 +188,7 @@ class NGONMenu extends DefaultMenu {
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state = {
-            defaultValue: "000000",
-        };
+        this.state.defaultValue= "000000";
         this.onFinalizeFig = this.onFinalizeFig.bind(this);
     }
     onFinalizeFig(event) {

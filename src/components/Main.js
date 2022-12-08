@@ -8,6 +8,7 @@ import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import FirebaseUpdate from './FirebaseUpdate';
 import {cShape} from '../shapetype';
+import {onAuthStateChanged} from "firebase/auth"
 
 const targetPanelString = 'main_panel';
 
@@ -25,6 +26,7 @@ class Main extends Component {
         this.selectMenuCallback = this.selectMenuCallback.bind(this);     
         this.navbar = React.createRef();
     }
+
     componentDidMount() {
 
         //console.log("MAIN* * * ")
@@ -35,7 +37,8 @@ class Main extends Component {
         //listener na zmianach w bazie danych
         //this.FBListener();
         
-        this.getShapes();
+        //czytaj z BACKENDU dane o obiektach
+        //this.getShapes();
         //TODO:analogiczne dla innych obiektów (np getTexts())
 
     }
@@ -92,6 +95,10 @@ class Main extends Component {
                 
             }
             break;
+            case cShape.UNDO:
+                break;
+            case cShape.REDO:
+                break;
             case cShape.SAVE_SVG:            
                 alert("Zapis do SVG jeszcze nie zaimplementowany");
                 break;
@@ -166,17 +173,20 @@ class Main extends Component {
 
     async getShapes() {
         const url =  `${Global.baseURL}/Shape/GetShapes`;
-        console.log(url);
+        //console.log(url);
         let response = await this.getShapesRequest(url);
         //response = JSON.parse(response);
         let shapes = [];
         
-        response.map(sh => {
-            const shape = new Shape(THREE, this.scene,  0, 0, "");
-            this.vt.addShape(shape);
-            shape.recreateShape(sh);
-
-        });
+            try{
+                response.map(sh => {
+                    const shape = new Shape(THREE, this.scene,  0, 0, "");
+                this.vt.addShape(shape);
+                    shape.recreateShape(sh);
+                });
+            }catch(err) {
+                console.log(err.message);
+            }
         //this.setState({shapes: shapes});
     }
 
@@ -230,8 +240,32 @@ class Main extends Component {
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousemove', function(event) { vt.onMouseMove(event, targetPanel, camera, wd, hd); }, false);
+        document.addEventListener('keydown', this.onKeyDown.bind(this), false);
     }
 
+    onKeyDown(event) {
+        const keyCode = event.which;
+        const vt = this.vt;
+        
+        const multiply = event.ctrlKey?10:1;
+        //przesuwamy
+        if( vt.selectedNode) {  //vt.type == cShape.SELECT &&
+            if (keyCode == event.DOM_VK_DOWN) {
+                vt.selectedNode.mvShape([0,0],[0,1*multiply]);
+                // down
+            } else if (keyCode == event.DOM_VK_UP) {
+                vt.selectedNode.mvShape([0,0],[0,-1*multiply]);
+                // left
+            } else if (keyCode == event.DOM_VK_RIGHT) {
+                vt.selectedNode.mvShape([0,0],[1*multiply,0]);
+                // right
+            } else if (keyCode == event.DOM_VK_LEFT) {
+                vt.selectedNode.mvShape([0,0],[-1*multiply,0]);
+            }else if (keyCode == event.DOM_VK_DELETE) {
+                this.delete(vt.selectedNode);
+            }
+        }
+    }
 
     //wybór menu z obiektu vt po selekcji obiektu danego typu
     selectMenuCallback(type) {
@@ -253,7 +287,7 @@ class Main extends Component {
     render() { 
         return (
            <>
-           <FirebaseUpdate action={this.onFBUpdate}/>
+           {/* <FirebaseUpdate action={this.onFBUpdate}/> */}
            <NavBar action={this.itemPicked} ref={this.navbar}/>
 
            

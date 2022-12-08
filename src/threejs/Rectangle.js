@@ -38,6 +38,61 @@ class Rectangle extends Shape{
         }
 
     }
+
+    //tworzy i wraca kopię obiektu
+    carbonCopy() {
+        let obj = new Rectangle(this.THREE, this.scene, this.x, this.y, this.label, this.a, this.b, this.iColor, 0);                              
+
+        obj.mesh= new THREE.Mesh( 
+            this.mesh.geometry.clone(), 
+            new THREE.MeshStandardMaterial().copy( this.mesh.material )
+        );
+        obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+        obj.scene = this.scene;
+        obj.scene.add(obj.mesh);
+        if(this.linie) {
+            obj.linie = new THREE.LineSegments( 
+                this.linie.geometry.clone(), 
+                new THREE.LineBasicMaterial().copy( this.mesh.material )
+            );
+            obj.scene.add(obj.linie);
+            obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
+        }
+
+        obj.node.map((pt) => pt.drawShape());
+        // obj.node = [];
+        // this.node.map((n)=>{
+        //     const crn = n.carbonCopy();
+        //     this.cornerCnt &&(crn.cornerCnt = this.cornerCnt);
+        //     crn.type = n.type;
+        //     crn.label = this.label;
+        //     crn.node = [];
+        //     crn.parent = obj;
+        //     obj.node.push(crn);
+        // })
+        return obj;
+    }
+    //TODO: tworzymy kopię dla historii i bazy firebase
+    copy() {
+        let obj = new Rectangle(this.THREE, this.scene, this.x, this.y, this.label, this.a, this.b, this.iColor, 0);                              
+
+        obj.createFromPoints(this.mesh.geometry.attributes.position.array);
+
+        obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+        obj.scene = this.scene;
+        obj.scene.add(obj.mesh);
+        if(this.linie) {
+            obj.linie = new THREE.LineSegments( 
+                this.linie.geometry.clone(), 
+                new THREE.LineBasicMaterial().copy( this.mesh.material )
+            );
+            obj.scene.add(obj.linie);
+            obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
+        }
+
+        obj.node.map((pt) => pt.drawShape());
+    }
+    
     mvShape(start, stop) {
         //przesuwamy corner
         if(!this.parent ) {

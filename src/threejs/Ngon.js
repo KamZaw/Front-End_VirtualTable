@@ -1,5 +1,4 @@
 import {Shape} from './Shape.js'
-import Point from './Point';
 import { cShape } from '../shapetype.js';
 import { Rectangle} from './Rectangle'
 import * as THREE from '../threejs/three.module.js';
@@ -9,7 +8,7 @@ import Global from '../Global.js';
 
 class Ngon extends Shape{
 
-    constructor(THREE, scene, x, y, label, radius, ngons, color ) {
+    constructor(THREE, scene, x, y, label, radius, ngons, color, b, offsetRot ) {
         super(cShape.NGON, THREE, scene, y, x, label);
         this.iColor = parseInt(color);
         this.scene = scene;
@@ -17,6 +16,8 @@ class Ngon extends Shape{
         this.n = ngons;
         this.points = [];
         this.node = [];
+        this.offsetRot = offsetRot?Math.PI/4:0;     //dla Rectangle PI/4.
+        this.b = b?b:radius;
 
     }
     rmShape() {
@@ -59,19 +60,20 @@ class Ngon extends Shape{
         const cornerSize = Global.cornerSize;
 
         let segmentCount = this.n;
-        let radius = this.radius;
+        const radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
+        const b = (this.b/this.radius);
         for (let i = segmentCount; i > 0; i--) {
-            let theta = (i / segmentCount) * Math.PI * 2;
-            let x = ~~(Math.cos(theta) * radius);
-            let y = ~~(Math.sin(theta) * radius);
+            let theta = (i / segmentCount) * Math.PI * 2 +this.offsetRot;
+            let x = Math.round(Math.cos(theta) * radius *b);
+            let y = Math.round(Math.sin(theta) * radius);
             this.node.push(new Rectangle(THREE, this.scene, x-halfSize + this.x, y-halfSize + this.y, "corner",cornerSize,cornerSize, "0x000000", 0, true,segmentCount - i ));
             verts.push( x,y, 0);
             normals.push(0,0,1);
             pkt.push(new THREE.Vector3(x, y, 0));
 
-            theta = ((i-1) / segmentCount) * Math.PI * 2;
-            x = ~~(Math.cos(theta) * radius);
-            y = ~~(Math.sin(theta) * radius);
+            theta = ((i-1) / segmentCount) * Math.PI * 2+this.offsetRot;
+            x = Math.round(Math.cos(theta) * radius *b);
+            y = Math.round(Math.sin(theta) * radius);
             
 
             verts.push( x, y, 0);

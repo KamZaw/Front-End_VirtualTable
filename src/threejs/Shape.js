@@ -1,7 +1,8 @@
 import { cShape } from '../shapetype.js';
 import * as THREE from '../threejs/three.module.js';
 import Global from '../Global.js';
-import {    Rectangle} from './Rectangle'
+import { Rectangle } from './Rectangle'
+// import { Ngon } from './Ngon'
 
 const rozmiarPola = 50;
 
@@ -36,7 +37,7 @@ class Shape {
         this.Z+=2;
         this.mesh && (this.mesh.position.z = this.Z);
         this.linie && (this.linie.position.z = this.Z);
-        this.node.length > 0 && this.node.map(pt=> {
+        this.node  && this.node.map(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
             pt.linie && (pt.linie.position.z = this.Z);
         });
@@ -46,7 +47,7 @@ class Shape {
         this.Z-=2;
         this.mesh && (this.mesh.position.z = this.Z);
         this.linie && (this.linie.position.z = this.Z);
-        this.node.length > 0 && this.node.map(pt=> {
+        this.node  && this.node.map(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
             pt.linie && (pt.linie.position.z = this.Z);
         });
@@ -57,7 +58,7 @@ class Shape {
     }
     rescale() {
         this.mesh.scale.set(this.scaleX, this.scaleY);
-        this.line.scale.set(this.scaleX, this.scaleY);
+        this.linie?.scale.set(this.scaleX, this.scaleY);
         this.mvShape([0, 0], [0, 0]);
     }
 
@@ -74,12 +75,30 @@ class Shape {
     mvShape(start, stop) {
         this.x += stop[0] - start[0];
         this.y += stop[1] - start[1];
-        this.mesh && this.mesh.position.set(this.x, this.y, this.Z);
-        this.linie && this.linie.position.set(this.x, this.y, this.Z);
+        this.mesh?.position.set(this.x, this.y, this.Z);
+        this.linie?.position.set(this.x, this.y, this.Z);
     }
     //tworzy i wraca kopię obiektu
     carbonCopy() {
-        const obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label+"_cc");
+        let obj = null;
+        // obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
+
+        switch (this.type) {
+            case cShape.RECT: {
+                obj = new Rectangle(this.THREE, this.scene, this.x, this.y, this.label, this.a, this.b, this.iColor, 0);                              
+                break;
+            }
+            case cShape.NGON: {
+                // obj = new Ngon(THREE, this.scene, this.x,this.y, this.label, this.radius, this.n, this.iColor);
+                // break;
+            }
+            case cShape.FREEPEN: {
+            } 
+            // break;   
+            default:
+                obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
+                break;
+        }
 
         obj.mesh= new THREE.Mesh( 
             this.mesh.geometry.clone(), 
@@ -96,6 +115,55 @@ class Shape {
             obj.scene.add(obj.linie);
             obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
         }
+
+        // obj.node = [];
+        // this.node.map((n)=>{
+        //     const crn = n.carbonCopy();
+        //     this.cornerCnt &&(crn.cornerCnt = this.cornerCnt);
+        //     crn.type = n.type;
+        //     crn.label = this.label;
+        //     crn.node = [];
+        //     crn.parent = obj;
+        //     obj.node.push(crn);
+        // })
+        return obj;
+    }
+    //tworzy i wraca kopię obiektu
+    copy() {
+        
+        let obj = null;
+
+        switch (this.type) {
+            case cShape.RECT: {
+                obj = new Rectangle(this.THREE, this.scene, this.x, this.y, this.label, this.a, this.b, this.iColor, 0);
+                break;
+            }
+            case cShape.NGON: {
+                break;
+            }
+            case cShape.FREEPEN: {
+            } 
+            break;   
+            default:
+                obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
+                break;
+        }
+
+        obj.mesh= new THREE.Mesh( 
+            this.mesh.geometry.clone(), 
+            new THREE.MeshStandardMaterial().copy( this.mesh.material )
+        );
+        obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+        obj.scene = this.scene;
+        
+        if(this.linie) {
+            obj.linie = new THREE.LineSegments( 
+                this.linie.geometry.clone(), 
+                new THREE.LineBasicMaterial().copy( this.mesh.material )
+            );
+            obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
+        }
+
         switch(obj.type) {
             case cShape.RECT:
                 {
@@ -119,6 +187,7 @@ class Shape {
         }
         return obj;
     }
+    
     clone() {
         const obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label+"_cc");
         obj.mesh = this.mesh.clone();
@@ -314,10 +383,10 @@ class Shape {
     }
     setDefaultColor() {
         //this.mesh.material.color.setHex( this.iColor );
-        this.linie && this.linie.material.color.setHex( 0x000000 );
+        this.linie?.material.color.setHex( 0x000000 );
     }
     setFillColor(fillColor){
-        this.linie && this.linie.material.color.setHex( fillColor );
+        this.linie?.material.color.setHex( fillColor );
     }
     getFillColor(){
         return this.linie? this.linie.material.color:0;

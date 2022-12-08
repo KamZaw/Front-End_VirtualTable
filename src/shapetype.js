@@ -20,6 +20,8 @@ const cShape ={
     SCALEY:         22,
     NEW:            23,
     SAVE_SVG:       24,
+    UNDO:           25,
+    REDO:           26,
 };
 
 const cAction = {

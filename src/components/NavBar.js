@@ -44,17 +44,18 @@ class NavBar extends Component {
         
         return(
             <>
-                {this.component}
+                
                 <div id="toolbar" className = "toolbar">
                     <MenuOption id="sel" type = {cShape.SELECT} action={this.menuItemSelectedHandler}>sel</MenuOption>
-                    <MenuOption id="mov" type = {cShape.MOVE} action={this.menuItemSelectedHandler}>mv</MenuOption>
+                    {/* <MenuOption id="mov" type = {cShape.MOVE} action={this.menuItemSelectedHandler}>mv</MenuOption> */}
+                    <MenuOption id="freepen" type = {cShape.FREEPEN} action={this.menuItemSelectedHandler}>pen</MenuOption>
                     <br/>
                     <MenuOption id="rect" type = {cShape.RECT} action={this.menuItemSelectedHandler}>sq</MenuOption>
                     <MenuOption id="ngon" type = {cShape.NGON} action={this.menuItemSelectedHandler}>ngon</MenuOption>
                     <br/>
-                    <MenuOption id="freepen" type = {cShape.FREEPEN} action={this.menuItemSelectedHandler}>pen</MenuOption>
+                    
                     <MenuOption id="del" type = {cShape.DELETE} action={this.menuItemSelectedHandler}>del</MenuOption>
-                </div>
+                </div>{this.component}
             </>
             );
     }
