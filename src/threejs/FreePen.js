@@ -1,5 +1,4 @@
 import {Shape} from './Shape.js'
-import Point from './Point';
 import { cShape } from '../shapetype.js';
 import * as THREE from '../threejs/three.module.js';
 

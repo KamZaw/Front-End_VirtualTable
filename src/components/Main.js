@@ -140,10 +140,12 @@ class Main extends Component {
             case cShape.COPY:      //kopiuje i powiela zaznaczoną figurę
             {
                 vt.carbonCopy();
+                break;
             }
             case cShape.CLONE:      //kopiuje i powiela zaznaczoną figurę
             {
                 vt.Clone();
+                break;
             }
             
             // case cShape.RECT:

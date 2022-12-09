@@ -2,9 +2,6 @@ import '../assets/main.css';
 // import $ from 'jquery'
 import Global from '../Global';
 import {
-    Rectangle
-} from './Rectangle'
-import {
     Ngon
 } from './Ngon'
 import {
@@ -289,7 +286,8 @@ class VitrualTable {
         if(!this.selectedNode) return;
         const node = this.selectedNode.carbonCopy();
 
-        this.onNewShape(node);
+        // this.onNewShape(node);
+        this.addShape(node);
         this.type = cShape.SELECT;        
     }
     Clone() {
