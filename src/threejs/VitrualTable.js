@@ -284,7 +284,7 @@ class VitrualTable {
     }
     carbonCopy() {
         if(!this.selectedNode) return;
-        const node = this.selectedNode.carbonCopy();
+        const node = this.selectedNode.copy();
 
         // this.onNewShape(node);
         this.addShape(node);

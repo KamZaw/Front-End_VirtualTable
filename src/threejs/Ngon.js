@@ -115,10 +115,41 @@ class Ngon extends Shape{
 
         this.node && obj.mvShape([0,0],[0,0]);
         
-        this.node && obj.mesh.material.color.setHex(0xFF0000);
+        // this.node && obj.mesh.material.color.setHex(0xFF0000);
         return obj;
     }
 
+    copy() {
+        let obj = new Ngon(THREE,this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
+        obj.node = [];
+
+        obj.recreateShape(this);
+        return obj;
+    }
+    recreateShape(obj) {
+        const verts = [];
+        const normals = [];
+        const pts = [];
+
+        let mesh = obj.mesh.geometry.attributes.position.array;
+        for(let i = 0; i < mesh.length-1; i+=3) {
+            verts.push(mesh[i],mesh[i+1],mesh[i+2]);
+            normals.push(0,0,1);
+            const x = mesh[i];
+            const y = mesh[i + 1];
+            const cornerSize = Global.cornerSize;
+            ((i % 6 == 0)) && this.node?.push(new Ngon(THREE, this.scene, x + this.x, y + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/6));
+        }
+        this.node?.map(c => c.parent = this);
+        mesh = obj.linie.geometry.attributes.position.array;
+        for(let i = 0; i < mesh.length-1; i+=3)
+            pts.push(new THREE.Vector3(mesh[i],mesh[i+1],mesh[i+2]));
+        
+            
+        
+        this.createMesh(verts, normals, pts);
+        
+    }   
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany
@@ -156,27 +187,30 @@ class Ngon extends Shape{
                 c.parent = this;        
         }
         
+        this.createMesh(verts, normals, pkt);
+    }
+
+    createMesh(verts, normals, pkt) {
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
         geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    
-    
+
+
         const material = new THREE.MeshStandardMaterial({
-            color: this.iColor,//0xE9E9E9,
+            color: this.iColor, //0xE9E9E9,
             // wireframe: true,
             // transparent: this.cornerCnt?false:true,
             // opacity: 0.7,
-            
         });
-        material.side = THREE.DoubleSide; 
-    
-    
+        material.side = THREE.DoubleSide;
+
+
         let box = new THREE.Mesh(geometry, material);
         box.name = "name";
         this.scene.add(box);
-        
-    
-    
+
+
+
         const materialL = new THREE.LineBasicMaterial({
             color: 0x000000,
             linewidth: 1,
@@ -184,16 +218,16 @@ class Ngon extends Shape{
         });
         const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
         const linie = new THREE.LineSegments(geometryL, materialL);
-    
+
         this.scene.add(linie);
-        box.position.set(this.x , this.y, this.Z );
-        linie.position.set(this.x , this.y, this.Z+1);
+        box.position.set(this.x, this.y, this.Z);
+        linie.position.set(this.x, this.y, this.Z + 1);
         this.mesh = box;
         this.linie = linie;
 
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-  
+
 
         this.node?.map((pt) => pt.drawShape());
     }
