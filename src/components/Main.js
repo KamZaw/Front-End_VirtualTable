@@ -88,6 +88,8 @@ class Main extends Component {
         switch(type) {
             case cShape.NEW:{
                 //może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
+                vt.historyClear();
+
                 this.cleanTHREE();
                 this.OBJECTS = [];
                 this.meshes = [];
@@ -96,40 +98,50 @@ class Main extends Component {
             }
             break;
             case cShape.UNDO:
+                this.cleanTHREE();
+                vt.historyPop();
                 break;
             case cShape.REDO:
+                vt.historyRedo();
                 break;
             case cShape.SAVE_SVG:            
                 alert("Zapis do SVG jeszcze nie zaimplementowany");
                 break;
             case cShape.ZPLUS:
                 vt.selectedNode && vt.selectedNode.ZPlus();
+                vt.historyAdd();
                 break;
             case cShape.ZMINUS:
                 vt.selectedNode && vt.selectedNode.ZMinus();
+                vt.historyAdd();
                 break;
             case cShape.SCALEX:
                 vt.selectedNode && vt.selectedNode.setScaleX(.7);
+                vt.historyAdd();
                 break;
             case cShape.SCALEY:
                 vt.selectedNode && vt.selectedNode.setScaleY(.7);
+                vt.historyAdd();
                 break;
     
                     case cShape.DELETE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode) {
                     this.delete(vt.selectedNode);
                 }
+                vt.historyAdd();
                 break;
             case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode && document.getElementById("color").value) {
                     vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value,);
                     vt.selectedNode.mesh.material.color.setHex(vt.selectedNode.iColor);
+                    vt.historyAdd();
                 }
                 break;
 
             case cShape.FREEPEN_CLOSE:
                 const target = document.getElementById(targetPanelString);
                 vt.finalizeFreePenFig(target);
+                vt.historyAdd();
                 break;
             case cShape.FREEPEN_CANCEL: 
             {
@@ -140,11 +152,13 @@ class Main extends Component {
             case cShape.COPY:      //kopiuje i powiela zaznaczoną figurę
             {
                 vt.carbonCopy();
+                vt.historyAdd();
                 break;
             }
             case cShape.CLONE:      //kopiuje i powiela zaznaczoną figurę
             {
                 vt.Clone();
+                vt.historyAdd();
                 break;
             }
             

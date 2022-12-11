@@ -34,20 +34,20 @@ class Shape {
 //        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu
         this.Z+=2;
         this.mesh && (this.mesh.position.z = this.Z);
-        this.linie && (this.linie.position.z = this.Z);
+        this.linie && (this.linie.position.z = this.Z+1);
         this.node  && this.node.map(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
-            pt.linie && (pt.linie.position.z = this.Z);
+            pt.linie && (pt.linie.position.z = this.Z+1);
         });
     }
     ZMinus(){
   //      if(this.Z <= -100) return;       //nie ma potrzeby dodawać, już jest na dnie
         this.Z-=2;
         this.mesh && (this.mesh.position.z = this.Z);
-        this.linie && (this.linie.position.z = this.Z);
+        this.linie && (this.linie.position.z = this.Z+1);
         this.node  && this.node.map(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
-            pt.linie && (pt.linie.position.z = this.Z);
+            pt.linie && (pt.linie.position.z = this.Z+1);
         });
     }
     setScaleX(val) {
@@ -74,7 +74,7 @@ class Shape {
         this.x += stop[0] - start[0];
         this.y += stop[1] - start[1];
         this.mesh?.position.set(this.x, this.y, this.Z);
-        this.linie?.position.set(this.x, this.y, this.Z);
+        this.linie?.position.set(this.x, this.y, this.Z+1);
     }
  
     //tworzy i wraca kopię obiektu

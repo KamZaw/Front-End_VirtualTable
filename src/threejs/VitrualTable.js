@@ -1,4 +1,5 @@
 import '../assets/main.css';
+import * as THREE from '../threejs/three.module.js';
 // import $ from 'jquery'
 import Global from '../Global';
 import {
@@ -30,6 +31,7 @@ class VitrualTable {
         this.freePenSeparator = false;      //klika gdy luzujemy przycisk myszki, ważne 
         this.selectMenu = selectMenuCallback;
         this.histStack = [];
+        this.histPointer = -1;
         this.init();
     }
 
@@ -118,6 +120,7 @@ class VitrualTable {
         
         this.action !== cAction.FREEPEN && this.type !== cShape.FREEPEN && node.setFillColor(0xffffff);
         this.action === cAction.NONE && this.putData(node);
+        this.historyAdd();
         // this.type = cShape.SELECT;
     }
     
@@ -200,6 +203,38 @@ class VitrualTable {
         }
 
     }
+    historyRedo() {
+        if(this.histPointer == (this.histStack.length - 1)) return;
+
+        this.histPointer+=2;
+        this.historyPop();
+    }
+    //zapamiętuje stan tablicy w okreslonym momencie czasu
+    //stąd też następuje zapis do bazy danych
+    historyAdd() {
+        const timStamp = [];
+        this.OBJECTS.forEach(obj => {
+            timStamp.push(obj.carbonCopy(false));
+        });
+        this.histStack.push(timStamp);
+        this.histPointer++;
+    }
+    historyClear() {
+        this.histStack = [];
+    }
+    historyPop() {
+        if(this.histPointer == 0) return;
+        //this.histStack.pop();
+        this.histPointer--;
+
+        const list = this.histStack[this.histPointer];
+        list.forEach(obj => {
+            const o = obj.carbonCopy(true);
+            this.OBJECTS.push(o);
+            this.meshes.push(o);
+        });
+        this.select(null);
+    }
     //wybiera obiekty do przeglądania przy klikaniu
     //obsluga zdarzenia kliku na planszę
     onClick(event, targetPanel, camera, wd, hd) {
@@ -225,6 +260,7 @@ class VitrualTable {
                     case cShape.FREEPEN: {
                         //this.finalizeFreePenFig(targetPanel);
                         this.freePenSeparator = true;
+                        this.historyAdd();
                         break;
                     }
                     case cShape.POLYGON:
@@ -237,6 +273,7 @@ class VitrualTable {
                         if(!this.prevPoint) return;
                         const selected = this.selectedCorner !== null?this.selectedCorner:this.selectedNode;
                         selected && selected.mvShape(this.prevPoint, [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                        this.historyAdd();
                         this.prevPoint = null;
                         break;
     
@@ -284,7 +321,7 @@ class VitrualTable {
     }
     carbonCopy() {
         if(!this.selectedNode) return;
-        const node = this.selectedNode.copy();
+        const node = this.selectedNode.carbonCopy(true);
 
         // this.onNewShape(node);
         this.addShape(node);

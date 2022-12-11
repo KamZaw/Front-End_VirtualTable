@@ -105,7 +105,7 @@ class EmptyMenu extends DefaultMenu {
     constructor(){
         super();
         this.state = { ...this.state,
-            defaultValue: Global.selectedShape?""+Global.selectedShape.toString(16):"17B854",
+            defaultValue: Global.selectedShape?""+Global.selectedShape.iColor.toString(16):"17B854",
         };
         this.copyFig = this.copyFig.bind(this);
         this.cloneFig = this.cloneFig.bind(this);        
