@@ -6,9 +6,12 @@ import {VitrualTable} from '../threejs/VitrualTable.js'
 import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
-import FirebaseUpdate from './FirebaseUpdate';
+import {initializeApp} from "firebase/app"
+import { getDatabase, ref, set } from "firebase/database";
+import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
+import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
-import {onAuthStateChanged} from "firebase/auth"
+
 
 const targetPanelString = 'main_panel';
 
@@ -25,6 +28,14 @@ class Main extends Component {
         this.onFBUpdate = this.onFBUpdate.bind(this);
         this.selectMenuCallback = this.selectMenuCallback.bind(this);     
         this.navbar = React.createRef();
+
+        console.log("TUTAJ");
+        Global.firebaseApp = initializeApp(firebaseConfig);
+        onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
+            currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
+            Global.user = currentUser;
+            Global.fb = getDatabase(Global.firebaseApp );
+        } ).bind(this);
     }
 
     componentDidMount() {
@@ -41,6 +52,9 @@ class Main extends Component {
         //this.getShapes();
         //TODO:analogiczne dla innych obiektów (np getTexts())
 
+    }
+    componentWillUnmount() {
+        signOut(getAuth(Global.firebaseApp));
     }
     //pobierz obiekty kształtów z backendu
     async getShapesRequest(url) {
@@ -102,7 +116,21 @@ class Main extends Component {
                 vt.historyPop();
                 break;
             case cShape.REDO:
-                vt.historyRedo();
+                if (vt.isRedo()) {
+                    this.cleanTHREE();
+                    vt.historyRedo();
+                }
+                break;
+            
+            case cShape.LOAD_FIREBASE:
+                if(!Global.currentSession || Global.currentSession.length < 1) return;
+                vt.historyClear();
+
+                this.cleanTHREE();
+                this.OBJECTS = [];
+                this.meshes = [];
+                
+                vt.loadDataFromSession(Global.currentSession);
                 break;
             case cShape.SAVE_SVG:            
                 alert("Zapis do SVG jeszcze nie zaimplementowany");
@@ -116,11 +144,16 @@ class Main extends Component {
                 vt.historyAdd();
                 break;
             case cShape.SCALEX:
-                vt.selectedNode && vt.selectedNode.setScaleX(.7);
+                const sX = parseFloat(document.getElementById("scaleX").value);
+                if(isNaN(sX)) return;
+                vt.selectedNode && vt.selectedNode.setScaleX(sX);
                 vt.historyAdd();
                 break;
             case cShape.SCALEY:
-                vt.selectedNode && vt.selectedNode.setScaleY(.7);
+                const sY = parseFloat(document.getElementById("scaleY").value);
+                if(isNaN(sY)) return;
+
+                vt.selectedNode && vt.selectedNode.setScaleY(sY);
                 vt.historyAdd();
                 break;
     
@@ -133,7 +166,7 @@ class Main extends Component {
             case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode && document.getElementById("color").value) {
                     vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value,);
-                    vt.selectedNode.mesh.material.color.setHex(vt.selectedNode.iColor);
+                    vt.selectedNode.mesh?.material.color.setHex(vt.selectedNode.iColor);
                     vt.historyAdd();
                 }
                 break;
@@ -182,7 +215,7 @@ class Main extends Component {
         selectedNode.rmShape();
 
         if(!keepIt)
-            vt.deleteShape(selectedNode.ticks);
+            // vt.deleteShape(selectedNode.ticks);
             selectedNode = null;
             Global.selectedShape = selectedNode;
     }

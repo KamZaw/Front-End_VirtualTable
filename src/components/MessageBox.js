@@ -13,13 +13,22 @@ class MessageBox extends Component {
             msg: props.msg,
             isVisible: props.isVisible,
         };
+        this.sessionName = Global.currentSession;
     }
     onYes() {
-        this.props.action(true, false);
+        if(this.props.input) {
+            this.props.action(this.sessionName);
+        }
+        else
+            this.props.action(true);
     }
     onNo() {
-        this.props.action(false, false);
+        this.props.action(false);
     }
+
+    onInputChange(event) {
+        this.sessionName = event.target.value;
+    }  
     render() {
         if(!this.props.isVisible) {
             return (<></>);
@@ -33,9 +42,11 @@ class MessageBox extends Component {
                         <h2>{this.props.title}</h2>
                     </div>
                     <p className="message_text">{this.props.msg}</p>
+                    <input type="text" className={!this.props.input?'hidden':''} onChange={this.onInputChange.bind(this)} defaultValue={this.sessionName}/>
                     <br/>
-                    <button className="dlgbutton" onClick={this.onYes.bind(this)}>Tak</button>
-                    <button className="dlgbutton" onClick={this.onNo.bind(this)}>Nie</button>
+
+                    <button className="dlgbutton" onClick={this.onYes.bind(this)}>{this.props.input?'Zatwierdź':'Tak'}</button>
+                    <button className={this.props.input?'dlgbutton hidden':'dlgbutton'} onClick={this.onNo.bind(this)} >Nie</button>
                     <br/>
                 </div>
             </div>

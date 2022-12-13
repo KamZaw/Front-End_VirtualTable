@@ -25,6 +25,7 @@ class FreePen extends Shape{
         
    
 
+        let minX = 9999, minY = 99999, maxX = -99999, maxY = -99999;
         
         const verts = [];
         const normals = [];
@@ -37,6 +38,14 @@ class FreePen extends Shape{
             let x = prev[i][0];
             let y = prev[i][1];
             
+            if(x < minX)
+                minX = x;
+            if(x > maxX)
+                maxX = x;
+            if(y < minY)
+                minY = y;
+            if(y > maxY)
+                maxY = y;
             
             const sX = prev[i+1][0];
             const sY = prev[i+1][1];
@@ -123,15 +132,32 @@ class FreePen extends Shape{
         box.name = "name";
         box.position.set(0,0, this.Z);
         this.scene.add(box);
-        
-        
-        console.log(box.boundingBox);
 
-        // box.position.set(this.y , -this.x );
+        
         
         this.mesh = box;
-
+        let b = parseInt(this.b); 
+        const path = new THREE.Path();
+        path.moveTo(minX-b, minY-b);
+        path.lineTo(maxX+b, minY-b);
+        path.lineTo(maxX+b, maxY+b);
+        path.lineTo(minX-b, maxY+b);
+        path.lineTo(minX-b, minY-b);
+        const materialL = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            linewidth: 1,
+            transparent: true,
+            opacity:0.5,
+        });
+        const points = path.getPoints();
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        this.linie = new THREE.Line(geometryL, materialL);
+        this.linie.position.set(this.x, this.y, this.Z+1);
+        if(prev.length > 2)
+            this.scene.add(this.linie);
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
+
     }
     // przysłania domyślną procedurę zaznaczania figury
     setDefaultColor() {
@@ -139,66 +165,89 @@ class FreePen extends Shape{
         this.mesh.material.color.setHex( this.iColor );
     }
 
+    select(flag) {
+        !flag && super.select(flag);
+        this.linie && (this.linie.visible = flag);
+        return this.node;
+    }
     setFillColor(color) {
         //this.mesh.material.color = color;
         this.mesh.material.color.setHex( color );
     }
 
-            //tworzy i wraca kopię obiektu
-            carbonCopy() {
-                let obj = new FreePen(THREE,this.scene,this.x,this.y, this.prev, this.label,this.a, this.b,this.iColor, this.ignoreZ);
-                
-                //obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
+    toJSON() {
+        return {
+            ticks: this.ticks,
+            x: this.x,
+            y: this.y,
+            label: this.label,
+            radius: this.radius,
+            prev: this.prev.toString(),
+            color: this.iColor,
+            a: this.a, 
+            b: this.b, 
+            ignoreZ: this.ignoreZ,
+            offsetRot: this.offsetRot,
+            wireframe: false,
+            transparent: false,
+            opacity: 1.0,
+            points: this.linie?.geometry.attributes.position.array.toString(),
+        };
+    }
+    //tworzy i wraca kopię obiektu
+    carbonCopy(bDraw) {
+        let obj = new FreePen(THREE,this.scene,this.x,this.y, this.prev, this.label,this.a, this.b,this.iColor, this.ignoreZ);
         
-                obj.mesh= new THREE.Mesh( 
-                    this.mesh.geometry.clone(), 
-                    new THREE.MeshStandardMaterial().copy( this.mesh.material )
+        //obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
+
+        obj.mesh= new THREE.Mesh( 
+            this.mesh.geometry.clone(), 
+            new THREE.MeshStandardMaterial().copy( this.mesh.material )
+        );
+        //obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
+        obj.mesh.name=this.mesh.name;
+        obj.scene = this.scene;
+        bDraw && obj.scene.add(obj.mesh);
+        if(this.linie) {
+            obj.linie = new THREE.Line( 
+                this.linie.geometry.clone(), 
+                new THREE.LineBasicMaterial().copy( this.linie.material )
+            );
+            obj.linie.name=this.linie.name;
+            bDraw && obj.scene.add(obj.linie);
+            //obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
+        }
+        
+        this.node && (obj.node = []);
+        this.node?.map((n)=>{
+            const crn = n.carbonCopy(true);
+            crn.parent = obj;
+            crn.mesh= new THREE.Mesh( 
+                n.mesh.geometry.clone(), 
+                new THREE.MeshStandardMaterial().copy( n.mesh.material )
+            );
+            obj.mesh.position.set(n.x,n.y,n.Z);
+            crn.mesh.name=n.mesh.name;
+            bDraw && crn.scene.add(crn.mesh);
+            if(n.linie) {
+                crn.linie = new THREE.LineSegments( 
+                    n.linie.geometry.clone(), 
+                    new THREE.LineBasicMaterial().copy( n.linie.material )
                 );
-                //obj.mesh.position.set(this.mesh.position.x,this.mesh.position.y,this.mesh.position.z);
-                obj.mesh.name=this.mesh.name;
-                obj.scene = this.scene;
-                obj.scene.add(obj.mesh);
-                if(this.linie) {
-                    obj.linie = new THREE.LineSegments( 
-                        this.linie.geometry.clone(), 
-                        new THREE.LineBasicMaterial().copy( this.linie.material )
-                    );
-                    obj.linie.name=this.linie.name;
-                    obj.scene.add(obj.linie);
-                    //obj.linie.position.set(this.linie.position.x,this.linie.position.y,this.linie.position.z);
-                }
-                
-                this.node && (obj.node = []);
-                this.node?.map((n)=>{
-                    const crn = n.carbonCopy();
-                    crn.parent = obj;
-                    
-        
-                    crn.mesh= new THREE.Mesh( 
-                        n.mesh.geometry.clone(), 
-                        new THREE.MeshStandardMaterial().copy( n.mesh.material )
-                    );
-                    obj.mesh.position.set(n.x,n.y,n.Z);
-                    crn.mesh.name=n.mesh.name;
-                    crn.scene.add(crn.mesh);
-                    if(n.linie) {
-                        crn.linie = new THREE.LineSegments( 
-                            n.linie.geometry.clone(), 
-                            new THREE.LineBasicMaterial().copy( n.linie.material )
-                        );
-                        crn.scene.add(crn.linie);
-                        obj.linie.position.set(n.x,n.y,n.Z);
-                        crn.linie.name=n.linie.name;
-                    }
-                        
-                    obj.node.push(crn);
-                });
-        
-                this.node && obj.mvShape([0,0],[0,0]);
-                
-                // this.node && obj.mesh.material.color.setHex(0xFF0000);
-                return obj;
+                crn.scene.add(crn.linie);
+                obj.linie.position.set(n.x,n.y,n.Z);
+                crn.linie.name=n.linie.name;
             }
+                
+            obj.node.push(crn);
+        });
+
+        this.node && obj.mvShape([0,0],[0,0]);
+        
+        // this.node && obj.mesh.material.color.setHex(0xFF0000);
+        return obj;
+    }
+
         
 }
 

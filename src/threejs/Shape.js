@@ -8,6 +8,7 @@ class Shape {
     static Z = -100;       //pozycja na osi Z
     static Zmin = -100;       //pozycja na osi Z
     static Zmax = -100;       //pozycja na osi Z
+    static dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
     constructor(shapeType, THREE, scene,  y, x, label, ignoreZ) {
         const dt = new Date();
         this.type = shapeType;
@@ -22,13 +23,13 @@ class Shape {
         this.linie = null;
         this.iColor = 0xE9E9E9;
         this.date = dt.toISOString();
-        this.ticks = `${this.dateToTicks(dt)}`;
+        this.ticks = `${Shape.dateToTicks(dt)}`;
         this.Z = Shape.Z;
         
         !ignoreZ ? Shape.Z++:this.Z--;
         !ignoreZ && (Shape.Zmax = Shape.Z+1);
     }
-    dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
+    
 
     ZPlus(){
 //        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu

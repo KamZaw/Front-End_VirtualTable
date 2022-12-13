@@ -7,6 +7,11 @@ class Global {
     static get cornerSize() {return  12;};
     static get halfSize() { return Global.cornerSize/2}; 
     static selectedShape = null;
+    static user = null;
+    static fb = null;
+    static firebaseApp = null;
+    static currentSession = "sesja1";          //nazwa sesji pobrana z internetu albo od użytkownika    
+    static nodeRef = null;
 }
 
 export default Global;

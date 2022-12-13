@@ -22,6 +22,7 @@ const cShape ={
     SAVE_SVG:       24,
     UNDO:           25,
     REDO:           26,
+    LOAD_FIREBASE:  27,
 };
 
 const cAction = {

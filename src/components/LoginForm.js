@@ -1,44 +1,42 @@
 import "../assets/loginform.css"
 import { Component } from "react";
-import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
-import {initializeApp} from "firebase/app"
-import {firebaseConfig} from "../firebase-config"
+import {createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth"
 import Global from "../Global";
+import {off} from "firebase/database"
+
 
 class LoginForm extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            loginName:"",
+            loginName:"kamila.zawadzka31@gmail.com",
             password:"",
             user: "",
             isVisible: props.isVisible,
             errorMessage: "",
         }
-        console.log(this.state.isVisible);
-        this.firebaseApp = initializeApp(firebaseConfig);
-        onAuthStateChanged(getAuth(this.firebaseApp), (currentUser) => {
-            currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
-        } ).bind(this);
     }
     onRegister = async (event) => {
         try {
-            const user = await createUserWithEmailAndPassword(getAuth(this.firebaseApp),"guest@email.com", "guest01!");
+            const user = await createUserWithEmailAndPassword(getAuth(Global.firebaseApp),"guest@email.com", "guest01!");
             console.log(user);
         }catch(err) {
             console.log(err.message);
         }
     }
     async onLogOut() {
-        await signOut(getAuth(this.firebaseApp));
-        this.props.action(false, false);
+        console.log("!!!!!!!!!!!");
+        if(Global.nodeRef)
+            off(Global.nodeRef);
+        await signOut(getAuth(Global.firebaseApp));
+        this.props.action(false);       //potrzeba aby zmienić status przycisku z LogIN na LogOUT
     }
     onLogin = async (event) => {
 
-        if(this.state.user) {
-            this.onLogOut();
-        }
+        // if(this.state.user) {
+        //     await signOut(getAuth(Global.firebaseApp));
+        // }
         if(!this.validateFormFields()) {
             alert("Należy podać login i hasło");
             event.preventDefault();
@@ -47,13 +45,13 @@ class LoginForm extends Component {
         signInWithEmailAndPassword(getAuth(), this.state.loginName, this.state.password)
         .then((userCredential) => {
             this.setState({...this.state, user: userCredential.user});
-            this.props.action(true, false);
+            this.props.action(false);
             console.log(userCredential.user);
         })
         .catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
-            this.props.action(false, true);
+            this.props.action(true);
             console.log(errorMessage);
             this.setState({...this.state, errorMessage: errorCode});
         });
@@ -70,7 +68,7 @@ class LoginForm extends Component {
         return this.state.loginName.length > 0 && this.state.password.length > 0;
     }
     componentWillUnmount() {
-        this.onLogOut();
+        //this.onLogOut();
     }
     onClosing() {
         this.props.action(this.props.isLogin, false);
@@ -78,7 +76,7 @@ class LoginForm extends Component {
     render() {
 
         if(!this.props.isVisible) {
-            if(this.props.isLogin)
+            if(this.props.logout)
                 this.onLogOut();
             return (<></>);
         }

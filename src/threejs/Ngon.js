@@ -57,6 +57,37 @@ class Ngon extends Shape{
         this.parent.recreateMesh(true);
         super.mvShape(start, stop);     //przesuwa same czarne cornery NGONa
     }
+
+    //odtwarza obiekt z obiektu JSON przesłanego z bazy danych
+    drawFromPoints(pointsS){
+        const pts = pointsS.split(",").map(Number);
+        const path = new THREE.Shape();
+        path.moveTo(pts[0],pts[1]);
+        const cornerSize = Global.cornerSize;
+        this.node = [];
+        this.node.push(new Ngon(THREE, this.scene, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
+        for(let i = 3; i < pts.length; i+=3) {
+            path.lineTo(pts[i],pts[i+1]);
+            this.node.push(new Ngon(THREE, this.scene, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
+        }
+        this.node.pop();
+        
+        const points = path.getPoints();
+        const materialL = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            linewidth: 1,
+            transparent: false,
+        });        
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        this.linie = new THREE.Line(geometryL, materialL);
+        this.linie.position.set(this.x, this.y, this.Z+1);
+        this.scene.add(this.linie);
+        this.recreateMesh(true);
+        this.node?.map((pt) => {
+            pt.drawShape();
+            pt.parent = this;
+        });
+    }
     recreateMesh(bDraw) {
 
         const path = new THREE.Shape();
@@ -82,7 +113,28 @@ class Ngon extends Shape{
         bDraw && this.scene.add( this.mesh );        
 
     }
-        //tworzy i wraca kopię obiektu
+
+    toJSON() {
+        return {
+            type: this.type,
+            ticks: this.ticks,
+            x: this.x,
+            y: this.y,
+            label: this.label,
+            radius: this.radius,
+            n: this.n,
+            color: this.iColor,
+            b: this.b, 
+            offsetRot: this.offsetRot,
+            wireframe: false,
+            transparent: false,
+            opacity: 1.0,
+            points: this.linie?.geometry.attributes.position.array.toString(),
+        };
+    }
+
+    
+    //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
         let obj = new Ngon(THREE,this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
         
@@ -126,28 +178,6 @@ class Ngon extends Shape{
 
         return obj;
     }
-
-    recreateShape(obj) {
-        const verts = [];
-        const normals = [];
-        const pts = [];
-
-        let mesh = obj.mesh.geometry.attributes.position.array;
-        for(let i = 0; i < mesh.length-1; i+=3) {
-            verts.push(mesh[i],mesh[i+1],mesh[i+2]);
-            normals.push(0,0,1);
-            const x = mesh[i];
-            const y = mesh[i + 1];
-            const cornerSize = Global.cornerSize;
-            ((i % 6 == 0)) && this.node?.push(new Ngon(THREE, this.scene, x + this.x, y + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/6));
-        }
-        this.node?.map(c => c.parent = this);
-        mesh = obj.linie.geometry.attributes.position.array;
-        for(let i = 0; i < mesh.length-1; i+=3)
-            pts.push(new THREE.Vector3(mesh[i],mesh[i+1],mesh[i+2]));
-        this.createMesh(verts, normals, pts);
-        
-    }   
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany

@@ -2,17 +2,13 @@ import '../assets/main.css';
 import * as THREE from '../threejs/three.module.js';
 // import $ from 'jquery'
 import Global from '../Global';
-import {
-    Ngon
-} from './Ngon'
-import {
-    FreePen
-} from './FreePen'
-import {
-    cShape,
-    cAction
-} from '../shapetype';
+import {Shape} from "./Shape"
+import {    Ngon} from './Ngon'
+import {    FreePen} from './FreePen'
+import {   cShape,    cAction} from '../shapetype';
 import Point from './Point';
+
+import { getDatabase, ref, set, get, child, onValue,off } from "firebase/database";
 
 class VitrualTable {
     constructor(THREE, scene, selectMenuCallback) {
@@ -119,8 +115,9 @@ class VitrualTable {
         Global.selectedShape = this.selectedNode;
         
         this.action !== cAction.FREEPEN && this.type !== cShape.FREEPEN && node.setFillColor(0xffffff);
-        this.action === cAction.NONE && this.putData(node);
-        this.historyAdd();
+        //this.action === cAction.NONE && this.putData(node);
+
+        this.type !== cShape.FREEPEN && this.historyAdd();
         // this.type = cShape.SELECT;
     }
     
@@ -203,21 +200,95 @@ class VitrualTable {
         }
 
     }
+    isRedo() {
+        if(this.histPointer == (this.histStack.length - 1)) return false;
+        return true;
+    }
     historyRedo() {
-        if(this.histPointer == (this.histStack.length - 1)) return;
-
         this.histPointer+=2;
         this.historyPop();
     }
     //zapamiętuje stan tablicy w okreslonym momencie czasu
     //stąd też następuje zapis do bazy danych
+    loadDataFromSession(session) {
+        if(!Global.user) {
+            alert("nie zalogowany");   
+            return;
+        }
+        
+        if(Global.nodeRef)
+            off(Global.nodeRef);
+
+        const dbRef = ref(Global.fb);
+        //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
+        //const fun = Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'?get:onValue;
+        Global.nodeRef = child(dbRef, `Sessions/${Global.currentSession}/`);
+        onValue(Global.nodeRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const mapa = snapshot.val();
+            let last = null;
+            for(const i in mapa) {
+                last = i; 
+            }
+            this.sceneClear();
+            this.historyClear();
+            for(const j in mapa[last]) { 
+                const o = mapa[last][j];
+                let shape
+                if(o.type = cShape.NGON) {
+                    shape = new Ngon(this.THREE, this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                    shape.drawFromPoints(o.points);
+                    this.addShape(shape);                
+                }
+                else if(o.type = cShape.FREEPEN) {
+                    const pts = o.points.split(",").map(Number)
+                    const points = [];
+                    for(let i =0; i < pts.length-1;i+=3) {
+                        points.push(pts[i], pts[i+1]);
+                    }
+                    shape = new FreePen(this.THREE, this.scene, points[0],
+                    points[1], points, "freePen", o.radius, o.radius, "0x" + o.color.toString(16));
+                    shape.drawShape();
+                    this.addShape(shape);                
+                }
+            }
+            this.select(null);
+            this.type = cShape.SELECT;
+    } else {
+            console.log("No data available");
+        }
+        }, {
+            onlyOnce: Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
+          });
+
+    }
     historyAdd() {
+        //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
+        //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
+        while(this.histStack.length > 0 && this.histPointer < (this.histStack.length - 1)) this.histStack.pop();
         const timStamp = [];
+        const firebaseData = [];
         this.OBJECTS.forEach(obj => {
-            timStamp.push(obj.carbonCopy(false));
+            const o = obj.carbonCopy(false);
+            timStamp.push(o);
+            firebaseData.push({...o.toJSON(), author: Global.user?.uid});
         });
+
+
+        Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
+            firebaseData);
+
         this.histStack.push(timStamp);
         this.histPointer++;
+    }
+
+    sceneClear() {
+        while(this.scene.children.length > 0){ 
+            this.scene.remove(this.scene.children[0]); 
+        }
+        const lightA = new THREE.AmbientLight( 0xffffff );
+        lightA.position.set( 0, 20, 0);
+        this.scene.add( lightA );
     }
     historyClear() {
         this.histStack = [];
@@ -228,12 +299,14 @@ class VitrualTable {
         this.histPointer--;
 
         const list = this.histStack[this.histPointer];
-        list.forEach(obj => {
+        this.OBJECTS = [];
+        this.meshes = [];
+        list?.forEach(obj => {
             const o = obj.carbonCopy(true);
             this.OBJECTS.push(o);
             this.meshes.push(o);
         });
-        this.select(null);
+        list && this.select(null);
     }
     //wybiera obiekty do przeglądania przy klikaniu
     //obsluga zdarzenia kliku na planszę
@@ -247,6 +320,15 @@ class VitrualTable {
                         const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
                             (event.clientY - targetPanel.offsetTop), "prostokat", document.getElementById("rect_height").value, 4, "0x" + document.getElementById('color').value, document.getElementById("rect_width").value,true);                            
                         this.onNewShape(node);
+                        // const o = node.toJSON();
+
+                        // console.log(o);
+                        // const node1 = new Ngon(this.THREE, this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                        // node1.drawFromPoints(o.points);
+                        // this.addShape(node1);
+
+                        //this.onNewShape(node1);
+
                         break;
                     }
                     case cShape.NGON: {
@@ -260,7 +342,7 @@ class VitrualTable {
                     case cShape.FREEPEN: {
                         //this.finalizeFreePenFig(targetPanel);
                         this.freePenSeparator = true;
-                        this.historyAdd();
+                        
                         break;
                     }
                     case cShape.POLYGON:
@@ -294,6 +376,7 @@ class VitrualTable {
         this.prevPoint = null;
     }
     finalizeFreePenFig( targetPanel) {
+        if(!this.prevPoint) return;
         const node = new FreePen(this.THREE, this.scene, this.prevPoint[0],
             this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("radius").value), parseInt(document.getElementById("radius").value), "0x" + document.getElementById('color').value);
         this.deleteTempNodes();
@@ -303,6 +386,7 @@ class VitrualTable {
         //this.tmpNodes.push(node);
         this.freePenPoints = [];
         this.prevPoint = null;
+        this.historyAdd();
     }
     onSelection(event, targetPanel) {
         const mouse3D = new this.THREE.Vector3((event.clientX - targetPanel.offsetLeft - 0),

@@ -1,3 +1,4 @@
+import { event } from "jquery";
 import { Component } from "react";
 import Global from "../Global";
 // import $ from 'jquery'
@@ -16,12 +17,13 @@ class DefaultMenu extends Component {
         this.onChange = this.onChange.bind(this);
         this.openLogin = this.openLogin.bind(this);
         this.state = {
-            isLogin: false,
+            login: false,
             isLoginWindow: false,
+            logout: false,
             defaultValue: "FF0000",
-            isOpenWindow: false,
-
+            
             isOpenMsgWindow: false,
+            isInputField: false,
             title: "",
             msg: "",
         };
@@ -31,10 +33,14 @@ class DefaultMenu extends Component {
         this.props.action(cShape.ZPLUS);
     }
     onNew() {
-        this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true,});
+        this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false});
     }
     onSaveSVG() {
+        
         this.props.action(cShape.SAVE_SVG);
+    }
+    onLoadFB () {
+        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenMsgWindow: true, isInputField: true});
     }
     onRedo(){
         this.props.action(cShape.REDO);
@@ -46,12 +52,15 @@ class DefaultMenu extends Component {
         this.props.action(cShape.ZMINUS);
     }
     onChange = event => {
-        this.setState({ defaultValue: (event.target.value), isLogin: false });  
+        this.setState({ defaultValue: (event.target.value), isLogin: (Global.user != null) });  
         document.getElementById("colorpicker").style.background = "#"+this.state.defaultValue;
         this.props.action(cShape.COLORCHANGE);
     }
     openLogin() {
-        this.setState({ ...this.state, isLoginWindow: !this.state.isLogin, isOpenWindow: true, });  
+        if(Global.user)
+            this.setState({ ...this.state, isLoginWindow: false, login: false, logout: true });  
+        else
+            this.setState({ ...this.state, isLoginWindow: true, login: true, logout: false });  
     }
     componentDidUpdate(){
         
@@ -63,13 +72,22 @@ class DefaultMenu extends Component {
         this.componentDidUpdate();
 
     }
-    hideLoginWindow(val, val2) {
-        this.setState({...this.state, isLogin: val,isLoginWindow: val2, isOpenWindow: false,});
+    hideLoginWindow(val) {
+        this.setState({...this.state, isLoginWindow: val});
     }
     responseMsgWindow(val) {
-        if(val)
+        if(typeof val === 'string') {
+            // if(val.length < 1) {
+            //     this.setState({...this.state, isOpenMsgWindow: true,});
+            //     return;
+            // }
+            Global.currentSession = val;
+            this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false,});
+            this.props.action(cShape.LOAD_FIREBASE);
+        }
+        else if(val)
             this.props.action(cShape.NEW);
-        this.setState({...this.state, title:"", msg: "", isOpenMsgWindow: false,});
+        this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false,});
     }
 
     render() {
@@ -77,6 +95,7 @@ class DefaultMenu extends Component {
             <>
                 <span className="left">
                     <button  id="new" onClick = {this.onNew.bind(this) }>Nowe</button>
+                    <button  id="load_firebase" onClick = {this.onLoadFB.bind(this) }>Wczytaj sesję</button>
                     <button  id="save" onClick = {this.onSaveSVG.bind(this) }>Zapisz</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <button  id="history_undo" onClick = {this.onUndo.bind(this) }>&lt; Cofnij</button>
@@ -91,10 +110,10 @@ class DefaultMenu extends Component {
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
 
-                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={this.state.isLogin==false?"Login":"LogOut"}></input>
+                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={!Global.user?"Login":"LogOut"}></input>
                 
-                <LoginForm isVisible={this.state.isLoginWindow} isLogin={this.state.isOpenWindow && this.state.isLogin} action={this.hideLoginWindow.bind(this)}/>
-                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} action={this.responseMsgWindow.bind(this)}/>
+                <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
+                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsgWindow.bind(this)}/>
             </>
             
             );
@@ -175,7 +194,7 @@ class NGONMenu extends DefaultMenu {
             <>
             <div id="menubar" className = "menubar">
                 <b>Wielokąt </b>
-                n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="4"/>
+                n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
                 r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
                 {super.render()}
                 

@@ -92,7 +92,7 @@ input:active {
 }
 
 .hidden {
-  visibility: hidden;
+  display : none;
 } 
 
 canvas {
