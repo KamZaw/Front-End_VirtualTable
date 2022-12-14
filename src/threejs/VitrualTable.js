@@ -278,12 +278,13 @@ class VitrualTable {
             firebaseData.push({...o.toJSON(), author: Global.user?.uid});
         });
 
-
-        Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
-            firebaseData);
-
-        this.histStack.push(timStamp);
-        this.histPointer++;
+        //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
+        if(JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer]))  {
+            Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
+                firebaseData);
+            this.histStack.push(timStamp);
+            this.histPointer++;
+        }
     }
 
     sceneClear() {

@@ -157,6 +157,7 @@ class FreePen extends Shape{
             this.scene.add(this.linie);
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
+        
     }
     // przysłania domyślną procedurę zaznaczania figury
     setDefaultColor() {
@@ -179,6 +180,7 @@ class FreePen extends Shape{
     }
 
     toJSON() {
+        this.prev.pop();        
         const obj = super.toJSON();
         return {
             ...obj,

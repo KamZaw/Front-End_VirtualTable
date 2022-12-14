@@ -89,7 +89,7 @@ class Shape {
     toJSON() {
         return { 
             type: this.type,
-            ticks: this.ticks,
+            // ticks: this.ticks,
             x: this.x,
             y: this.y,
             label: this.label,
