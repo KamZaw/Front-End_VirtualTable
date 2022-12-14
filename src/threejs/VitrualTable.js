@@ -241,13 +241,13 @@ class VitrualTable {
                     this.addShape(shape);                
                 }
                 else if(o.type == cShape.FREEPEN) {
-                    const pts = o.points.split(",").map(Number)
+                    const pts = o.prev.split(",").map(Number)
                     const points = [];
-                    for(let i =0; i < pts.length-1;i+=3) {
-                        points.push(pts[i], pts[i+1]);
+                    for(let i =0; i < pts.length-1;i+=2) {
+                        points.push([pts[i], pts[i+1]]);
                     }
                     shape = new FreePen(this.THREE, this.scene, points[0],
-                    points[1], points, "freePen", o.radius, o.radius, "0x" + o.color.toString(16));
+                    points[1], points, "freePen", o.a, o.b, "0x" + o.color.toString(16));
                     shape.drawShape();
                     this.addShape(shape);                
                 }

@@ -32,6 +32,7 @@ class DefaultMenu extends Component {
     onZChangePlus() {
         this.props.action(cShape.ZPLUS);
     }
+
     onNew() {
         this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false});
     }
@@ -104,8 +105,11 @@ class DefaultMenu extends Component {
                 
                 <div id="colorpicker" onClick = {this.onChange}>&nbsp;</div>
                 <input id="color" className="button_menu" placeholder="kolor..." defaultValue={this.state.defaultValue}  onChange = {this.onChange}/>
+                &nbsp;&nbsp;
                 <button id="z_plus" onClick = {this.onZChangePlus}>Z+</button>
                 <button id="z_minus" onClick = {this.onZChangeMinus}>Z-</button>
+
+
                 
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
@@ -155,6 +159,7 @@ class EmptyMenu extends DefaultMenu {
             <b>Skaluj:</b>
             <input id="scaleX" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onScaleXChange}/>
             <input id="scaleY" className="button_menu" placeholder="y..." defaultValue={1}  onChange = {this.onScaleYChange}/>
+
         </div>
         </>
     );
@@ -209,8 +214,14 @@ class TEXTMenu extends DefaultMenu {
         super();
         this.state.defaultValue= "e9e9e9";
     }
+    onMirrorX() {
+        this.props.action(cShape.MIRRORX);
+    }
+    onMirrorY(){
+        this.props.action(cShape.MIRRORY);
+    }
+
     render() {
-        
         return(
             <>
             <div id="menubar" className = "menubar">
@@ -219,7 +230,9 @@ class TEXTMenu extends DefaultMenu {
                 rozmiar:<input id="txt_size" className="button_menu" placeholder="rozmiar czcionki" defaultValue="50"/>
                 {/* wysokość:<input id="txt_height" className="button_menu" placeholder="wysokość czcionki" defaultValue="10"/> */}
                 {super.render()}
-                
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button id="mirrorX" onClick = {this.onMirrorX.bind(this)}>mirror X</button>
+                <button id="mirrorY" onClick = {this.onMirrorY.bind(this)}>mirror Y</button>
             </div>
             </>
             );

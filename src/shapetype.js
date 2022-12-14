@@ -23,6 +23,8 @@ const cShape ={
     UNDO:           25,
     REDO:           26,
     LOAD_FIREBASE:  27,
+    MIRRORX:        28,
+    MIRRORY:        29,
 };
 
 const cAction = {

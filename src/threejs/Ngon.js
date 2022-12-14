@@ -114,21 +114,18 @@ class Ngon extends Shape{
 
     }
 
+    rescale() {
+        super.rescale();
+        this.recreateMesh(true);
+        this.mvShape([0, 0], [0, 0]);
+    }
     toJSON() {
-        return {
-            type: this.type,
-            ticks: this.ticks,
-            x: this.x,
-            y: this.y,
-            label: this.label,
+        const obj = super.toJSON()
+        return { ...obj, 
             radius: this.radius,
             n: this.n,
-            color: this.iColor,
             b: this.b, 
             offsetRot: this.offsetRot,
-            wireframe: false,
-            transparent: false,
-            opacity: 1.0,
             points: this.linie?.geometry.attributes.position.array.toString(),
         };
     }

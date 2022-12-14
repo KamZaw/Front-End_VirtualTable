@@ -157,12 +157,15 @@ class FreePen extends Shape{
             this.scene.add(this.linie);
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-
     }
     // przysłania domyślną procedurę zaznaczania figury
     setDefaultColor() {
         //this.mesh.material.color.setHex( this.iColor );
         this.mesh.material.color.setHex( this.iColor );
+    }
+    rescale() {
+        super.rescale();
+        this.mvShape([0, 0], [0, 0]);
     }
 
     select(flag) {
@@ -176,21 +179,12 @@ class FreePen extends Shape{
     }
 
     toJSON() {
+        const obj = super.toJSON();
         return {
-            ticks: this.ticks,
-            x: this.x,
-            y: this.y,
-            label: this.label,
-            radius: this.radius,
+            ...obj,
             prev: this.prev.toString(),
-            color: this.iColor,
             a: this.a, 
             b: this.b, 
-            ignoreZ: this.ignoreZ,
-            offsetRot: this.offsetRot,
-            wireframe: false,
-            transparent: false,
-            opacity: 1.0,
             points: this.linie?.geometry.attributes.position.array.toString(),
         };
     }

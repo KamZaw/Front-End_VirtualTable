@@ -22,25 +22,22 @@ class Text extends Shape{
         this.iColor = parseInt(color);
     }
     toJSON() {
+        const obj = super.toJSON();
         return {
-            type: this.type,
-            ticks: this.ticks,
-            x: this.x,
-            y: this.y,
-            label: this.label,
+            ...obj,
             size: this.size,
             height: this.height,
-            color: this.iColor,
-            wireframe: false,
-            transparent: false,
-            opacity: 1.0,
         };
     }
     carbonCopy(bDraw) {
         const obj = new Text(THREE,this.scene, this.x, this.y, this.label,this.iColor,this.size,this.height);
-        this.drawShape(bDraw);
+        this.drawShape(!bDraw);
 
         return obj;
+    }
+    rescale() {
+        super.rescale();
+        this.mvShape([0, 0], [0, 0]);
     }
     drawShape(bDraw) {
         const geometry = new TextGeometry( this.label, {
@@ -62,7 +59,9 @@ class Text extends Shape{
         this.mesh = new THREE.Mesh(geometry, material);
         !bDraw && this.scene.add(this.mesh);
         this.mesh.position.set(this.x, this.y, this.Z);
-        this.mesh.scale.set(1,-1,1);     //obróć domyślnie bo tego wymaga
+        
+        this.mirrorY = -1;
+        super.rescale();
     }
 }
 

@@ -25,12 +25,21 @@ class Shape {
         this.date = dt.toISOString();
         this.ticks = `${Shape.dateToTicks(dt)}`;
         this.Z = Shape.Z;
+        this.mirrorX = 1;
+        this.mirrorY = 1;
         
         !ignoreZ ? Shape.Z++:this.Z--;
         !ignoreZ && (Shape.Zmax = Shape.Z+1);
     }
     
-
+    setMirrorX() {
+        this.mirrorX *= -1;
+        this.rescale();
+    }
+    setMirrorY() {
+        this.mirrorY *= -1;
+        this.rescale();
+    }
     ZPlus(){
 //        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu
         this.Z+=2;
@@ -56,9 +65,8 @@ class Shape {
         this.rescale();
     }
     rescale() {
-        this.mesh.scale.set(this.scaleX, this.scaleY);
-        this.linie?.scale.set(this.scaleX, this.scaleY);
-        this.mvShape([0, 0], [0, 0]);
+        this.mesh.scale.set(this.scaleX * this.mirrorX, this.scaleY * this.mirrorY);
+        this.linie?.scale.set(this.scaleX* this.mirrorX, this.scaleY * this.mirrorY);
     }
 
     setScaleY(val) {
@@ -78,6 +86,22 @@ class Shape {
         this.linie?.position.set(this.x, this.y, this.Z+1);
     }
  
+    toJSON() {
+        return { 
+            type: this.type,
+            ticks: this.ticks,
+            x: this.x,
+            y: this.y,
+            label: this.label,
+            color: this.iColor,
+            wireframe: false,
+            transparent: false,
+            mirrorX: this.mirrorX,
+            mirrorY: this.mirrorY,
+            opacity: 1.0,
+        };
+    }
+
     //tworzy i wraca kopię obiektu
     
     clone() {
@@ -197,82 +221,7 @@ class Shape {
     select(flag) {
         !flag && this.setDefaultColor();
     }
-    drawShape() {
 
-        if(this.mesh !== null)
-            return; //już jest dodany
-
-        const a = this.siz;
-        const verts = [];
-        const normals = [];
-    
-        //2
-        verts.push(0,a,0);
-        normals.push(0,0,1);
-        //1
-        verts.push(0,0,0);
-        normals.push(0,0,1);
-        //4
-        verts.push(a,a,0);
-        normals.push(0,0,1);
-
-        //4
-        verts.push(a,a,0);
-        normals.push(0,0,1);
-
-        verts.push(a,0,0);
-        normals.push(0,0,1);
-        
-        //2
-        verts.push(0,0,0);
-        normals.push(0,0,1);
-        //3
-        verts.push(a,0,0);
-        normals.push(0,0,1);
-            
-        let geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    
-        const material = new THREE.MeshStandardMaterial({
-            color: this.iColor,
-        });
-        material.side = THREE.DoubleSide;
-    
-    
-        let box = new THREE.Mesh(geometry, material);
-        box.name = "name";
-        box.position.set(this.x * a, this.y * a);
-        this.scene.add(box);
-        const pkt = [];
-        
-        
-        pkt.push(new THREE.Vector3(0, 0, 0));
-        pkt.push(new THREE.Vector3(0, a, 0));
-        pkt.push(new THREE.Vector3(a, a, 0));
-        pkt.push(new THREE.Vector3(a, 0, 0));
-        pkt.push(new THREE.Vector3(0, 0, 0));
-    
-    
-        const materialL = new THREE.LineBasicMaterial({
-            color: 0x000000,
-            transparent: true,
-            linewidth: 3,
-            opacity: 0.7,
-        });
-        const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
-        const linie = new THREE.LineSegments(geometryL, materialL);
-    
-        this.scene.add(linie);
-       
-        linie.position.set(this.x * a, this.y * a);
-        this.mesh = box;
-        this.linie = linie;
-
-        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
-        this.linie.name = `${this.mesh.name}_linie`;
-        
-    }
     setDefaultColor() {
         //this.mesh.material.color.setHex( this.iColor );
         this.linie?.material.color.setHex( 0x000000 );

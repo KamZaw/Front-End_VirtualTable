@@ -134,6 +134,14 @@ class Main extends Component {
             case cShape.SAVE_SVG:            
                 alert("Zapis do SVG jeszcze nie zaimplementowany");
                 break;
+            case cShape.MIRRORX:
+                vt.selectedNode && vt.selectedNode.setMirrorX();
+                vt.historyAdd();
+                break;
+            case cShape.MIRRORY:
+                vt.selectedNode && vt.selectedNode.setMirrorY();
+                vt.historyAdd();
+                break;
             case cShape.ZPLUS:
                 vt.selectedNode && vt.selectedNode.ZPlus();
                 vt.historyAdd();
