@@ -92,6 +92,7 @@ class Shape {
             // ticks: this.ticks,
             x: this.x,
             y: this.y,
+            Z: this.Z,
             label: this.label,
             color: this.iColor,
             wireframe: false,

@@ -237,6 +237,7 @@ class VitrualTable {
                 let shape
                 if(o.type == cShape.NGON) {
                     shape = new Ngon(this.THREE, this.scene, o.x,o.y,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                    shape.Z = o.Z;
                     shape.drawFromPoints(o.points);
                     this.addShape(shape);                
                 }
@@ -248,11 +249,13 @@ class VitrualTable {
                     }
                     shape = new FreePen(this.THREE, this.scene, points[0],
                     points[1], points, "freePen", o.a, o.b, "0x" + o.color.toString(16));
+                    shape.Z = o.Z;
                     shape.drawShape();
                     this.addShape(shape);                
                 }
                 else if(o.type == cShape.TEXT) {
                     shape = new Text(this.THREE, this.scene, o.x,o.y,o.label, "0x"+o.color.toString(16), o.size,o.height);
+                    shape.Z = o.Z;
                     this.onNewShape(shape);
                 }
             }
@@ -279,12 +282,13 @@ class VitrualTable {
         });
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if(JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer]))  {
-            Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
-                firebaseData);
-            this.histStack.push(timStamp);
-            this.histPointer++;
-        }
+        if(Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1')
+            if(JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer]))  {
+                Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
+                    firebaseData);
+                this.histStack.push(timStamp);
+                this.histPointer++;
+            }
     }
 
     sceneClear() {

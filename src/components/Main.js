@@ -136,39 +136,39 @@ class Main extends Component {
                 break;
             case cShape.MIRRORX:
                 vt.selectedNode && vt.selectedNode.setMirrorX();
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.MIRRORY:
                 vt.selectedNode && vt.selectedNode.setMirrorY();
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.ZPLUS:
                 vt.selectedNode && vt.selectedNode.ZPlus();
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.ZMINUS:
                 vt.selectedNode && vt.selectedNode.ZMinus();
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.SCALEX:
                 const sX = parseFloat(document.getElementById("scaleX").value);
                 if(isNaN(sX)) return;
                 vt.selectedNode && vt.selectedNode.setScaleX(sX);
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.SCALEY:
                 const sY = parseFloat(document.getElementById("scaleY").value);
                 if(isNaN(sY)) return;
 
                 vt.selectedNode && vt.selectedNode.setScaleY(sY);
-                vt.historyAdd();
+                vt.selectedNode && vt.historyAdd();
                 break;
     
-                    case cShape.DELETE:     //usuwaj zaznaczony obiekt
+            case cShape.DELETE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode) {
                     this.delete(vt.selectedNode);
+                    vt.historyAdd();
                 }
-                vt.historyAdd();
                 break;
             case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode && document.getElementById("color").value) {
