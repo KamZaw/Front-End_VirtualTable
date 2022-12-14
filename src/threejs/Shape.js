@@ -1,5 +1,5 @@
 import { cShape } from '../shapetype.js';
-import * as THREE from '../threejs/three.module.js';
+import * as THREE from 'three';
 import Global from '../Global.js';
 
 const rozmiarPola = 50;

@@ -2,7 +2,7 @@ const cShape ={
     NONE:       0,
     RECT:       1,
     NGON:       2,
-    CIRCLE:     3,
+    TEXT:       3,
     POLYGON:    4,
     FREEPEN:    5,
     

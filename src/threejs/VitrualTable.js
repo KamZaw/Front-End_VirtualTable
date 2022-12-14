@@ -1,13 +1,13 @@
 import '../assets/main.css';
-import * as THREE from '../threejs/three.module.js';
+import * as THREE from 'three';
 // import $ from 'jquery'
 import Global from '../Global';
 import {Shape} from "./Shape"
-import {    Ngon} from './Ngon'
-import {    FreePen} from './FreePen'
-import {   cShape,    cAction} from '../shapetype';
+import {Ngon} from './Ngon'
+import {Text} from "./Text"
+import {FreePen} from './FreePen'
+import {cShape, cAction} from '../shapetype';
 import Point from './Point';
-
 import { getDatabase, ref, set, get, child, onValue,off } from "firebase/database";
 
 class VitrualTable {
@@ -33,7 +33,7 @@ class VitrualTable {
 
 
     init() {
-
+        Text.loadFontOnce();        //inicjacja fotnów
     }
 
     async deleteShape(ticks) {
@@ -221,7 +221,7 @@ class VitrualTable {
 
         const dbRef = ref(Global.fb);
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
-        //const fun = Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'?get:onValue;
+   
         Global.nodeRef = child(dbRef, `Sessions/${Global.currentSession}/`);
         onValue(Global.nodeRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -235,12 +235,12 @@ class VitrualTable {
             for(const j in mapa[last]) { 
                 const o = mapa[last][j];
                 let shape
-                if(o.type = cShape.NGON) {
-                    shape = new Ngon(this.THREE, this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                if(o.type == cShape.NGON) {
+                    shape = new Ngon(this.THREE, this.scene, o.x,o.y,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
                     shape.drawFromPoints(o.points);
                     this.addShape(shape);                
                 }
-                else if(o.type = cShape.FREEPEN) {
+                else if(o.type == cShape.FREEPEN) {
                     const pts = o.points.split(",").map(Number)
                     const points = [];
                     for(let i =0; i < pts.length-1;i+=3) {
@@ -250,6 +250,10 @@ class VitrualTable {
                     points[1], points, "freePen", o.radius, o.radius, "0x" + o.color.toString(16));
                     shape.drawShape();
                     this.addShape(shape);                
+                }
+                else if(o.type == cShape.TEXT) {
+                    shape = new Text(this.THREE, this.scene, o.x,o.y,o.label, "0x"+o.color.toString(16), o.size,o.height);
+                    this.onNewShape(shape);
                 }
             }
             this.select(null);
@@ -321,14 +325,10 @@ class VitrualTable {
                             (event.clientY - targetPanel.offsetTop), "prostokat", document.getElementById("rect_height").value, 4, "0x" + document.getElementById('color').value, document.getElementById("rect_width").value,true);                            
                         this.onNewShape(node);
                         // const o = node.toJSON();
-
                         // console.log(o);
                         // const node1 = new Ngon(this.THREE, this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
                         // node1.drawFromPoints(o.points);
                         // this.addShape(node1);
-
-                        //this.onNewShape(node1);
-
                         break;
                     }
                     case cShape.NGON: {
@@ -337,7 +337,14 @@ class VitrualTable {
                         this.onNewShape(node);
                         break;
                     }
-                    case cShape.CIRCLE:
+                    case cShape.TEXT:
+                        const node = new Text(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                            (event.clientY - targetPanel.offsetTop), document.getElementById('txt').value,
+                              "0x" + document.getElementById('color').value, 
+                              document.getElementById('txt_size').value, 
+                            //   document.getElementById('txt_height').value
+                            10);
+                        this.onNewShape(node);
                         break;
                     case cShape.FREEPEN: {
                         //this.finalizeFreePenFig(targetPanel);

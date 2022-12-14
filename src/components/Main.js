@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import React from 'react';
-import * as THREE from '../threejs/three.module.js';
+import * as THREE from 'three';
 import {TrackballControls}  from '../threejs/TrackballControls.js';
 import {VitrualTable} from '../threejs/VitrualTable.js'
 import Global from '../Global';
@@ -29,7 +29,6 @@ class Main extends Component {
         this.selectMenuCallback = this.selectMenuCallback.bind(this);     
         this.navbar = React.createRef();
 
-        console.log("TUTAJ");
         Global.firebaseApp = initializeApp(firebaseConfig);
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
             currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
@@ -105,9 +104,9 @@ class Main extends Component {
                 vt.historyClear();
 
                 this.cleanTHREE();
-                this.OBJECTS = [];
-                this.meshes = [];
-                this.type = cShape.SELECT;
+                vt.OBJECTS = [];
+                vt.meshes = [];
+                vt.type = cShape.SELECT;
                 
             }
             break;
@@ -127,8 +126,8 @@ class Main extends Component {
                 vt.historyClear();
 
                 this.cleanTHREE();
-                this.OBJECTS = [];
-                this.meshes = [];
+                vt.OBJECTS = [];
+                vt.meshes = [];
                 
                 vt.loadDataFromSession(Global.currentSession);
                 break;

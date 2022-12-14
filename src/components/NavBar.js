@@ -1,7 +1,7 @@
 import { Component } from "react";
 import {cShape} from '../shapetype';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -30,6 +30,9 @@ class NavBar extends Component {
             case cShape.NGON:
                 this.component = <NGONMenu action={this.props.action}/>;
                 break;
+            case cShape.TEXT:
+                this.component = <TEXTMenu action={this.props.action}/>;
+                break;
             case cShape.FREEPEN:
                 this.component = <FreePenMenu action={this.props.action}/>;
                 break;
@@ -48,6 +51,8 @@ class NavBar extends Component {
                 <div id="toolbar" className = "toolbar">
                     <MenuOption id="sel" type = {cShape.SELECT} action={this.menuItemSelectedHandler}>sel</MenuOption>
                     {/* <MenuOption id="mov" type = {cShape.MOVE} action={this.menuItemSelectedHandler}>mv</MenuOption> */}
+                    <br/>
+                    <MenuOption id="text" type = {cShape.TEXT} action={this.menuItemSelectedHandler}>txt</MenuOption>
                     <MenuOption id="freepen" type = {cShape.FREEPEN} action={this.menuItemSelectedHandler}>pen</MenuOption>
                     <br/>
                     <MenuOption id="rect" type = {cShape.RECT} action={this.menuItemSelectedHandler}>sq</MenuOption>

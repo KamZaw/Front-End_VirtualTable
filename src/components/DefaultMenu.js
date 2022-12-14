@@ -204,6 +204,27 @@ class NGONMenu extends DefaultMenu {
     }
 }
 
+class TEXTMenu extends DefaultMenu {
+    constructor(){
+        super();
+        this.state.defaultValue= "e9e9e9";
+    }
+    render() {
+        
+        return(
+            <>
+            <div id="menubar" className = "menubar">
+                <b>Tekst </b>
+                tekst:<input id="txt" className="button_menu" placeholder="tekst..." defaultValue="Wirtualna Tablica"/>
+                rozmiar:<input id="txt_size" className="button_menu" placeholder="rozmiar czcionki" defaultValue="50"/>
+                {/* wysokość:<input id="txt_height" className="button_menu" placeholder="wysokość czcionki" defaultValue="10"/> */}
+                {super.render()}
+                
+            </div>
+            </>
+            );
+    }
+}
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
@@ -232,4 +253,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu}

@@ -32,6 +32,7 @@ class LoginForm extends Component {
         await signOut(getAuth(Global.firebaseApp));
         this.props.action(false);       //potrzeba aby zmienić status przycisku z LogIN na LogOUT
     }
+    // Program wypchałem już do Githuba (front end, na razie backend jest odłączony, front komunikuje się bezpośrednio z bazą firebase aby opóźnienie było minimalne, backend będzie miał ograniczoną rolę do synchronizacji czasu oraz przesyłania historycznych sesji)
     onLogin = async (event) => {
 
         // if(this.state.user) {
