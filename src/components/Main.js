@@ -7,10 +7,11 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import {initializeApp} from "firebase/app"
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, ref, set, update } from "firebase/database";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
+import Sessionbar from './SessionBar.js';
 
 
 const targetPanelString = 'main_panel';
@@ -29,12 +30,21 @@ class Main extends Component {
         this.selectMenuCallback = this.selectMenuCallback.bind(this);     
         this.navbar = React.createRef();
 
+        this.state = {
+            loggedIn: false,
+        }
         Global.firebaseApp = initializeApp(firebaseConfig);
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
             currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
             Global.user = currentUser;
             Global.fb = getDatabase(Global.firebaseApp );
-        } ).bind(this);
+              Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+            {
+                // refreshed: Shape.dateToTicks(new Date()),
+                loggedIn: currentUser!= null
+            });
+            this.setState({...this.state, loggedIn: currentUser!= null})
+      } ).bind(this);
     }
 
     componentDidMount() {
@@ -345,7 +355,7 @@ class Main extends Component {
            <>
            {/* <FirebaseUpdate action={this.onFBUpdate}/> */}
            <NavBar action={this.itemPicked} ref={this.navbar}/>
-
+           {Global.user &&  <Sessionbar />}
            
            </>
         );

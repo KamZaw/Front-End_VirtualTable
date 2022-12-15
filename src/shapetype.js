@@ -27,6 +27,13 @@ const cShape ={
     MIRRORY:        29,
 };
 
+const cRole = {
+    READONLY:   0,      //tylko do odczytu tablicy
+    APPEND:     1,      //mozna dodawać własne elementy ale nie modyfikować istniejących cudzych
+    MODIFY:     2,      //można modyfikować istniejące ale nie dodawać
+    WRITE:      3       //pełnia praw do działań na tablicy
+}
+
 const cAction = {
     NONE:       0,
     RECT:       1,
@@ -35,4 +42,4 @@ const cAction = {
     POLYGON:    4,
     FREEPEN:    5,
 }
-export { cShape, cAction};
+export { cShape, cAction, cRole};

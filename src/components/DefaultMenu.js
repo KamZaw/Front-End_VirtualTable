@@ -21,6 +21,7 @@ class DefaultMenu extends Component {
             isLoginWindow: false,
             logout: false,
             defaultValue: "FF0000",
+
             
             isOpenMsgWindow: false,
             isInputField: false,
@@ -73,7 +74,7 @@ class DefaultMenu extends Component {
         this.componentDidUpdate();
 
     }
-    hideLoginWindow(val) {
+    hideLoginWindow(val, val2) {
         this.setState({...this.state, isLoginWindow: val});
     }
     responseMsgWindow(val) {
@@ -114,7 +115,7 @@ class DefaultMenu extends Component {
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
 
-                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={!Global.user?"Login":"LogOut"}></input>
+                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={Global.user?"LogOut":"Login"}></input>
                 
                 <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
                 <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsgWindow.bind(this)}/>
