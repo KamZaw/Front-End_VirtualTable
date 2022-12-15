@@ -12,8 +12,8 @@ class LoginForm extends Component {
         super(props);
         this.registrationComplete = false;
         this.state = {
-            lastName:"Kowalski",
-            firstName:"Mirek",
+            lastName:"",
+            firstName:"",
             loginName:"student01@gmail.com",//kamila.zawadzka31@gmail.com
             password:"student01!",
             user: "",
