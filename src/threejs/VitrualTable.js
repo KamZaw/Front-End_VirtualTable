@@ -252,12 +252,17 @@ class VitrualTable {
                     shape = new FreePen(this.scene, points[0],
                     points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
                     shape.Z = o.Z;
+                    shape.mirrorX = o.mirrorX;
+                    shape.mirrorY = o.mirrorY;
                     shape.drawShape();
                     this.addShape(shape);                
                 }
                 else if(o.type == cShape.TEXT) {
                     shape = new Text(this.scene, o.x,o.y,o.label, "0x"+o.color.toString(16), o.size,o.height);
                     shape.Z = o.Z;
+                    shape.mirrorX = o.mirrorX;
+                    shape.mirrorY = o.mirrorY;
+
                     this.onNewShape(shape);
                 }
             }
@@ -284,13 +289,14 @@ class VitrualTable {
         });
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if(Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1')
+        if(Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'){
             if(JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer]))  {
                 Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
                     firebaseData);
                 this.histStack.push(timStamp);
                 this.histPointer++;
             }
+        }
     }
 
     sceneClear() {

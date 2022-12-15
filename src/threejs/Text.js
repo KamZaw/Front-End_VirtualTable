@@ -38,9 +38,10 @@ class Text extends Shape{
     }
     carbonCopy(bDraw) {
         
-        const obj = new Text(this.scene, this.x, this.y, this.label,this.iColor,this.size,this.height);
+        let obj = new Text(this.scene, this.x, this.y, this.label,this.iColor,this.size,this.height);
+        super.carbonCopy(obj);
         obj.drawText(bDraw);
-
+        
         return obj;
     }
     rescale() {

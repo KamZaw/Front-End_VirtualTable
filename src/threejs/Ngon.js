@@ -132,7 +132,7 @@ class Ngon extends Shape{
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
         let obj = new Ngon(this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
-        
+        super.carbonCopy(obj);
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor, //0xE9E9E9,
                 //wireframe: true,

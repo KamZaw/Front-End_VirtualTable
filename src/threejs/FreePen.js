@@ -185,7 +185,7 @@ class FreePen extends Shape{
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
         let obj = new FreePen(this.scene,this.x,this.y, this.prev, this.label,this.size,this.iColor, this.ignoreZ);
-        
+        super.carbonCopy(obj);
         //obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
 
         obj.mesh= new THREE.Mesh( 

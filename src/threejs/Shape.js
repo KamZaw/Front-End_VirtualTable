@@ -102,6 +102,11 @@ class Shape {
             opacity: 1.0,
         };
     }
+    carbonCopy(obj) {
+        obj.mirrorX = this.mirrorX;
+        obj.mirrorY = this.mirrorY;
+        obj.Z = this.Z;
+    }
 
     //tworzy i wraca kopię obiektu
     
