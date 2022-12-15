@@ -114,7 +114,7 @@ class VitrualTable {
         
         Global.selectedShape = this.selectedNode;
         
-        this.action !== cAction.FREEPEN && this.type !== cShape.FREEPEN && node.setFillColor(0xffffff);
+        this.action !== cAction.FREEPEN && (this.type !== cShape.FREEPEN && this.type !== cShape.TEXT) && node.setFillColor(0xffffff);
         //this.action === cAction.NONE && this.putData(node);
 
         this.type !== cShape.FREEPEN && this.historyAdd();
@@ -157,8 +157,10 @@ class VitrualTable {
                         {
                             
                         }
-                        const node = new FreePen(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), [this.prevPoint], "freePen",  parseInt(document.getElementById("radius").value), parseInt(document.getElementById("radius").value), "0x" + document.getElementById('color').value, true);
+                        const node = new FreePen(this.scene, (event.clientX - targetPanel.offsetLeft),
+                            (event.clientY - targetPanel.offsetTop), 
+                            [this.prevPoint], "freePen",  
+                            parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value, true);
                         this.onNewShape(node);
 
                         if(this.tmpNodes == null) {
@@ -236,7 +238,7 @@ class VitrualTable {
                 const o = mapa[last][j];
                 let shape
                 if(o.type == cShape.NGON) {
-                    shape = new Ngon(this.THREE, this.scene, o.x,o.y,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                    shape = new Ngon(this.scene, o.x,o.y,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
                     shape.Z = o.Z;
                     shape.drawFromPoints(o.points);
                     this.addShape(shape);                
@@ -247,14 +249,14 @@ class VitrualTable {
                     for(let i =0; i < pts.length-1;i+=2) {
                         points.push([pts[i], pts[i+1]]);
                     }
-                    shape = new FreePen(this.THREE, this.scene, points[0],
-                    points[1], points, "freePen", o.a, o.b, "0x" + o.color.toString(16));
+                    shape = new FreePen(this.scene, points[0],
+                    points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
                     shape.Z = o.Z;
                     shape.drawShape();
                     this.addShape(shape);                
                 }
                 else if(o.type == cShape.TEXT) {
-                    shape = new Text(this.THREE, this.scene, o.x,o.y,o.label, "0x"+o.color.toString(16), o.size,o.height);
+                    shape = new Text(this.scene, o.x,o.y,o.label, "0x"+o.color.toString(16), o.size,o.height);
                     shape.Z = o.Z;
                     this.onNewShape(shape);
                 }
@@ -326,24 +328,24 @@ class VitrualTable {
             case 1: //left
                 switch (this.type) {
                     case cShape.RECT: {
-                        const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                        const node = new Ngon(this.scene, (event.clientX - targetPanel.offsetLeft),
                             (event.clientY - targetPanel.offsetTop), "prostokat", document.getElementById("rect_height").value, 4, "0x" + document.getElementById('color').value, document.getElementById("rect_width").value,true);                            
                         this.onNewShape(node);
                         // const o = node.toJSON();
                         // console.log(o);
-                        // const node1 = new Ngon(this.THREE, this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
+                        // const node1 = new Ngon(this.scene, o.x+20,o.y+20,o.label,o.radius, o.n, "0x"+o.color.toString(16), o.b,o.offsetRot);
                         // node1.drawFromPoints(o.points);
                         // this.addShape(node1);
                         break;
                     }
                     case cShape.NGON: {
-                        const node = new Ngon(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                        const node = new Ngon(this.scene, (event.clientX - targetPanel.offsetLeft),
                             (event.clientY - targetPanel.offsetTop), "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value);
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.TEXT:
-                        const node = new Text(this.THREE, this.scene, (event.clientX - targetPanel.offsetLeft),
+                        const node = new Text(this.scene, (event.clientX - targetPanel.offsetLeft),
                             (event.clientY - targetPanel.offsetTop), document.getElementById('txt').value,
                               "0x" + document.getElementById('color').value, 
                               document.getElementById('txt_size').value, 
@@ -389,8 +391,8 @@ class VitrualTable {
     }
     finalizeFreePenFig( targetPanel) {
         if(!this.prevPoint) return;
-        const node = new FreePen(this.THREE, this.scene, this.prevPoint[0],
-            this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("radius").value), parseInt(document.getElementById("radius").value), "0x" + document.getElementById('color').value);
+        const node = new FreePen(this.scene, this.prevPoint[0],
+            this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value);
         this.deleteTempNodes();
         this.tmpNodes = null;
         this.onNewShape(node);
@@ -410,7 +412,13 @@ class VitrualTable {
 
         if (intersects.length > 0) {
             //TODO: dodac sortowanie po buferze Z
-            this.select(intersects[intersects.length-1].object);
+            // for(let i = intersects.length-1; i>=0; i--)
+            // if(intersects[i].object.visible)
+            {
+                const i = intersects.length-1;
+                this.select(intersects[i].object);
+                return;
+            }
         }
         else
             this.select(null);
@@ -460,13 +468,14 @@ class VitrualTable {
         }
         
         for (let shape of this.OBJECTS) {
-            if (pole === null || shape.mesh !== pole)
+            if (pole === null || (shape.mesh?.id !== pole.id ))
                 shape.select(false);
             else if (pole != null) {
-                if(shape.label == "freePen")
-                    shape.setFillColor(0xAAAAAA);
-                else
-                    shape.setFillColor(0xffffff);
+                if(shape.type != cShape.FREEPEN && shape.type != cShape.TEXT)
+                    shape.setDefaultColor();
+                // else
+                //     shape.setFillColor(0xFFFFFF);
+
                 this.selectedNode = shape;
                 Global.selectedShape = this.selectedNode;
                 //this.selectMenu(shape.type);

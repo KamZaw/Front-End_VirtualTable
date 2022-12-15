@@ -9,10 +9,11 @@ class Shape {
     static Zmin = -100;       //pozycja na osi Z
     static Zmax = -100;       //pozycja na osi Z
     static dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
-    constructor(shapeType, THREE, scene,  y, x, label, ignoreZ) {
+    constructor(shapeType, scene,  y, x, label, color, ignoreZ) {
         const dt = new Date();
         this.type = shapeType;
         this.scene = scene;
+        this.iColor = parseInt(color);
         this.siz = rozmiarPola;                             //rozmiar boku kwadratu węzła
         this.label = label?label: this.constructor.name;    //domyślnba etykieta to nazwa klasy, unikalna - sam obiekt Rectangle
         this.x = x;
@@ -21,7 +22,6 @@ class Shape {
         this.scaleY = 1;
         this.mesh = null;       //rysowane obiekty threejs
         this.linie = null;
-        this.iColor = 0xE9E9E9;
         this.date = dt.toISOString();
         this.ticks = `${Shape.dateToTicks(dt)}`;
         this.Z = Shape.Z;

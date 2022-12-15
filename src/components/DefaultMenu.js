@@ -256,7 +256,7 @@ class FreePenMenu extends DefaultMenu {
             <div id="menubar" className = "menubar">
                 <b>Free Pen </b> 
                 {/* <b>&nbsp; </b> */}
-                r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="2"/>px
+                Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
                 {super.render()} 
                 <button id="addFig" onClick = {this.onFinalizeFig} value={true}>V</button>
                 <button id="rmFig" onClick = {this.onFinalizeFig} value={false}>X</button>

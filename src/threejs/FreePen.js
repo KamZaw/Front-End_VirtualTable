@@ -4,12 +4,9 @@ import * as THREE from 'three';
 
 class FreePen extends Shape{
 
-    constructor(THREE, scene, x, y, prev, label, a, b, color, ignoreZ ) {
-        super(cShape.FREEPEN, THREE, scene, x, y, label,ignoreZ);
-        this.iColor = parseInt(color);
-        this.scene = scene;
-        this.b = b;
-        this.a = a;
+    constructor(scene, x, y, prev, label, size, color, ignoreZ ) {
+        super(cShape.FREEPEN, scene, x, y, label, color, ignoreZ);
+        this.size = parseInt(size);
         this.x = this.y = 0;
         this.points = [];
         this.prev = prev[0]?[...prev,[x,y]]:[[x,y], [x,y]];
@@ -32,8 +29,8 @@ class FreePen extends Shape{
 
         for(let i = 0; i < prev.length-1; i++) {
             
-            let a = parseInt(this.a);
-            let b = parseInt(this.b);            
+            let a = this.size;
+            let b = this.size;            
             
             let x = prev[i][0];
             let y = prev[i][1];
@@ -128,15 +125,13 @@ class FreePen extends Shape{
         material.side = THREE.DoubleSide; 
     
     
-        let box = new THREE.Mesh(geometry, material);
-        box.name = "name";
-        box.position.set(0,0, this.Z);
-        this.scene.add(box);
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.name = "name";
+        this.mesh.position.set(0,0, this.Z);
+        this.scene.add(this.mesh);
+        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
 
-        
-        
-        this.mesh = box;
-        let b = parseInt(this.b); 
+        let b = this.size; 
         const path = new THREE.Path();
         path.moveTo(minX-b, minY-b);
         path.lineTo(maxX+b, minY-b);
@@ -155,13 +150,15 @@ class FreePen extends Shape{
         this.linie.position.set(this.x, this.y, this.Z+1);
         if(prev.length > 2)
             this.scene.add(this.linie);
-        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
         
     }
     // przysłania domyślną procedurę zaznaczania figury
+    setFillColor(color) {
+        this.mesh.material.color.setHex( color ^ this.iColor );
+    }
     setDefaultColor() {
-        //this.mesh.material.color.setHex( this.iColor );
         this.mesh.material.color.setHex( this.iColor );
     }
     rescale() {
@@ -174,10 +171,6 @@ class FreePen extends Shape{
         this.linie && (this.linie.visible = flag);
         return this.node;
     }
-    setFillColor(color) {
-        //this.mesh.material.color = color;
-        this.mesh.material.color.setHex( color );
-    }
 
     toJSON() {
         this.prev.pop();        
@@ -185,14 +178,13 @@ class FreePen extends Shape{
         return {
             ...obj,
             prev: this.prev.toString(),
-            a: this.a, 
-            b: this.b, 
+            size: this.size, 
             points: this.linie?.geometry.attributes.position.array.toString(),
         };
     }
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
-        let obj = new FreePen(THREE,this.scene,this.x,this.y, this.prev, this.label,this.a, this.b,this.iColor, this.ignoreZ);
+        let obj = new FreePen(this.scene,this.x,this.y, this.prev, this.label,this.size,this.iColor, this.ignoreZ);
         
         //obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
 

@@ -7,10 +7,8 @@ import Global from '../Global.js';
 
 class Ngon extends Shape{
 
-    constructor(THREE, scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt ) {
-        super(cShape.NGON, THREE, scene, y, x, label);
-        this.iColor = parseInt(color);
-        this.scene = scene;
+    constructor(scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt ) {
+        super(cShape.NGON, scene, y, x, label, color);
         this.radius = radius;
         this.n = ngons;
         this.node = iNode?null:[];                  //definiuj liste jeśli true
@@ -65,10 +63,10 @@ class Ngon extends Shape{
         path.moveTo(pts[0],pts[1]);
         const cornerSize = Global.cornerSize;
         this.node = [];
-        this.node.push(new Ngon(THREE, this.scene, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
+        this.node.push(new Ngon(this.scene, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
         for(let i = 3; i < pts.length; i+=3) {
             path.lineTo(pts[i],pts[i+1]);
-            this.node.push(new Ngon(THREE, this.scene, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
+            this.node.push(new Ngon(this.scene, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
         }
         this.node.pop();
         
@@ -133,7 +131,7 @@ class Ngon extends Shape{
     
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
-        let obj = new Ngon(THREE,this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
+        let obj = new Ngon(this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
         
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor, //0xE9E9E9,
@@ -194,7 +192,7 @@ class Ngon extends Shape{
             let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
             let x = Math.round(Math.cos(theta) * radius *b);
             let y = Math.round(Math.sin(theta) * radius);
-            this.node?.push(new Ngon(THREE, this.scene, x + this.x, y + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i));
+            this.node?.push(new Ngon(this.scene, x + this.x, y + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i));
             if(i === 0)
                 path.moveTo(x,y);
             else
