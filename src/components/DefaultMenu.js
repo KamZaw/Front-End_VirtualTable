@@ -53,6 +53,14 @@ class DefaultMenu extends Component {
     onZChangeMinus() {
         this.props.action(cShape.ZMINUS);
     }
+    //włącza/wyłącza siatkę
+    onCheckedGrid() {
+        this.props.action(cShape.GRIDON_OFF);
+    }
+    //włącza/wyłącza gridSnap
+    onCheckedGridSnap(e) {
+        this.props.action(cShape.GRID_SNAP_ON_OFF);
+    }
     onChange = event => {
         this.setState({ defaultValue: (event.target.value), isLogin: (Global.user != null) });  
         document.getElementById("colorpicker").style.background = "#"+this.state.defaultValue;
@@ -102,6 +110,10 @@ class DefaultMenu extends Component {
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <button  id="history_undo" onClick = {this.onUndo.bind(this) }>&lt; Cofnij</button>
                     <button  id="history_redo" onClick = {this.onRedo.bind(this) }>Powrót &gt;</button>
+                    <label htmlFor="grid"> Siatka </label>
+                    <input type="checkbox" id="grid" name="grid" checked="false" onChange = {this.onCheckedGrid.bind(this)}/>
+                    <label htmlFor="gridsnap"> Magnes </label>
+                    <input type="checkbox" id="gridsnap" name="gridsnap" checked="false" onChange = {this.onCheckedGridSnap.bind(this)}/>
                 </span>
                 
                 <div id="colorpicker" onClick = {this.onChange}>&nbsp;</div>
@@ -160,7 +172,6 @@ class EmptyMenu extends DefaultMenu {
             <b>Skaluj:</b>
             <input id="scaleX" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onScaleXChange}/>
             <input id="scaleY" className="button_menu" placeholder="y..." defaultValue={1}  onChange = {this.onScaleYChange}/>
-
         </div>
         </>
     );
@@ -239,6 +250,32 @@ class TEXTMenu extends DefaultMenu {
             );
     }
 }
+
+class PolygonMenu extends DefaultMenu {
+    constructor(){
+        super();
+        this.state.defaultValue= "F7B854";
+        this.onFinalizeFig = this.onFinalizeFig.bind(this);
+    }
+    onFinalizeFig(event) {
+        this.props.action(cShape.POLY_CLOSE);
+    }
+    render() {
+        return(
+            <>
+            <div id="menubar" className = "menubar">
+                <b>Polygon </b> 
+                {/* <b>&nbsp; </b> */}
+                Szerokość lini:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+                {super.render()} 
+                <button id="polyClose" onClick = {this.onFinalizeFig} value={true}>V</button>
+ 
+            </div>
+            </>
+            );
+    }
+}
+
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
@@ -267,4 +304,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu}

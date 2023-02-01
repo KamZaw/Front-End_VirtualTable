@@ -5,10 +5,11 @@ import Global from '../Global';
 import {Shape} from "./Shape"
 import {Ngon} from './Ngon'
 import {Text} from "./Text"
+import {Polygon} from "./Polygon"
 import {FreePen} from './FreePen'
 import {cShape, cAction} from '../shapetype';
 import Point from './Point';
-import { getDatabase, ref, set, get, child, onValue,off } from "firebase/database";
+import { getDatabase, ref, set, get, child, onValue,off, push } from "firebase/database";
 
 class VitrualTable {
     constructor(THREE, scene, selectMenuCallback) {
@@ -19,6 +20,13 @@ class VitrualTable {
         this.OBJECTS = [];
         this.scene = scene;
         this.selectedNode = null;
+        //obsługa siatki i wyrównywania
+        this.gridOn = true;
+        this.gridSnap = true;
+        this.gridRes = 10;
+        this.crosshair = null;
+
+
         this.selectedCorner = null;
         this.meshes = [];
         this.freePenPoints = []; //tablica na punkty FreePena
@@ -36,6 +44,11 @@ class VitrualTable {
         Text.loadFontOnce();        //inicjacja fotnów
     }
 
+
+    //aktywacja i deaktywacja siatki
+    setGrid() {
+                
+    }
     async deleteShape(ticks) {
         try {
             let result = null;
@@ -109,7 +122,8 @@ class VitrualTable {
         node.drawShape();
         this.addShape(node);
         
-        this.select(node.mesh);
+        node.mesh && this.select(node.mesh);
+        this.action === cAction.POLYGON && this.select(node.linie);
         
         
         Global.selectedShape = this.selectedNode;
@@ -122,14 +136,21 @@ class VitrualTable {
     }
     
     onMouseMove(event, targetPanel, camera, wd, hd) {
-        this.action == cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
+        if(this.gridSnap) {
+            this.crosshair.position.set(parseInt((event.clientX - targetPanel.offsetLeft)/this.gridRes)*this.gridRes, parseInt((event.clientY - targetPanel.offsetTop)/this.gridRes)*this.gridRes, 100);
+        }
+        this.action === cAction.POLYGON && this.onMouseDown(event, targetPanel, camera, wd, hd);
+        this.action === cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
         //this.action == cAction.MOVE && 
         this.type != cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig();     //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
     }
 
     onMouseDown(event, targetPanel, camera, wd, hd) {
         
-
+        const p = {
+            x: this.gridSnap? parseInt((event.clientX - targetPanel.offsetLeft)/this.gridRes) * this.gridRes:(event.clientX - targetPanel.offsetLeft),
+            y: this.gridSnap? parseInt((event.clientY - targetPanel.offsetTop)/this.gridRes) * this.gridRes:(event.clientY - targetPanel.offsetTop),
+        }
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
@@ -139,7 +160,11 @@ class VitrualTable {
                     case cShape.NGON: {
                         break;
                     }
-                    case cShape.CIRCLE:
+                    case cShape.POLYGON:
+                        if(this.selectedNode) {
+                            //console.log(p);
+                            this.selectedNode.updateLastPos(p);
+                        }
                         break;
                     case cShape.FREEPEN: {
                         if(this.prevPoint) {
@@ -147,8 +172,8 @@ class VitrualTable {
                             if(this.freePenSeparator === true)
                             {
                                 this.freePenSeparator = false;
-                                this.prevPoint = [(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)];
-                                this.freePenPoints.push([(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)]);  
+                                this.prevPoint = [p.x,p.y];
+                                this.freePenPoints.push([p.x, p.y]);  
                             }
                             else
                                 this.prevPoint = this.freePenPoints[this.freePenPoints.length - 1];
@@ -157,8 +182,7 @@ class VitrualTable {
                         {
                             
                         }
-                        const node = new FreePen(this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), 
+                        const node = new FreePen(this.scene, p.x, p.y, 
                             [this.prevPoint], "freePen",  
                             parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value, true);
                         this.onNewShape(node);
@@ -169,8 +193,8 @@ class VitrualTable {
                         this.tmpNodes.push(node);
                         
                         this.action = cAction.FREEPEN;
-                        this.prevPoint = [(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)];
-                        this.freePenPoints.push([(event.clientX - targetPanel.offsetLeft), (event.clientY - targetPanel.offsetTop)]);
+                        this.prevPoint = [p.x, p.y];
+                        this.freePenPoints.push([p.x, p.y]);
                         break;
                     }
                     case cShape.SELECT:
@@ -181,16 +205,14 @@ class VitrualTable {
                         if(!this.selectedNode) break;
                         const selected = this.selectedCorner != null?this.selectedCorner:this.selectedNode;
                         if(!this.prevPoint) {
-                            (this.prevPoint = [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                            (this.prevPoint = [p.x,p.y]);
                         }
                         else {
-                            selected.mvShape(this.prevPoint, [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                            selected.mvShape(this.prevPoint, [p.x,p.y]);
                             this.prevPoint = null;
                         }
                         break;
 
-                    case cShape.POLYGON:
-                        break;
                     default:
                         break;
                 }
@@ -291,7 +313,7 @@ class VitrualTable {
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
         if(Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'){
             if(JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer]))  {
-                Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
+                Global.user && Global.fb && push(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`), 
                     firebaseData);
                 this.histStack.push(timStamp);
                 this.histPointer++;
@@ -329,13 +351,21 @@ class VitrualTable {
     //obsluga zdarzenia kliku na planszę
     onClick(event, targetPanel, camera, wd, hd) {
 
-        this.action = cAction.NONE;
+        const p = {
+            x: this.gridSnap? parseInt((event.clientX - targetPanel.offsetLeft)/this.gridRes) * this.gridRes:(event.clientX - targetPanel.offsetLeft),
+            y: this.gridSnap? parseInt((event.clientY - targetPanel.offsetTop)/this.gridRes) * this.gridRes:(event.clientY - targetPanel.offsetTop),
+        }
+        //this.action = cAction.NONE;
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
                     case cShape.RECT: {
-                        const node = new Ngon(this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), "prostokat", document.getElementById("rect_height").value, 4, "0x" + document.getElementById('color').value, document.getElementById("rect_width").value,true);                            
+
+                        const node = new Ngon(this.scene, p.x, p.y , "prostokat", 
+                        document.getElementById("rect_height").value, 4, 
+                        "0x" + document.getElementById('color').value, 
+                        document.getElementById("rect_width").value,true);
+
                         this.onNewShape(node);
                         // const o = node.toJSON();
                         // console.log(o);
@@ -345,14 +375,12 @@ class VitrualTable {
                         break;
                     }
                     case cShape.NGON: {
-                        const node = new Ngon(this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value);
+                        const node = new Ngon(this.scene,  p.x, p.y , "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value);
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.TEXT:
-                        const node = new Text(this.scene, (event.clientX - targetPanel.offsetLeft),
-                            (event.clientY - targetPanel.offsetTop), document.getElementById('txt').value,
+                        const node = new Text(this.scene, p.x, p.y, document.getElementById('txt').value,
                               "0x" + document.getElementById('color').value, 
                               document.getElementById('txt_size').value, 
                             //   document.getElementById('txt_height').value
@@ -366,15 +394,33 @@ class VitrualTable {
                         break;
                     }
                     case cShape.POLYGON:
+                        {
+                            if(this.action !== cAction.POLYGON) {
+                                const node = new Polygon(this.scene, p, "0x" + document.getElementById('color').value);
+                                this.onNewShape(node);
+                                this.selectedNode = node;
+                                this.action = cAction.POLYGON;
+                            }
+                            else {
+                                if(this.selectedNode) {
+                                    console.log(`addPoint(${p})`);
+                                    this.selectedNode?.addPoint(p);
+                                    if(this.selectedNode.figureIsClosed) {
+                                        this.action = cAction.NONE;
+                                        this.selectedNode = null;
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case cShape.SELECT:
-                        if(this.prevPoint && Point.distance(this.prevPoint, [event.clientX, event.clientY])<10) {
+                        if(this.prevPoint && Point.distance(this.prevPoint, [p.x,p.y])<10) {
                             this.onSelection(event, targetPanel);
                         } 
                     case cShape.MOVE:    
                         if(!this.prevPoint) return;
                         const selected = this.selectedCorner !== null?this.selectedCorner:this.selectedNode;
-                        selected && selected.mvShape(this.prevPoint, [(event.clientX - targetPanel.offsetLeft),  (event.clientY - targetPanel.offsetTop)]);
+                        selected && selected.mvShape(this.prevPoint, [p.x, p.y]);
                         this.historyAdd();
                         this.prevPoint = null;
                         break;

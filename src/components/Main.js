@@ -160,6 +160,14 @@ class Main extends Component {
                 vt.selectedNode && vt.selectedNode.ZMinus();
                 vt.selectedNode && vt.historyAdd();
                 break;
+            case cShape.GRIDON_OFF:
+                this.gridSwitch();
+                break;
+            case cShape.GRID_SNAP_ON_OFF:
+                //TODO: tutaj jest błąd - usuń go!
+                this.vt.gridSnap = !this.vt.gridSnap;
+                this.crosshair.visible = !this.crosshair.visible;
+                break;
             case cShape.SCALEX:
                 const sX = parseFloat(document.getElementById("scaleX").value);
                 if(isNaN(sX)) return;
@@ -307,13 +315,22 @@ class Main extends Component {
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousemove', function(event) { vt.onMouseMove(event, targetPanel, camera, wd, hd); }, false);
         document.addEventListener('keydown', this.onKeyDown.bind(this), false);
+        this.hiGrid = this.drawGrid(0x444444, 10, .7);
+        this.lowGrid = this.drawGrid(0x111111, 100, .7);
+        
+        vt.crosshair = this.crosshair();
+        vt.gridRes = 10;
     }
 
     onKeyDown(event) {
         const keyCode = event.which;
         const vt = this.vt;
         
-        const multiply = event.ctrlKey?10:1;
+        if(vt.gridSnap && vt.selectedNode) {
+            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.x/vt.gridRes)*vt.gridRes)
+            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.y/vt.gridRes)*vt.gridRes)
+        }
+        const multiply = event.ctrlKey?vt.gridRes:1;
         //przesuwamy
         if( vt.selectedNode) {  //vt.type == cShape.SELECT &&
             if (keyCode == event.DOM_VK_DOWN) {
@@ -331,6 +348,73 @@ class Main extends Component {
                 this.delete(vt.selectedNode);
             }
         }
+    }
+
+    crosshair() {
+        const path = new THREE.Path();
+        path.moveTo(0, -5);
+        path.lineTo(0, 5);
+        path.moveTo(0, 0);
+        path.lineTo(5, 0);
+        path.moveTo(0, 0);
+        path.lineTo(-5, 0);
+
+        const points = path.getPoints();
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({
+            color: 0xDDDD22,
+            linewidth: 1,
+        });
+
+        const crosshair = new THREE.Line(geometryL, mat);
+        this.scene.add(crosshair);
+        crosshair.visible = true;
+        crosshair.position.set(400,400, 100);
+        return crosshair;
+
+    }
+    //jednorazowe rysowanie siatki
+    drawGrid(color, res, opacity) {
+        const targetPanel = document.getElementById('plansza');
+        const wd = targetPanel.offsetWidth ; // parseInt(dh.offsetWidth);
+        const hd = targetPanel.offsetHeight; //parseInt(window.innerHeight * .6);
+        const gridRes = res;
+        
+        const path = new THREE.Path();
+        path.moveTo(0, 0);
+        for(let i = 0 ; i*gridRes < hd; i++) 
+        {
+            path.lineTo(i%2 == 0?wd:0, i * gridRes);
+            path.moveTo(i%2 == 0?wd:0, (i+1) * gridRes);
+        }
+
+        for(let i = Math.ceil(wd/gridRes) ; i>=0; i--) {
+            path.lineTo(i * gridRes, i%2 == 0?hd:0);
+            path.moveTo(i * gridRes, (i+1)%2 == 0?hd:0);
+        }
+        
+
+        const points = path.getPoints();
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({
+            color: color,
+            linewidth: 1,
+            transparent: true,
+            opacity: opacity,
+        });
+        
+        const grid = new THREE.Line(geometryL, mat);
+        grid.visible = !false;
+        this.scene.add(grid);
+        grid.position.z = -1000;
+        return grid;
+    }
+
+    gridSwitch() {
+        this.lowGrid.visible = !this.lowGrid.visible;
+        this.hiGrid.visible = !this.hiGrid.visible;
+        this.vt.gridSnap = this.hiGrid.visible;
+        this.vt.crosshair.visible = this.hiGrid.visible;
     }
 
     //wybór menu z obiektu vt po selekcji obiektu danego typu

@@ -18,25 +18,22 @@ class Sessionbar extends Component {
    
         if(!Global.user) return;
         const dbRef = ref(Global.fb);
-        //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
    
         this.nodeRef = child(dbRef, `Students/`);
         onValue(this.nodeRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const mapa = snapshot.val();
-            const students = [];
-            
-            for(const i in mapa) {
-                students.push(mapa[i]);
-            }
-            this.setState({...this.state, students: students});
+            if (snapshot.exists()) {
+                const mapa = snapshot.val();
+                const students = [];
+                
+                for(const i in mapa) {
+                    students.push(mapa[i]);
+                }
+                this.setState({...this.state, students: students});
 
-    } else {
-            console.log("No data available");
-        }
+            } 
         }, {
             onlyOnce: false
-          });
+        });
 
     }
 

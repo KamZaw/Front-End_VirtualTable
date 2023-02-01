@@ -1,7 +1,7 @@
 import { Component } from "react";
 import {cShape} from '../shapetype';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -36,6 +36,9 @@ class NavBar extends Component {
             case cShape.FREEPEN:
                 this.component = <FreePenMenu action={this.props.action}/>;
                 break;
+            case cShape.POLYGON:
+                this.component = <PolygonMenu action={this.props.action}/>;
+                break;
                 case cShape.DELETE:     //nie zmieniaj menu
                 break;
             case cShape.NONE:
@@ -47,7 +50,6 @@ class NavBar extends Component {
         
         return(
             <>
-                
                 <div id="toolbar" className = "toolbar">
                     <MenuOption id="sel" type = {cShape.SELECT} action={this.menuItemSelectedHandler}>sel</MenuOption>
                     {/* <MenuOption id="mov" type = {cShape.MOVE} action={this.menuItemSelectedHandler}>mv</MenuOption> */}
@@ -58,6 +60,7 @@ class NavBar extends Component {
                     <MenuOption id="rect" type = {cShape.RECT} action={this.menuItemSelectedHandler}>sq</MenuOption>
                     <MenuOption id="ngon" type = {cShape.NGON} action={this.menuItemSelectedHandler}>ngon</MenuOption>
                     <br/>
+                    <MenuOption id="polygon" type = {cShape.POLYGON} action={this.menuItemSelectedHandler}>poly</MenuOption>
                     
                     <MenuOption id="del" type = {cShape.DELETE} action={this.menuItemSelectedHandler}>del</MenuOption>
                 </div>{this.component}

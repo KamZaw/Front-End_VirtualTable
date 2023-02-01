@@ -25,6 +25,9 @@ const cShape ={
     LOAD_FIREBASE:  27,
     MIRRORX:        28,
     MIRRORY:        29,
+    GRIDON_OFF:     30,
+    GRID_SNAP_ON_OFF:     31,
+    POLY_CLOSE:     32,
 };
 
 const cRole = {
