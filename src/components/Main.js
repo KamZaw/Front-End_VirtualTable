@@ -141,6 +141,12 @@ class Main extends Component {
                 
                 vt.loadDataFromSession(Global.currentSession);
                 break;
+            case cShape.BEZIER_CORNER:
+            case cShape.BEZIER:
+            {
+                vt.toBezier();
+            }
+            break;
             case cShape.SAVE_SVG:            
                 alert("Zapis do SVG jeszcze nie zaimplementowany");
                 break;
@@ -165,8 +171,9 @@ class Main extends Component {
                 break;
             case cShape.GRID_SNAP_ON_OFF:
                 //TODO: tutaj jest błąd - usuń go!
-                this.vt.gridSnap = !this.vt.gridSnap;
-                this.crosshair.visible = !this.crosshair.visible;
+                this.vt.gridSnap = !vt.gridSnap;
+                Global.chkSnap = vt.gridSnap;
+                this.crosshair.visible = vt.gridSnap;
                 break;
             case cShape.SCALEX:
                 const sX = parseFloat(document.getElementById("scaleX").value);
@@ -219,7 +226,6 @@ class Main extends Component {
                 vt.historyAdd();
                 break;
             }
-            
             // case cShape.RECT:
             // case cShape.NGON:
             // case cShape.FREEPEN:
@@ -326,27 +332,35 @@ class Main extends Component {
         const keyCode = event.which;
         const vt = this.vt;
         
-        if(vt.gridSnap && vt.selectedNode) {
-            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.x/vt.gridRes)*vt.gridRes)
-            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.y/vt.gridRes)*vt.gridRes)
-        }
-        const multiply = event.ctrlKey?vt.gridRes:1;
         //przesuwamy
         if( vt.selectedNode) {  //vt.type == cShape.SELECT &&
+            
+            const multiply = event.ctrlKey?vt.gridRes:1;
             if (keyCode == event.DOM_VK_DOWN) {
+                this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[0,1*multiply]);
                 // down
             } else if (keyCode == event.DOM_VK_UP) {
+                this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[0,-1*multiply]);
                 // left
             } else if (keyCode == event.DOM_VK_RIGHT) {
+                this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[1*multiply,0]);
                 // right
             } else if (keyCode == event.DOM_VK_LEFT) {
+                this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[-1*multiply,0]);
             }else if (keyCode == event.DOM_VK_DELETE) {
                 this.delete(vt.selectedNode);
             }
+        }
+    }
+
+    snapToGrid(vt) {
+        if (vt.gridSnap) {
+            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.x / vt.gridRes) * vt.gridRes);
+            vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.y / vt.gridRes) * vt.gridRes);
         }
     }
 
@@ -369,7 +383,7 @@ class Main extends Component {
         const crosshair = new THREE.Line(geometryL, mat);
         this.scene.add(crosshair);
         crosshair.visible = true;
-        crosshair.position.set(400,400, 100);
+        crosshair.position.set(400,400, 1000);
         return crosshair;
 
     }
@@ -410,11 +424,12 @@ class Main extends Component {
         return grid;
     }
 
+    //siatka ON/OFF
     gridSwitch() {
         this.lowGrid.visible = !this.lowGrid.visible;
         this.hiGrid.visible = !this.hiGrid.visible;
-        this.vt.gridSnap = this.hiGrid.visible;
         this.vt.crosshair.visible = this.hiGrid.visible;
+        Global.chkGrid = this.hiGrid.visible;
     }
 
     //wybór menu z obiektu vt po selekcji obiektu danego typu
@@ -438,7 +453,7 @@ class Main extends Component {
         return (
            <>
            {/* <FirebaseUpdate action={this.onFBUpdate}/> */}
-           <NavBar action={this.itemPicked} ref={this.navbar}/>
+           <NavBar action={this.itemPicked} ref={this.navbar} status={this.vt}/>
            {Global.user &&  <Sessionbar />}
            
            </>

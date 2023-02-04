@@ -16,12 +16,14 @@ class DefaultMenu extends Component {
         this.onZChangeMinus = this.onZChangeMinus.bind(this);
         this.onChange = this.onChange.bind(this);
         this.openLogin = this.openLogin.bind(this);
+        
         this.state = {
             login: false,
             isLoginWindow: false,
             logout: false,
             defaultValue: "FF0000",
-
+            chkGrid: Global.chkGrid,
+            chkSnap: Global.chkSnap,//this.props.status.gridSnap,
             
             isOpenMsgWindow: false,
             isInputField: false,
@@ -54,15 +56,24 @@ class DefaultMenu extends Component {
         this.props.action(cShape.ZMINUS);
     }
     //włącza/wyłącza siatkę
-    onCheckedGrid() {
+    onCheckedGrid(e) {
+        const element = e.target;
+        this.setState({ ...this.state,
+            chkGrid: element.checked
+        });
         this.props.action(cShape.GRIDON_OFF);
     }
     //włącza/wyłącza gridSnap
     onCheckedGridSnap(e) {
+        const element = e.target;
+        this.setState({ ...this.state,
+            chkSnap: element.checked
+        });
+
         this.props.action(cShape.GRID_SNAP_ON_OFF);
     }
     onChange = event => {
-        this.setState({ defaultValue: (event.target.value), isLogin: (Global.user != null) });  
+        this.setState({...this.state, defaultValue: (event.target.value), isLogin: (Global.user != null) });  
         document.getElementById("colorpicker").style.background = "#"+this.state.defaultValue;
         this.props.action(cShape.COLORCHANGE);
     }
@@ -76,6 +87,7 @@ class DefaultMenu extends Component {
         
         const el = document.getElementById("colorpicker");
         el && (el.style.background = "#"+this.state.defaultValue);
+        
 
     }
     componentDidMount() {
@@ -111,9 +123,9 @@ class DefaultMenu extends Component {
                     <button  id="history_undo" onClick = {this.onUndo.bind(this) }>&lt; Cofnij</button>
                     <button  id="history_redo" onClick = {this.onRedo.bind(this) }>Powrót &gt;</button>
                     <label htmlFor="grid"> Siatka </label>
-                    <input type="checkbox" id="grid" name="grid" checked="false" onChange = {this.onCheckedGrid.bind(this)}/>
+                    <input type="checkbox" id="grid" name="grid" checked={this.state.chkGrid} onChange = {this.onCheckedGrid.bind(this)}/>
                     <label htmlFor="gridsnap"> Magnes </label>
-                    <input type="checkbox" id="gridsnap" name="gridsnap" checked="false" onChange = {this.onCheckedGridSnap.bind(this)}/>
+                    <input type="checkbox" id="gridsnap" name="gridsnap" checked={this.state.chkSnap} onChange = {this.onCheckedGridSnap.bind(this)}/>
                 </span>
                 
                 <div id="colorpicker" onClick = {this.onChange}>&nbsp;</div>
@@ -276,6 +288,32 @@ class PolygonMenu extends DefaultMenu {
     }
 }
 
+class CornerMenu extends DefaultMenu {
+    constructor(){
+        super();
+        this.state.defaultValue= "F7B854";
+    }
+    onBezier(event) {
+        this.props.action(cShape.BEZIER);
+    }
+    onBezierCorner(event) {
+        this.props.action(cShape.BEZIER_CORNER);
+    }
+    render() {
+        return(
+            <>
+            <div id="menubar" className = "menubar">
+                <b>Wierzchołek: </b> 
+                {/* <b>&nbsp; </b> */}
+                <button id="bezier" onClick = {this.onBezier.bind(this)} value={true}>Bezier</button>
+                <button id="bezier_corner" onClick = {this.onBezierCorner.bind(this)} value={true}>BezierCorner</button>
+                {super.render()} 
+            </div>
+            </>
+            );
+    }
+}
+
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
@@ -304,4 +342,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu}

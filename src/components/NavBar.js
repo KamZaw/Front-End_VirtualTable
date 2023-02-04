@@ -1,7 +1,7 @@
 import { Component } from "react";
 import {cShape} from '../shapetype';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -38,6 +38,9 @@ class NavBar extends Component {
                 break;
             case cShape.POLYGON:
                 this.component = <PolygonMenu action={this.props.action}/>;
+                break;
+            case cShape.CORNER:
+                this.component = <CornerMenu action={this.props.action}/>;
                 break;
                 case cShape.DELETE:     //nie zmieniaj menu
                 break;

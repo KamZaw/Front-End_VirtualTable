@@ -5,6 +5,7 @@ const cShape ={
     TEXT:       3,
     POLYGON:    4,
     FREEPEN:    5,
+    CORNER:     6,
     
     ZPLUS:          11,
     ZMINUS:         12,
@@ -28,6 +29,8 @@ const cShape ={
     GRIDON_OFF:     30,
     GRID_SNAP_ON_OFF:     31,
     POLY_CLOSE:     32,
+    BEZIER:         33,
+    BEZIER_CORNER:  34,
 };
 
 const cRole = {

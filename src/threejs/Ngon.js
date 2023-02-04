@@ -9,6 +9,7 @@ class Ngon extends Shape{
 
     constructor(scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt ) {
         super(cShape.NGON, scene, y, x, label, color);
+        this.isBezier = false;
         this.radius = radius;
         this.n = ngons;
         this.node = iNode?null:[];                  //definiuj liste jeśli true
@@ -31,7 +32,17 @@ class Ngon extends Shape{
     }
     mvShape(start, stop) {
         
-        if(!this.parent ) {
+        if(this.label.indexOf("bezier") === 0 ) {
+            super.mvShape(start, stop);
+            this.parent.arms[this.cornerCnt].visible = true
+            this.parent.arms[this.cornerCnt].geometry.attributes.position.needsUpdate = true; 
+            const linie = this.parent.arms[this.cornerCnt].geometry.attributes.position.array; 
+            linie[3] = this.x - this.parent.x;
+            linie[4] = this.y - this.parent.y;
+            this.parent.parent.recreateMesh(true);
+            return;
+        }
+        else if(!this.parent ) {
             super.mvShape(start, stop);
                  this.node?.map((pt) => {
                     pt.x += stop[0] - start[0];
