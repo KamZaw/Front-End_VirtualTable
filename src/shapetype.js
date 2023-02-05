@@ -30,7 +30,7 @@ const cShape ={
     GRID_SNAP_ON_OFF:     31,
     POLY_CLOSE:     32,
     BEZIER:         33,
-    BEZIER_CORNER:  34,
+    TO_CORNER:         34,
 };
 
 const cRole = {
@@ -47,5 +47,7 @@ const cAction = {
     CIRCLE:     3,
     POLYGON:    4,
     FREEPEN:    5,
+    BEZIER:     6,
+    MOVE:       7,
 }
 export { cShape, cAction, cRole};

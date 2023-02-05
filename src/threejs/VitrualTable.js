@@ -47,6 +47,7 @@ class VitrualTable {
         this.gridSnap = Global.chkSnap;
         this.gridRes = 10;
         this.crosshair = null;
+        this.group = null;
 
 
         this.selectedCorner = null;
@@ -65,7 +66,7 @@ class VitrualTable {
     init() {
         Text.loadFontOnce(); //inicjacja fotnów
 
-        return;
+        //return;
         //testowy trójkąt
         const x = 500;
         const y = 100;
@@ -188,7 +189,9 @@ class VitrualTable {
         }
         this.action === cAction.POLYGON && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
-        //this.action == cAction.MOVE && 
+        this.action === cAction.BEZIER && this.onMouseDown(event, targetPanel, camera, wd, hd);
+        this.cShape == cAction.MOVE && this.selectedNode !== null && 
+        this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.type != cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig(); //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
     }
 
@@ -199,6 +202,17 @@ class VitrualTable {
         const sc = this.selectedCorner;
         this.selectedCorner = this.selectedCorner.parent.toBezier(sc);
         this.selectedCorner.parent.recreateMesh(true);
+
+    }
+    
+    toCorner() {
+        if (!this.selectedCorner) return;
+
+        const sc = this.selectedCorner;
+        this.selectedCorner = this.selectedCorner.parent.toCorner(sc);
+        this.selectedCorner.parent.recreateMesh(true);
+        this.select(this.selectedCorner.mesh);
+        this.selectedCorner.mvShape([0,0], [0,0]);
 
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
@@ -220,6 +234,9 @@ class VitrualTable {
                         if (this.selectedNode) {
                             //console.log(p);
                             this.selectedNode.updateLastPos(p);
+                            if(this.selectedNode.figureIsClosed)
+                                this.select(null);
+
                         }
                         break;
                     case cShape.FREEPEN: {
@@ -258,7 +275,7 @@ class VitrualTable {
                     case cShape.MOVE:
 
                         if (!this.selectedNode) break;
-                        if (this.selectedCorner !== null) {
+                        if (this.selectedCorner !== null && this.action != cAction.BEZIER) {
                             if (Point.distance([this.selectedCorner.x, this.selectedCorner.y], [p.x, p.y]) > Global.cornerSize * 2) {
                                 this.selectedNode.node?.map(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
                                 this.onSelection(event, targetPanel); //sprawdź czy nie klikamy na drugi węzeł
@@ -481,10 +498,14 @@ class VitrualTable {
                     case cShape.CORNER:
                     case cShape.MOVE:
                         if (!this.prevPoint) return;
+
                         const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
                         selected && selected.mvShape(this.prevPoint, [p.x, p.y]);
-                        this.historyAdd();
+                        this.historyAdd(); 
                         this.prevPoint = null;
+                        if(this.selectedCorner && this.action === cAction.BEZIER) 
+                            this.select(this.selectedCorner.mesh);
+                        this.action = cAction.SELECT;
                         break;
 
                     default:
@@ -589,25 +610,29 @@ class VitrualTable {
 
                         if (pole === shape.mesh) {
                             shape.select(true);
+                            this.action = cAction.BEZIER;
                             shape.mesh.visible = true;
+                            shape.linie.visible = true;
                             shape.setFillColor(0xffffff);
                             this.selectedCorner = shape;
                             break;
                         }
                     }
                 } else {
-                    // shapeNode.setFillColor(0x000000);
-                    // shapeNode === this.selectedCorner && (this.selectedCorner = null);
+                    shapeNode.setFillColor(0x000000);
+                    shapeNode === this.selectedCorner && (this.selectedCorner = null);
                 }
             }
+            this.group = null;
             return;
         }
 
 
 
         for (let shape of this.OBJECTS) {
-            if (pole === null || (shape.mesh?.id !== pole.id))
+            if (pole === null || (shape.mesh?.id !== pole.id)) {
                 shape.select(false);
+            }
             else if (pole != null) {
                 if (shape.type != cShape.FREEPEN && shape.type != cShape.TEXT)
                     shape.setDefaultColor();

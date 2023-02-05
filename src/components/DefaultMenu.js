@@ -296,8 +296,8 @@ class CornerMenu extends DefaultMenu {
     onBezier(event) {
         this.props.action(cShape.BEZIER);
     }
-    onBezierCorner(event) {
-        this.props.action(cShape.BEZIER_CORNER);
+    onCorner(event) {
+        this.props.action(cShape.TO_CORNER);
     }
     render() {
         return(
@@ -306,7 +306,7 @@ class CornerMenu extends DefaultMenu {
                 <b>Wierzchołek: </b> 
                 {/* <b>&nbsp; </b> */}
                 <button id="bezier" onClick = {this.onBezier.bind(this)} value={true}>Bezier</button>
-                <button id="bezier_corner" onClick = {this.onBezierCorner.bind(this)} value={true}>BezierCorner</button>
+                <button id="corner" onClick = {this.onCorner.bind(this)} value={true}>Corner</button>
                 {super.render()} 
             </div>
             </>

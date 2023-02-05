@@ -4,6 +4,7 @@ import {Ngon} from './Ngon.js'
 import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
 import Global from '../Global.js';
+import { onIdTokenChanged } from 'firebase/auth';
 
 
 //punkt p0 beziera
@@ -110,7 +111,11 @@ class Bezier extends Ngon {
         this.drawArm(this.prev, -2, 1);
         
     }
-
+    rmShape() {
+        this.node?.map((pt) => pt.rmShape());
+        this.arms?.map((line) => this.scene.remove(line));
+        super.rmShape();  
+    }
     mvShape(start, stop, mvFig) {
         //przesuń ramiona
         //przesuwa główny wierzchołek
@@ -138,15 +143,20 @@ class Bezier extends Ngon {
         }
         // const p={x:arm.position.x, y:arm.position.y};
         
-        const parent = this.parent;
+        
         //przesuń linie wodzące
-        this.arms.map( arm => {
-            const p={x:arm.position.x, y:arm.position.y};
-            p.x += stop[0] - start[0];
-            p.y += stop[1] - start[1];
-            
-            arm.position.set(p.x, p.y, parent.Z - 2)
-        });
+        if(!this.isBezier) 
+        {
+            this.arms.map( arm => {
+                const p={x:arm.position.x, y:arm.position.y};
+                p.x += stop[0] - start[0];
+                p.y += stop[1] - start[1];
+                
+                arm.position.set(p.x, p.y, this.parent.Z+1)
+            });
+        }
+        
+        const arms = this.arms;
         //przesuń węzły
         this.node?.map((pt) => {
             let p={x:pt.mesh.position.x, y:pt.mesh.position.y};
@@ -158,7 +168,14 @@ class Bezier extends Ngon {
             p.x += stop[0] - start[0];
             p.y += stop[1] - start[1];
             pt.linie && pt.linie.position.set(p.x, p.y, pt.mesh.position.z);
+
+            arms[pt.cornerCnt].geometry.attributes.position.needsUpdate = true;
+            const linie = arms[pt.cornerCnt].geometry.attributes.position.array;
+            linie[3] += stop[0] - start[0];
+            linie[4] += stop[1] - start[1];
+
         });
+
        
     }
 
@@ -195,13 +212,23 @@ class Bezier extends Ngon {
         armNode.parent = this;
         armNode.drawShape();
         armNode.mesh.visible = true;
+        armNode.mesh.name = `bezier_${this.x}x${this.y}_mesh`;
+        armNode.linie.name = `bezier_${this.x}x${this.y}_linie`;
+
         
         const linie = new THREE.Line(geometryL, mat);
-        linie.position.set(this.x, this.y, this.Z-1);
+        linie.position.set(this.x, this.y, this.parent.Z-1);        //linie ramion mają być nieco schowane
+        
+        linie.name = `bezier_${this.x}x${this.y}_linie`;
+
         this.scene.add(linie);
         this.arms.push(linie);
-
+        
         this.node.push(armNode);
+
+        // next.mesh.add(armNode.mesh);
+        // next.mesh.add(armNode.linie);
+        // next.mesh.add(linie);
     }
 }
 

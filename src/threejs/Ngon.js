@@ -31,7 +31,8 @@ class Ngon extends Shape{
         return this.node;
     }
     mvShape(start, stop) {
-        
+
+        //sprawdzamy czy do węzeła przywiązane jest ramię bezier
         if(this.label.indexOf("bezier") === 0 ) {
             super.mvShape(start, stop);
             this.parent.arms[this.cornerCnt].visible = true
@@ -42,14 +43,49 @@ class Ngon extends Shape{
             this.parent.parent.recreateMesh(true);
             return;
         }
-        else if(!this.parent ) {
-            super.mvShape(start, stop);
-                 this.node?.map((pt) => {
-                    pt.x += stop[0] - start[0];
-                    pt.y += stop[1] - start[1];
-                    pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.Z);
-                    pt.linie && pt.linie.position.set(pt.x, pt.y, pt.Z+1);
+        //jeśli przesuwamy węzeł powiązany z ramieniem bezier
+        if(this.parent) {
+            if(!this.isBezier) {
+                const n = this;
+                this.parent.node?.map((pt) => { 
+                    if(pt.isBezier) {
+                        if(n === pt.prev) {
+                            pt.arms[1].geometry.attributes.position.needsUpdate = true; 
+                            const linie = pt.arms[1].geometry.attributes.position.array; 
+                            linie[0] += stop[0] - start[0];
+                            linie[1] += stop[1] - start[1];
+                
+                        }
+                        if(n === pt.next) {
+                            pt.arms[0].geometry.attributes.position.needsUpdate = true; 
+                            const linie = pt.arms[0].geometry.attributes.position.array; 
+                            linie[0] += stop[0] - start[0];
+                            linie[1] += stop[1] - start[1];
+                
+                        }
+                    }
                 });
+            }
+        }
+        if(!this.parent ) 
+        {
+            super.mvShape(start, stop);
+            this.node?.map((pt) => {
+                pt.x += stop[0] - start[0];
+                pt.y += stop[1] - start[1];
+                pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
+                pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
+                if(pt.isBezier) {
+                    pt.arms.map( arm=> {
+                        arm.geometry.attributes.position.needsUpdate = true; 
+                        const linie = arm.geometry.attributes.position.array; 
+                        linie[0] += stop[0] - start[0];
+                        linie[1] += stop[1] - start[1];
+                        linie[3] += stop[0] - start[0];
+                        linie[4] += stop[1] - start[1];
+                    });
+                }
+            });
             return;
         }
         
@@ -62,6 +98,7 @@ class Ngon extends Shape{
             linie[(linie.length  - 3)] += stop[0] - start[0];
             linie[(linie.length - 3)+1] += stop[1] - start[1];
         }
+        
         //przetwarzamy mesh
         this.parent.recreateMesh(true);
         super.mvShape(start, stop);     //przesuwa same czarne cornery NGONa
@@ -89,7 +126,7 @@ class Ngon extends Shape{
         });        
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         this.linie = new THREE.Line(geometryL, materialL);
-        this.linie.position.set(this.x, this.y, this.Z+1);
+        this.linie.position.set(this.x, this.y, this.linie.position.z);
         this.scene.add(this.linie);
         this.recreateMesh(true);
         this.node?.map((pt) => {
@@ -118,7 +155,7 @@ class Ngon extends Shape{
 
         const geometry = new THREE.ShapeGeometry(path);
         this.mesh = new THREE.Mesh( geometry, material );
-        this.mesh.position.set(this.x, this.y, this.Z);
+        this.mesh.position.set(this.x, this.y, this.mesh.position.z);
         bDraw && this.scene.add( this.mesh );        
 
     }
@@ -230,7 +267,7 @@ class Ngon extends Shape{
         });
 
         this.mesh = new THREE.Mesh( geometry, material );
-        this.mesh.position.set(this.x, this.y, this.Z);
+        this.mesh.position.set(this.x, this.y, this.mesh.position.z);
         this.scene.add( this.mesh );
 
         if(this.node){

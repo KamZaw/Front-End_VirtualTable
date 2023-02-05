@@ -83,7 +83,7 @@ class Shape {
         this.x += stop[0] - start[0];
         this.y += stop[1] - start[1];
         this.mesh?.position.set(this.x, this.y, this.Z);
-        this.linie?.position.set(this.x, this.y, this.Z-1);
+        this.linie?.position.set(this.x, this.y, this.Z+1);
     }
  
     toJSON() {

@@ -141,7 +141,11 @@ class Main extends Component {
                 
                 vt.loadDataFromSession(Global.currentSession);
                 break;
-            case cShape.BEZIER_CORNER:
+            case cShape.TO_CORNER:
+            {
+                vt.toCorner();
+            }
+            break;
             case cShape.BEZIER:
             {
                 vt.toBezier();
@@ -332,9 +336,9 @@ class Main extends Component {
         const keyCode = event.which;
         const vt = this.vt;
         
+        //if(event.shiftKey) vt.group = [];
         //przesuwamy
         if( vt.selectedNode) {  //vt.type == cShape.SELECT &&
-            
             const multiply = event.ctrlKey?vt.gridRes:1;
             if (keyCode == event.DOM_VK_DOWN) {
                 this.snapToGrid(vt);
