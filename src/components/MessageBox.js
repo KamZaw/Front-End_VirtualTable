@@ -1,4 +1,5 @@
 import "../assets/loginform.css"
+import "../assets/w3.css"
 import { Component } from "react";
 import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
 import {initializeApp} from "firebase/app"
@@ -39,6 +40,7 @@ class MessageBox extends Component {
                 <div className="login-box animated fadeInUp">
                     <div className="box-header">
                         {/* <span className="close" onClick={this.onNo.bind(this)}>&times;</span> */}
+                        <span onClick={this.onNo.bind(this)} className="w3-button w3-display-topright">&times;</span>
                         <h2>{this.props.title}</h2>
                     </div>
                     <p className="message_text">{this.props.msg}</p>
@@ -50,7 +52,6 @@ class MessageBox extends Component {
                     <br/>
                 </div>
             </div>
-
             </>            
         );
     }

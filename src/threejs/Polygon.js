@@ -95,18 +95,13 @@ class Polygon extends Shape {
         
         const dist = Point.distance([p.x,p.y],[this.pts[0].x, this.pts[0].y]);
         //console.log(dist);
-        if(dist < 5) {
-            this.figureIsClosed = true;
-            this.recreateMesh(true);
-        }
-        else {
+        if(dist > 5) {
             path.lineTo(p.x+1, p.y);
             const node = new Ngon(this.scene, p.x + this.x , p.y + this.y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
             node.parent = this;
             node.drawShape();
             this.node?.push(node);
         }
-
         const points = path.getPoints();
         //console.log(points.length);
         //points.map(p => console.log(p));
@@ -122,7 +117,57 @@ class Polygon extends Shape {
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
 
         this.scene.add(this.linie);
+
+        if(dist < 5) {
+            this.figureIsClosed = true;
+            this.recreateMesh(true);
+        }
+
     }
+    //usuwa ostatni punkt
+    delPoint() {
+        
+        if(this.node?.length.length <= 1) return;
+        
+        if(this.linie) {
+            this.scene.remove(this.linie);
+        }
+        const path = new THREE.Path();
+
+        
+        this.node?.pop().rmShape();
+        
+        
+        path.moveTo(this.pts[0].x, this.pts[0].y);
+        this.pts.map(p => path.lineTo(p.x, p.y));
+        
+        
+        while(this.pts.length > this.node.length)
+            this.pts.pop();
+        
+        
+        const p = {x:this.node[this.node.length-1]?.x - this.x, y:this.node[this.node.length-1]?.y - this.y};
+        this.pts.push(p);
+        path.lineTo(p.x, p.y);
+        const points = path.getPoints();
+        
+        //console.log(points.length);
+        //points.map(p => console.log(p));
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({
+            color: 0xffffff,//this.iColor,
+            linewidth: 1,
+        });
+        
+        this.linie = new THREE.Line(geometryL, mat);
+        this.linie.position.set(this.x, this.y, this.Z+1);
+        
+        this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
+        this.linie.visible = true;
+
+        this.scene.add(this.linie);
+    }
+
     rmShape() {
         this.node?.map((pt) => pt.rmShape());
         super.rmShape();
@@ -203,10 +248,27 @@ class Polygon extends Shape {
         return null;
     }
     
+    toSVG() {
+        let str = "";
+
+        str += ` <path
+        style="fill:#${Shape.pad(this.iColor.toString(16),6)};stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+        d="m `;
+        const pts = JSON.parse(JSON.stringify(this.pts));
+        pts.pop();
+        
+        str += `${pts[0].x + this.x},${pts[0].y + this.y} `;
+        for(let i = 1; i < pts.length; i++)
+            str += `${(pts[i].x - pts[i-1].x)},${(pts[i].y - pts[i-1].y)} `;
+        str += `z"
+        id="${this.linie.name}" />\n`
+
+        return str;
+    }
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
-        return this;
-        let obj = new Polygon(this.scene,{x:this.x,y:this.y},this.label,this.iColor);
+
+        let obj = new Polygon(this.scene,{x:this.x,y:this.y},this.iColor);
         super.carbonCopy(obj);
         obj.figureIsClosed = this.figureIsClosed;
         

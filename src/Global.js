@@ -12,8 +12,10 @@ class Global {
     static firebaseApp = null;
     static currentSession = "sesja1";          //nazwa sesji pobrana z internetu albo od użytkownika    
     static nodeRef = null;
+    static broadcast = null;
     static chkGrid = true;
     static chkSnap = !true;
+    static sessionOn = false;
 
 }
 

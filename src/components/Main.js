@@ -37,6 +37,10 @@ class Main extends Component {
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
             currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
             Global.user = currentUser;
+            // Global.user.hasMic = false;
+            // if(Global.user.uid === "VRGQyqLSB0axkDKbmgye3wyDGJo1")
+            //     Global.user.hasMic = true;      //tylko nauczyciel ma mikrofon
+
             Global.fb = getDatabase(Global.firebaseApp );
               Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
             {
@@ -110,23 +114,29 @@ class Main extends Component {
         const vt = this.vt;
         switch(type) {
             case cShape.NEW:{
-                //może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
+                //TODO: może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
                 vt.historyClear();
-
-                this.cleanTHREE();
+                vt.sceneClear();
                 vt.OBJECTS = [];
                 vt.meshes = [];
                 vt.type = cShape.SELECT;
-                
             }
             break;
+            case cShape.START_NEW_SESSION:
+                {
+                    if(Global.user && Global.currentSession) {
+                        vt.onNewShape(new Shape(cShape.NONE, this.scene,  0, 0, "czas start", 0x000000 ));
+                    }
+            
+                }
+                break;
             case cShape.UNDO:
-                this.cleanTHREE();
+                vt.sceneClear();
                 vt.historyPop();
                 break;
             case cShape.REDO:
                 if (vt.isRedo()) {
-                    this.cleanTHREE();
+                    vt.sceneClear();
                     vt.historyRedo();
                 }
                 break;
@@ -135,7 +145,7 @@ class Main extends Component {
                 if(!Global.currentSession || Global.currentSession.length < 1) return;
                 vt.historyClear();
 
-                this.cleanTHREE();
+                vt.sceneClear();
                 vt.OBJECTS = [];
                 vt.meshes = [];
                 
@@ -152,7 +162,7 @@ class Main extends Component {
             }
             break;
             case cShape.SAVE_SVG:            
-                alert("Zapis do SVG jeszcze nie zaimplementowany");
+                this.saveToSVG(vt);
                 break;
             case cShape.MIRRORX:
                 vt.selectedNode && vt.selectedNode.setMirrorX();
@@ -177,7 +187,7 @@ class Main extends Component {
                 //TODO: tutaj jest błąd - usuń go!
                 this.vt.gridSnap = !vt.gridSnap;
                 Global.chkSnap = vt.gridSnap;
-                this.crosshair.visible = vt.gridSnap;
+                vt.crosshair.visible = vt.gridSnap;
                 break;
             case cShape.SCALEX:
                 const sX = parseFloat(document.getElementById("scaleX").value);
@@ -201,7 +211,7 @@ class Main extends Component {
                 break;
             case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode && document.getElementById("color").value) {
-                    vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value,);
+                    vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value.substr(1),);
                     vt.selectedNode.mesh?.material.color.setHex(vt.selectedNode.iColor);
                     vt.historyAdd();
                 }
@@ -240,9 +250,24 @@ class Main extends Component {
         }    
     }
 
+    saveToSVG(vt) {
+        const blob = new Blob([vt.getSVG()], { type: 'text/xml' });
+        const a = document.createElement('a');
+        a.download = Global.currentSession?`${Global.currentSession}.svg`: 'demo.svg';
+        a.href = URL.createObjectURL(blob);
+        a.addEventListener('click', (e) => {
+            setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);
+        });
+        a.click();
+    }
+
     delete(selectedNode, keepIt) {
         if(selectedNode == null) return;
         const vt = this.vt;
+        if(vt.selectedNode.type == cShape.POLYGON && !vt.selectedNode.figureIsClosed) {
+            vt.selectedNode.delPoint();
+            return;
+        }
         vt.scene.remove(selectedNode.mesh);
         selectedNode.linie && vt.scene.remove(selectedNode.linie);
         vt.OBJECTS = vt.OBJECTS.filter((obj) => obj != selectedNode);
@@ -325,10 +350,17 @@ class Main extends Component {
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousemove', function(event) { vt.onMouseMove(event, targetPanel, camera, wd, hd); }, false);
         document.addEventListener('keydown', this.onKeyDown.bind(this), false);
-        this.hiGrid = this.drawGrid(0x444444, 10, .7);
-        this.lowGrid = this.drawGrid(0x111111, 100, .7);
+        
+        vt.grid = new THREE.Group();
+        const hiGrid = this.drawGrid(0x444444, 10, .7);
+        const lowGrid = this.drawGrid(0x111111, 100, .7);
+        vt.grid.add(hiGrid);
+        vt.grid.add(lowGrid);
+        scene.add(vt.grid);
+
         
         vt.crosshair = this.crosshair();
+        vt.crosshair.visible = vt.gridSnap;
         vt.gridRes = 10;
     }
 
@@ -362,7 +394,7 @@ class Main extends Component {
     }
 
     snapToGrid(vt) {
-        if (vt.gridSnap) {
+        if (vt.gridSnap && vt.selectedNode) {
             vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.x / vt.gridRes) * vt.gridRes);
             vt.selectedNode.mesh.position.x = (parseInt(vt.selectedNode.mesh.position.y / vt.gridRes) * vt.gridRes);
         }
@@ -423,17 +455,16 @@ class Main extends Component {
         
         const grid = new THREE.Line(geometryL, mat);
         grid.visible = !false;
-        this.scene.add(grid);
+        //this.scene.add(grid);
         grid.position.z = -1000;
         return grid;
     }
 
     //siatka ON/OFF
     gridSwitch() {
-        this.lowGrid.visible = !this.lowGrid.visible;
-        this.hiGrid.visible = !this.hiGrid.visible;
-        this.vt.crosshair.visible = this.hiGrid.visible;
-        Global.chkGrid = this.hiGrid.visible;
+        this.vt.grid.visible = !this.vt.grid.visible;
+        Global.chkGrid = this.vt.grid.visible;
+        this.vt.crosshair.visible = this.vt.grid.visible && this.vt.gridSnap;
     }
 
     //wybór menu z obiektu vt po selekcji obiektu danego typu
@@ -447,12 +478,6 @@ class Main extends Component {
         scene.add( lightA );
     }
 
-    cleanTHREE(){
-        while(this.scene.children.length > 0){ 
-            this.scene.remove(this.scene.children[0]); 
-        }
-        this.lightOn(this.scene);
-    }
     render() { 
         return (
            <>

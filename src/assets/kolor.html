@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>kolor</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    
+</head>
+<body>
+    <input type="color" class="toolbutton" value="#ff0f0f" id="kolor" />
+    <button id="kol" onclick="klik()">klik</button>
+    
+    <script defer>
+        function klik() {
+            const col = document.getElementById("kolor");
+            // col.select();
+            alert("Kolor: "+ col.value);
+        }
+    </script>
+</body>
+</html></html>

@@ -9,6 +9,7 @@ class Shape {
     static Zmin = -100;       //pozycja na osi Z
     static Zmax = -100;       //pozycja na osi Z
     static dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
+    static pad = (num, size) => String(num).padStart(size, '0')
     constructor(shapeType, scene,  y, x, label, color, ignoreZ) {
         const dt = new Date();
         this.type = shapeType;
@@ -31,7 +32,7 @@ class Shape {
         !ignoreZ ? Shape.Z++:this.Z--;
         !ignoreZ && (Shape.Zmax = Shape.Z+1);
     }
-    
+    drawShape() {}
     setMirrorX() {
         this.mirrorX *= -1;
         this.rescale();
@@ -60,6 +61,9 @@ class Shape {
             pt.linie && (pt.linie.position.z = this.Z+1);
         });
     }
+    //metoda do przysłonięcia w każdej klasie
+    toSVG() {}
+
     setScaleX(val) {
         this.scaleX = val;
         this.rescale();
@@ -103,6 +107,7 @@ class Shape {
         };
     }
     carbonCopy(obj) {
+        if(!obj) return this;
         obj.mirrorX = this.mirrorX;
         obj.mirrorY = this.mirrorY;
         obj.Z = this.Z;

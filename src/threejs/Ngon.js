@@ -281,12 +281,51 @@ class Ngon extends Shape{
         this.scene.add(this.linie);
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-
-
+        
+        
         this.node?.map((pt) => pt.drawShape());
         //this.createMesh(verts, normals, pkt);
     }
+    
+    toSVG() {
+        let str = "";
+        if(this.offsetRot) //tzn. RECT
+        {
+        str += `<rect
+            style="fill:#${Shape.pad(this.iColor.toString(16),6)};stroke:#000000;stroke-width:1px;stroke-linecap:round;stroke-linejoin:bevel"
+            id="${this.mesh.name}"
+            width="${this.b}"
+            height="${this.radius}"
+            x="${this.x - this.b/2}"
+            y="${this.y - this.radius/2}" />`;
+        }
+        else {  //NGON jako Path
+            str += ` <path
+            style="fill:#${Shape.pad(this.iColor.toString(16),6)};stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+            d="m `;
 
+            let segmentCount = this.n;
+            const radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
+            const b = (this.b/this.radius);
+            const pts = [];
+
+            for (let i = 0; i < segmentCount; i++) {
+                let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
+                let x = Math.round(Math.cos(theta) * radius *b);
+                let y = Math.round(Math.sin(theta) * radius);
+                pts.push({x:x,y:y});
+            }
+
+            
+            str += `${pts[0].x + this.x},${pts[0].y + this.y} `;
+            for(let i = 1; i < pts.length; i++)
+                str += `${(pts[i].x - pts[i-1].x)},${(pts[i].y - pts[i-1].y)} `;
+            str += `z"
+            id="${this.linie.name}" />\n`
+        }
+
+        return str;
+    }
     createMesh(verts, normals, pkt) {
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
@@ -305,9 +344,9 @@ class Ngon extends Shape{
         let box = new THREE.Mesh(geometry, material);
         box.name = "name";
         this.scene.add(box);
-
-
-
+        
+        
+        
         const materialL = new THREE.LineBasicMaterial({
             color: 0x000000,
             linewidth: 1,
@@ -315,7 +354,7 @@ class Ngon extends Shape{
         });
         const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
         const linie = new THREE.LineSegments(geometryL, materialL);
-
+        
         this.scene.add(linie);
         box.position.set(this.x, this.y, this.Z);
         linie.position.set(this.x, this.y, this.Z + 1);

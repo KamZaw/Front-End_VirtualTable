@@ -19,9 +19,7 @@
       <button id="btnStop" class="toolbutton"><img class="toolimg"
           src="src/assets/navbar/micoff.png"></button>
       <button id="btnPlay" onclick="onPlay()" class="">Play</button>
-      <div class="audioblock">
-          <audio id="audio1" controls="controls" ></audio>
-      </div>
+          <audio id="audio1" controls="controls" hidden></audio>
           <audio id="audio2" controls="controls" hidden></audio>
     </span>
 
@@ -33,34 +31,12 @@
 
 
   </div>
-  <div class="container modal">
-    <div class="login-box animated fadeInUp">
-        <div class="box-header">
-            <span class="w3-button w3-display-topright">&times;</span>
-            <h2>Sesje</h2>
-        </div>
-        <p class="message_text">Sesje archiwalne:</p>
-        <ul class="w3-ul w3-border">
-          <li>Sesja 1</li>
-          <li>Sesja 2</li>
-          <li>Sesja 3</li>
-        </ul>
-        <br/>
-
-        <button class="dlgbutton" onclick="">Wczytaj</button>
-        <br/>
-    </div>
-</div>
   <script defer>
     let audio = null;
     let playAudio = null;
-    window.onload = () => {
     
-          }
-    window.onload1 = () => {
-      console.log("LOADING....")
-
-
+    window.onload = () => {
+      return;
       let audioIN = {
         audio: true
       };
@@ -73,38 +49,24 @@
                                             navigator.mediaDevices.webkitGetUserMedia || 
                                             navigator.mediaDevices.mozGetUserMedia || 
                                             navigator.mediaDevices.msGetUserMedia;
+                                            
 
       navigator.mediaDevices.getUserMedia(audioIN)
         .then(function (stream) {
-
-          // let AudioContext = window.AudioContext || window.webkitAudioContext;
-          // let audioContext = new AudioContext();
-          // let source = audioContext.createMediaStreamSource(stream);
-          // let webAudioRecorder = new WebAudioRecorder(source, {
-          //     workerDir: 'web_audio_recorder_js/',
-          //     encoding: 'mp3',
-          //     options: {
-          //         encodeAfterRecord: true,
-          //         mp3: { bitRate: '160' }    
-          //     } 
-          // });
-
+          console.log("LOADING....")
           audio = document.getElementById('audio1');
-          playAudio = document.getElementById('audio2');
+
+          // if ("srcObject" in audio) {
+          //   audio.srcObject = stream;
+          // } else { // Old version
+          // }
           
-          if ("srcObject" in audio) {
-            audio.srcObject = stream;
-          } else { // Old version
-            audio.src = window.URL
-              .createObjectURL(stream);
-          }
-
-
 
           audio.onloadedmetadata = function (ev) {
+
             // Play the audio in the 2nd audio
             // element what is being recorded
-            // audio.play();
+            //audio.play();
           };
 
           // Start record
@@ -124,7 +86,7 @@
           start.addEventListener('click', function (ev) {
             audio.muted = true;
             audio.play();
-            rec.start(1000);
+            rec.start();
             console.log(rec.state);
           })
 
@@ -140,13 +102,7 @@
           // it to the chunk array
           rec.ondataavailable = function (ev) {
             dataArray.push(ev.data);
-            let audioData = new Blob(dataArray, {
-              'type': 'audio/mp3;'
-            });
-            let audioSrc = window.URL
-            .createObjectURL(audioData);
-            
-            console.log("PUSH:"+JSON.stringify(audioSrc));
+            console.log("PUSH:"+JSON.stringify(ev.data));
           }
 
           // Chunk array to store the audio data
@@ -183,6 +139,9 @@
         });
     }
     function onPlay() {
+      playAudio = document.getElementById('audio2');
+      playAudio.src = "blob:http://127.0.0.1:5500/3766b084-e454-456f-b36c-e112faf98173";
+
       playAudio.play();
     }
   </script>
@@ -192,7 +151,7 @@
           
           
           <div class="w3-container">
-            <div id="studentbar" class = "sessionbar">
+            <div id="studentbar" className = "sessionbar">
               <h1 class="w3-badge w3-red student_badge">KW</h1>
               <h1 class="w3-badge w3-cyan student_badge">&nbsp;BR&nbsp;</h1>
               <h1 class="w3-badge w3-teal student_badge">MK</h1>

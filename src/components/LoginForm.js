@@ -1,3 +1,4 @@
+import "../assets/w3.css"
 import "../assets/loginform.css"
 import { Component } from "react";
 import {createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth"
@@ -14,8 +15,8 @@ class LoginForm extends Component {
         this.state = {
             lastName:"",
             firstName:"",
-            loginName:"student01@gmail.com",//kamila.zawadzka31@gmail.com
-            password:"student01!",
+            loginName: "kamila.zawadzka31@gmail.com", //"student01@gmail.com",
+            password: "", //"student01!",
             user: "",
             isVisible: props.isVisible,
             // isRegister: props.isRegister,
@@ -117,10 +118,11 @@ class LoginForm extends Component {
         return (
             <>
             <div className={"container modal"}>
-            <div onSubmit={this.onLogin}>
-                <div className="login-box animated fadeInUp">
+            <div onSubmit={this.onLogin} className={""}>
+                <div className="login-box animated fadeInUp ">
                     <div className="box-header">
-                        <span className="close" onClick={this.onClosing.bind(this)}>&times;</span>
+                        {/* <span className="close" onClick={this.onClosing.bind(this)}>&times;</span> */}
+                        <span onClick={this.onClosing.bind(this)} className="w3-button w3-display-topright">&times;</span>
                         <h2>Logowanie</h2>
                     </div>
                     <label htmlFor="login">Imię</label>
@@ -141,6 +143,9 @@ class LoginForm extends Component {
                     <input type="password" id="password" placeholder="hasło..." defaultValue={this.state.password} onChange={this.onPasswordChange.bind(this)}/>
                     <br/>
                     <button onClick={this.onLogin}>Zaloguj się</button>
+                    <br/>
+                    <hr/>
+                    <br/>
                     <button onClick={this.onRegister}>Rejestracja</button>
                     {/* <button onClick={this.onLogOut.bind(this)}>Wyloguj się</button> */}
                     <br/>

@@ -53,7 +53,7 @@ class Sessionbar extends Component {
                 //console.log(s);                
                 if(s.loggedIn)
                     return(
-                        <Student key={s.imie+s.nazwisko} color={s.color} value={s.imie.charAt(0)+s.nazwisko.charAt(0)}> </Student>
+                        <Student key={s.imie+' '+s.nazwisko} name={s.imie+' '+s.nazwisko}  color={s.color} value={s.imie.charAt(0)+s.nazwisko.charAt(0)}> </Student>
                     )
             })}
             

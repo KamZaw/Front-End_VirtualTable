@@ -49,6 +49,23 @@ class Text extends Shape{
         super.mvShape([0, 0], [0, 0]);
     }
 
+    toSVG() {
+        let str = "";
+
+        str += `<text
+        xml:space="preserve"
+        style="font-style:normal;font-weight:bold;font-size:${this.size}px;line-height:1.25;font-family:sans-serif;fill:#${Shape.pad(this.iColor.toString(16),6)};fill-opacity:1;stroke:none"
+        x="${this.x}"
+        y="${this.y}"
+        id="text1904"><tspan
+          sodipodi:role="line"
+          id="tspan1902"
+          x="${this.x}"
+          y="${this.y}">${this.label}</tspan></text>\n`;
+
+        return str;
+    }
+
     mvShape(start, stop) {
         // this.linie && (this.linie.geometry.attributes.position.needsUpdate = true);
         // this.mesh && (this.mesh.geometry.attributes.position.needsUpdate = true);

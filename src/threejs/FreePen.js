@@ -29,7 +29,7 @@ class FreePen extends Shape{
 
         for(let i = 0; i < prev.length-1; i++) {
             
-            let a = this.size;
+            let a = this.size/2;
             let b = this.size;            
             
             let x = prev[i][0];
@@ -60,6 +60,7 @@ class FreePen extends Shape{
             if(y > sY) {
                 b = -b;
             }
+            
             //buduj w lewo/prawo a nie w dół.górę
             if(Math.abs(y-sY) < Math.abs(x - sX)) {     //dodawaj nowy z punktów 4 i 3 a nie 2 i 4
                 //2
@@ -120,7 +121,7 @@ class FreePen extends Shape{
     
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor,//0xE9E9E9,
-            wireframe: !true,
+            wireframe: true,
         });
         material.side = THREE.DoubleSide; 
     

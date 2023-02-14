@@ -1,11 +1,31 @@
-import { event } from "jquery";
+import "../assets/w3.css"
 import { Component } from "react";
 import Global from "../Global";
+import React from 'react';
 // import $ from 'jquery'
 import { cShape } from "../shapetype";
 import LoginForm from "./LoginForm"
+import AudioBroadcast from "./AudioBroadcast"
 import MessageBox from "./MessageBox"
-
+import SessionDialog from "./SessionDialog"
+import undo from '../assets/navbar/undo.png';
+import redo from '../assets/navbar/redo.png';
+import save from '../assets/navbar/save.png';
+import load from '../assets/navbar/load.png';
+import zplus from '../assets/navbar/z_plus.png';
+import zminus from '../assets/navbar/z_minus.png';
+import grid from '../assets/navbar/grid.png';
+import snap from '../assets/navbar/snap.png';
+import nowy from '../assets/navbar/new.png';
+import copy from '../assets/navbar/copy.png';
+import freelinefinish from '../assets/navbar/freelinefinish.png';
+import freelinecancel from '../assets/navbar/freelinecancel.png';
+import newsession from '../assets/navbar/newsession.png';
+import newsessionoff from '../assets/navbar/newsessionstop.png';
+import mirrorx from '../assets/navbar/mirrorX.png';
+import mirrory from '../assets/navbar/mirrorY.png';
+import logged from '../assets/navbar/logged.png';
+import unlogged from '../assets/navbar/unlogged.png';
 
 
 
@@ -16,15 +36,16 @@ class DefaultMenu extends Component {
         this.onZChangeMinus = this.onZChangeMinus.bind(this);
         this.onChange = this.onChange.bind(this);
         this.openLogin = this.openLogin.bind(this);
-        
+        this.sessionRef = React.createRef();
         this.state = {
             login: false,
             isLoginWindow: false,
             logout: false,
-            defaultValue: "FF0000",
+            defaultValue: "#FF0000",
             chkGrid: Global.chkGrid,
             chkSnap: Global.chkSnap,//this.props.status.gridSnap,
             
+            isOpenSessionWindow: false,
             isOpenMsgWindow: false,
             isInputField: false,
             title: "",
@@ -39,12 +60,16 @@ class DefaultMenu extends Component {
     onNew() {
         this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false});
     }
+    onNewSession(state) {
+        this.setState({...this.state, title:"Utwórz sesję", msg: "Podaj nazwę nowej sesji", isOpenMsgWindow: state, isInputField: state});
+        !state && this.sessionRef.current.onNewSession();       //kończymy nagranie audio i wysyłamy plik na serwer
+    }
     onSaveSVG() {
         
         this.props.action(cShape.SAVE_SVG);
     }
     onLoadFB () {
-        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenMsgWindow: true, isInputField: true});
+        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true});
     }
     onRedo(){
         this.props.action(cShape.REDO);
@@ -56,25 +81,24 @@ class DefaultMenu extends Component {
         this.props.action(cShape.ZMINUS);
     }
     //włącza/wyłącza siatkę
-    onCheckedGrid(e) {
-        const element = e.target;
+    onCheckedGrid() {
+        
         this.setState({ ...this.state,
-            chkGrid: element.checked
+            chkGrid: !this.state.chkGrid,
         });
         this.props.action(cShape.GRIDON_OFF);
     }
     //włącza/wyłącza gridSnap
-    onCheckedGridSnap(e) {
-        const element = e.target;
+    onCheckedGridSnap() {
+        if(!this.state.chkGrid) return;
         this.setState({ ...this.state,
-            chkSnap: element.checked
+            chkSnap: !this.state.chkSnap
         });
 
         this.props.action(cShape.GRID_SNAP_ON_OFF);
     }
     onChange = event => {
         this.setState({...this.state, defaultValue: (event.target.value), isLogin: (Global.user != null) });  
-        document.getElementById("colorpicker").style.background = "#"+this.state.defaultValue;
         this.props.action(cShape.COLORCHANGE);
     }
     openLogin() {
@@ -85,9 +109,8 @@ class DefaultMenu extends Component {
     }
     componentDidUpdate(){
         
-        const el = document.getElementById("colorpicker");
-        el && (el.style.background = "#"+this.state.defaultValue);
-        
+        const el = document.getElementById("color");
+        el && (el.value = this.state.defaultValue);
 
     }
     componentDidMount() {
@@ -97,15 +120,30 @@ class DefaultMenu extends Component {
     hideLoginWindow(val, val2) {
         this.setState({...this.state, isLoginWindow: val});
     }
-    responseMsgWindow(val) {
+    loadSession(val) {
         if(typeof val === 'string') {
+            Global.currentSession = val;
+            this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
+            this.props.action(cShape.LOAD_FIREBASE);
+            this.sessionRef.current.onPlay();
+        }
+        
+        this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
+    }
+    responseMsg(val) {
+        if(typeof val === 'string') {
+            //TODO: sprawdź czy nie ma juz takiej sesji
             // if(val.length < 1) {
             //     this.setState({...this.state, isOpenMsgWindow: true,});
             //     return;
             // }
             Global.currentSession = val;
             this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false,});
-            this.props.action(cShape.LOAD_FIREBASE);
+            // this.props.action(cShape.LOAD_FIREBASE);
+            //            this.props.action(cShape.LOAD_FIREBASE);
+
+            this.sessionRef.current.onNewSession();
+            this.props.action(cShape.START_NEW_SESSION);
         }
         else if(val)
             this.props.action(cShape.NEW);
@@ -115,37 +153,133 @@ class DefaultMenu extends Component {
     render() {
         return(
             <>
-                <span className="left">
-                    <button  id="new" onClick = {this.onNew.bind(this) }>Nowe</button>
-                    <button  id="load_firebase" onClick = {this.onLoadFB.bind(this) }>Wczytaj sesję</button>
-                    <button  id="save" onClick = {this.onSaveSVG.bind(this) }>Zapisz</button>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <button  id="history_undo" onClick = {this.onUndo.bind(this) }>&lt; Cofnij</button>
-                    <button  id="history_redo" onClick = {this.onRedo.bind(this) }>Powrót &gt;</button>
-                    <label htmlFor="grid"> Siatka </label>
-                    <input type="checkbox" id="grid" name="grid" checked={this.state.chkGrid} onChange = {this.onCheckedGrid.bind(this)}/>
-                    <label htmlFor="gridsnap"> Magnes </label>
-                    <input type="checkbox" id="gridsnap" name="gridsnap" checked={this.state.chkSnap} onChange = {this.onCheckedGridSnap.bind(this)}/>
-                </span>
+            <div className="w3-container w3-quarter">
+                <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
+                    <img className="toolimg" src={nowy}/>
+                    <span className="tooltiptext">Utwórz nowy dokument</span>
+                </button>
+                <button className="toolbutton "  id="save" onClick = {this.onSaveSVG.bind(this) }>
+                    <img className="toolimg" src={save}/>
+                    <span className="tooltiptext">Zapisz widok tablicy do pliku w formacie SVG</span>
+                </button>
                 
-                <div id="colorpicker" onClick = {this.onChange}>&nbsp;</div>
-                <input id="color" className="button_menu" placeholder="kolor..." defaultValue={this.state.defaultValue}  onChange = {this.onChange}/>
-                &nbsp;&nbsp;
-                <button id="z_plus" onClick = {this.onZChangePlus}>Z+</button>
-                <button id="z_minus" onClick = {this.onZChangeMinus}>Z-</button>
-
-
+                <NewSession action={this.onNewSession.bind(this)} ref={this.sessionRef}/>
+                <LoadArchiveSessions action={this.onLoadFB.bind(this)}/>
                 
+                
+                <button className="toolbutton "  id="history_undo" onClick = {this.onUndo.bind(this) }>
+                    <img className="toolimg" src={undo}/>
+                    <span className="tooltiptext">Cofnij operację</span>
+                </button>
+                <button className="toolbutton "  id="history_redo" onClick = {this.onRedo.bind(this) }>
+                    <img className="toolimg" src={redo}/>
+                    <span className="tooltiptext">Przywróć operację</span>
+                </button>
+                <button className={"toolbutton "+(this.state.chkGrid ?"checked ":" ") } 
+                    type="" id="grid" name="grid"  onClick = {this.onCheckedGrid.bind(this)}>
+                    <img className="toolimg" src={grid}/>
+                    <span className="tooltiptext">Rysuj siatkę</span>
+                </button>
+                <button className={"toolbutton "+(this.state.chkSnap && this.state.chkGrid ?"checked ":" ")} 
+                    type="" id="gridsnap" name="gridsnap" onClick = {this.onCheckedGridSnap.bind(this)}>
+                    <img className="toolimg" src={snap}/>
+                    <span className="tooltiptext">Narzędzie "snap"</span>
+                </button>
+            </div>
+            <div className="w3-quarter">
+                <span id="color1" className="">
+                    <input id="color" className="" type="color"
+                        defaultValue={this.state.defaultValue} 
+                        onChange = {this.onChange} />
+                </span>  
+                <button className="toolbutton" id="z_plus" onClick={this.onZChangePlus}>
+                    <img className="toolimg" src={zplus}/>
+                    <span className="tooltiptext">Zwiększ wartość indeksu Z dla zaznaczonego obiektu</span>
+                </button>
+                <button className="toolbutton" id="z_minus" onClick={this.onZChangeMinus}>
+                    <img className="toolimg" src={zminus}/>
+                    <span className="tooltiptext">Zmniejsz wartość indeksu Z dla zaznaczonego obiektu</span>
+                </button>
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
-
-                <input type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={Global.user?"LogOut":"Login"}></input>
+            </div>
+            <div className="" >
+                <button type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={Global.user?"LogOut":"Login"}>
+                    {Global.user?"Wyloguj się ":"Zaloguj się "}
+                    <img className="toolimg" src={Global.user?logged:unlogged}/>
+                </button>
                 
                 <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
-                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsgWindow.bind(this)}/>
+                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsg.bind(this)}/>
+                <SessionDialog isVisible={this.state.isOpenSessionWindow} title={this.state.title} action={this.loadSession.bind(this)} />
+            </div>
             </>
             
             );
+    }
+}
+class LoadArchiveSessions extends Component {
+
+    constructor(props) {
+        super();
+    }
+    onLoadFB() {
+        this.props.action();
+    }
+    render() {
+        if(!Global.user ) {
+            return (<></>);
+        }
+        return (
+            <>
+                <button className="toolbutton "  id="load_firebase" onClick = {this.onLoadFB.bind(this) }>
+                    <img className="toolimg" src={load}/>
+                    <span className="tooltiptext">Wczytaj sesje z chmury</span>
+                </button>
+            </>
+        );
+    }
+}
+
+class NewSession extends Component {
+
+    constructor(props) {
+        super();
+        this.state = {
+            clicked: Global.sessionOn,
+        }
+        this.updateAudio = React.createRef();
+    }
+
+    onNewSession() {
+        Global.sessionOn = !Global.sessionOn;
+        this.setState({...this.state, clicked: Global.sessionOn});
+        if(Global.sessionOn)
+            this.updateAudio.current.run();
+        else {
+            this.updateAudio.current.stop(Global.currentSession);
+            Global.currentSession = null;
+        }
+    }
+    onPlay() {
+        this.updateAudio.current.play();
+    }
+    onNew() {
+        this.props.action(!Global.sessionOn);
+    }
+    render() {
+        if(!Global.user ) {
+            return (<></>);
+        }
+        return (
+            <>
+                <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
+                    <img className="toolimg" src={Global.sessionOn?newsessionoff:newsession}/>
+                    <span className="tooltiptext">Nowa sesja</span>
+                </button>
+                <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>
+            </>
+        );
     }
 }
 
@@ -153,10 +287,9 @@ class EmptyMenu extends DefaultMenu {
     constructor(){
         super();
         this.state = { ...this.state,
-            defaultValue: Global.selectedShape?""+Global.selectedShape.iColor.toString(16):"17B854",
+            defaultValue: Global.selectedShape?"#"+Global.selectedShape.iColor.toString(16):"#17B854",
         };
         this.copyFig = this.copyFig.bind(this);
-        this.cloneFig = this.cloneFig.bind(this);        
         this.onScaleXChange = this.onScaleXChange.bind(this);
         this.onScaleYChange = this.onScaleYChange.bind(this);
     }
@@ -166,9 +299,7 @@ class EmptyMenu extends DefaultMenu {
     copyFig() {
         this.props.action(cShape.COPY);
     }
-    cloneFig() {
-        this.props.action(cShape.CLONE);
-    }
+
    onScaleXChange() {
         this.props.action(cShape.SCALEX);
     }
@@ -176,16 +307,21 @@ class EmptyMenu extends DefaultMenu {
         this.props.action(cShape.SCALEY);
     }    
     render() {
-        return (<>
-        <div id="menubar" className = "menubar">
+        return (
+            <div className="w3-row">
             {super.render()} 
-            <button id="clone" onClick = {this.cloneFig}>Klon</button>
-            <button id="carbon_copy" onClick = {this.copyFig}>Kopia</button>
-            <b>Skaluj:</b>
-            <input id="scaleX" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onScaleXChange}/>
-            <input id="scaleY" className="button_menu" placeholder="y..." defaultValue={1}  onChange = {this.onScaleYChange}/>
+        <div className="w3-container w3-quarter">
+            <div id="menubar" >
+                <button className="toolbutton" id="carbon_copy" onClick = {this.copyFig}>
+                    <img className="toolimg" src={copy}/>
+                    <span className="tooltiptext">Kopiuj obiekt</span>
+                </button>
+                <b>Skaluj:</b>
+                <input id="scaleX" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onScaleXChange}/>
+                <input id="scaleY" className="button_menu" placeholder="y..." defaultValue={1}  onChange = {this.onScaleYChange}/>
+            </div>
         </div>
-        </>
+        </div>
     );
     }
 }
@@ -194,20 +330,22 @@ class EmptyMenu extends DefaultMenu {
 class RectangleMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "17B854";
+        this.state.defaultValue = "#17B854";
     }
     render() {
         return(
-            <>
-            <div id="menubar" className = "menubar">
+            <div className="w3-row">
+            {super.render()}
+            <div className="w3-container w3-quarter">
+            <div id="menubar" className = "">
                 <b>Prostokąt </b> 
                 szer:
                 <input id="rect_width" className="button_menu" placeholder="Szer..." defaultValue="320"/>
                  wys:
                 <input id="rect_height" className="button_menu" placeholder="Wys..." defaultValue="150" />
-                {super.render()}
             </div>
-            </>
+            </div>
+            </div>
             );
     }
 }
@@ -215,20 +353,22 @@ class RectangleMenu extends DefaultMenu {
 class NGONMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "1778F4";
+        this.state.defaultValue= "#1778F4";
     }
     render() {
         
         return(
-            <>
-            <div id="menubar" className = "menubar">
-                <b>Wielokąt </b>
-                n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
-                r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
+            <div className="w3-row">
                 {super.render()}
-                
+                <div className="w3-container w3-quarter">
+                    <div id="menubar" className = "">
+                        <b>Wielokąt </b>
+                        n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
+                        r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
+                        
+                    </div>
+                </div>
             </div>
-            </>
             );
     }
 }
@@ -236,7 +376,7 @@ class NGONMenu extends DefaultMenu {
 class TEXTMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "e9e9e9";
+        this.state.defaultValue= "#e9e9e9";
     }
     onMirrorX() {
         this.props.action(cShape.MIRRORX);
@@ -247,18 +387,26 @@ class TEXTMenu extends DefaultMenu {
 
     render() {
         return(
-            <>
-            <div id="menubar" className = "menubar">
-                <b>Tekst </b>
-                tekst:<input id="txt" className="button_menu" placeholder="tekst..." defaultValue="Wirtualna Tablica"/>
-                rozmiar:<input id="txt_size" className="button_menu" placeholder="rozmiar czcionki" defaultValue="50"/>
-                {/* wysokość:<input id="txt_height" className="button_menu" placeholder="wysokość czcionki" defaultValue="10"/> */}
+            <div className="w3-row">
                 {super.render()}
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <button id="mirrorX" onClick = {this.onMirrorX.bind(this)}>mirror X</button>
-                <button id="mirrorY" onClick = {this.onMirrorY.bind(this)}>mirror Y</button>
+                <div className="w3-container w3-third">
+                    <div id="menubar" className = "">
+                        <b>Tekst </b>
+                        tekst:<input id="txt" className="button_menu" placeholder="tekst..." defaultValue="Wirtualna Tablica"/>
+                        rozmiar:<input id="txt_size" className="button_menu" placeholder="rozmiar czcionki" defaultValue="50"/>
+                        {/* wysokość:<input id="txt_height" className="button_menu" placeholder="wysokość czcionki" defaultValue="10"/> */}
+                        <button className="toolbutton" id="mirrorX" onClick = {this.onMirrorX.bind(this)}>
+                            <img className="toolimg" src={mirrorx}/>
+                            <span className="tooltiptext">Odbicie wertykalne</span>
+                        </button>
+                        <button className="toolbutton" id="mirrorY" onClick = {this.onMirrorY.bind(this)}>
+                            <img className="toolimg" src={mirrory}/>
+                            <span className="tooltiptext">Odbicie horyzontalne</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
-            </>
             );
     }
 }
@@ -266,7 +414,7 @@ class TEXTMenu extends DefaultMenu {
 class PolygonMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "F7B854";
+        this.state.defaultValue= "#F7B854";
         this.onFinalizeFig = this.onFinalizeFig.bind(this);
     }
     onFinalizeFig(event) {
@@ -274,16 +422,17 @@ class PolygonMenu extends DefaultMenu {
     }
     render() {
         return(
-            <>
-            <div id="menubar" className = "menubar">
-                <b>Polygon </b> 
-                {/* <b>&nbsp; </b> */}
-                Szerokość lini:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+            <div className="w3-row">
                 {super.render()} 
-                <button id="polyClose" onClick = {this.onFinalizeFig} value={true}>V</button>
- 
+                <div className="w3-container w3-quarter">
+                    <div id="menubar" className = "">
+                        <b>Polygon </b> 
+                        {/* <b>&nbsp; </b> */}
+                        Szerokość lini:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+                        {/* <button className="toolbutton" id="polyClose" onClick = {this.onFinalizeFig} value={true}>V</button> */}
+                    </div>
+                </div>
             </div>
-            </>
             );
     }
 }
@@ -291,7 +440,7 @@ class PolygonMenu extends DefaultMenu {
 class CornerMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "F7B854";
+        this.state.defaultValue= "#F7B854";
     }
     onBezier(event) {
         this.props.action(cShape.BEZIER);
@@ -301,15 +450,17 @@ class CornerMenu extends DefaultMenu {
     }
     render() {
         return(
-            <>
-            <div id="menubar" className = "menubar">
-                <b>Wierzchołek: </b> 
-                {/* <b>&nbsp; </b> */}
-                <button id="bezier" onClick = {this.onBezier.bind(this)} value={true}>Bezier</button>
-                <button id="corner" onClick = {this.onCorner.bind(this)} value={true}>Corner</button>
+            <div className="w3-row">
                 {super.render()} 
-            </div>
-            </>
+                <div className="w3-container w3-quarter">
+                    <div id="menubar" className = "">
+                        <b>Wierzchołek: </b> 
+                        {/* <b>&nbsp; </b> */}
+                        <button className="toolbutton" id="bezier" onClick = {this.onBezier.bind(this)} value={true}>Bezier</button>
+                        <button className="toolbutton" id="corner" onClick = {this.onCorner.bind(this)} value={true}>Corner</button>
+                    </div>
+                </div>
+            </div>                
             );
     }
 }
@@ -317,28 +468,36 @@ class CornerMenu extends DefaultMenu {
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
-        this.state.defaultValue= "000000";
+        this.state.defaultValue= "#000000";
         this.onFinalizeFig = this.onFinalizeFig.bind(this);
     }
-    onFinalizeFig(event) {
-        if(event.target.value == 'true')
-            this.props.action(cShape.FREEPEN_CLOSE);
-        else
+    onFinalizeFig() {
+        this.props.action(cShape.FREEPEN_CLOSE);
+    }
+    onCancelFig() {
             this.props.action(cShape.FREEPEN_CANCEL);
     }
     render() {
         return(
-            <>
-            <div id="menubar" className = "menubar">
-                <b>Free Pen </b> 
-                {/* <b>&nbsp; </b> */}
-                Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+            <div className="w3-row">
                 {super.render()} 
-                <button id="addFig" onClick = {this.onFinalizeFig} value={true}>V</button>
-                <button id="rmFig" onClick = {this.onFinalizeFig} value={false}>X</button>
- 
+                <div className="w3-container w3-quarter">
+                    <div id="menubar" className = "">
+                        <b>Free Pen </b> 
+                        {/* <b>&nbsp; </b> */}
+                        Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+                        <button className="toolbutton" id="addFig" onClick = {this.onFinalizeFig}>
+                            <img className="toolimg" src={freelinefinish}/>
+                            <span className="tooltiptext">Zakończ rysować figurę</span>    
+                        </button>
+                        <button className="toolbutton" id="rmFig" onClick = {this.onCancelFig.bind(this)}>
+                            <img className="toolimg" src={freelinecancel}/>
+                            <span className="tooltiptext">Anuluj rysowanie figury"</span>    
+                        </button>
+
+                    </div>
+                </div>
             </div>
-            </>
             );
     }
 }

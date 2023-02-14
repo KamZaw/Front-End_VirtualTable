@@ -22,6 +22,7 @@ import {
     cAction
 } from '../shapetype';
 import Point from './Point';
+import TimeLapse from './TimeLapse';
 import {
     getDatabase,
     ref,
@@ -47,7 +48,7 @@ class VitrualTable {
         this.gridSnap = Global.chkSnap;
         this.gridRes = 10;
         this.crosshair = null;
-        this.group = null;
+        this.grid = null;
 
 
         this.selectedCorner = null;
@@ -59,6 +60,7 @@ class VitrualTable {
         this.selectMenu = selectMenuCallback;
         this.histStack = [];
         this.histPointer = -1;
+        this.timeLapse = new TimeLapse(); 
         this.init();
     }
 
@@ -66,14 +68,14 @@ class VitrualTable {
     init() {
         Text.loadFontOnce(); //inicjacja fotnów
 
-        //return;
+        return;
         //testowy trójkąt
         const x = 500;
         const y = 100;
         const node = new Polygon(this.scene, {
             x: 100 + x,
             y: 100 + y
-        }, "0x" + document.getElementById('color').value);
+        }, "0x" + document.getElementById('color').value.substr(1));
         this.onNewShape(node);
         this.selectedNode = node;
         node.addPoint({
@@ -117,6 +119,47 @@ class VitrualTable {
         }
     }
     //zamienia datę na ticks w formacie C#
+
+    //zapisujemy dane z aktualnej planszy do pliku SVG
+    getSVG() {
+        const targetPanel = document.getElementById('plansza');
+        const wd = targetPanel.offsetWidth ; 
+        const hd = 1147;//targetPanel.offsetHeight; 
+
+        let str = `<svg  id="svg5"
+        version="1.1"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:svg="http://www.w3.org/2000/svg">
+     
+         <defs
+             id="defs7" />
+             <sodipodi:namedview
+             id="namedview5"
+             pagecolor="#${Shape.pad(this.scene.background.getHex().toString(16), 6)}"
+             bordercolor="#666666"
+             borderopacity="1.0"
+             inkscape:pageshadow="2"
+             inkscape:pageopacity="1.0"
+             inkscape:pagecheckerboard="0"
+             showgrid="${this.gridOn}"
+             inkscape:zoom=".8"
+             inkscape:cx="0"
+             inkscape:cy="0"
+             inkscape:window-width="${wd}"
+             inkscape:window-height="${hd}"
+             inkscape:window-x="-8"
+             inkscape:window-y="-8"
+             inkscape:window-maximized="1"
+             inkscape:current-layer="svg5" />\n`
+
+        this.OBJECTS.map(o => str+=o.toSVG()+"\n");
+
+        str += '</svg>'
+
+        return str;
+    }
 
     async putData(obj) {
         try {
@@ -179,7 +222,7 @@ class VitrualTable {
         this.action !== cAction.FREEPEN && (this.type !== cShape.FREEPEN && this.type !== cShape.TEXT) && node.setFillColor(0xffffff);
         //this.action === cAction.NONE && this.putData(node);
 
-        this.type !== cShape.FREEPEN && this.historyAdd();
+        (this.type !== cShape.FREEPEN && (this.action !== cAction.POLYGON && this.type !== cShape.POLYGON )) && this.historyAdd();
         // this.type = cShape.SELECT;
     }
 
@@ -231,12 +274,9 @@ class VitrualTable {
                         break;
                     }
                     case cShape.POLYGON:
-                        if (this.selectedNode) {
+                        if (this.selectedNode ) {
                             //console.log(p);
                             this.selectedNode.updateLastPos(p);
-                            if(this.selectedNode.figureIsClosed)
-                                this.select(null);
-
                         }
                         break;
                     case cShape.FREEPEN: {
@@ -255,7 +295,7 @@ class VitrualTable {
                         }
                         const node = new FreePen(this.scene, p.x, p.y,
                             [this.prevPoint], "freePen",
-                            parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value, true);
+                            parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value.substr(1), true);
                         this.onNewShape(node);
 
                         if (this.tmpNodes == null) {
@@ -309,6 +349,7 @@ class VitrualTable {
     }
     historyRedo() {
         this.histPointer += 2;
+        console.log(this.histPointer);
         this.historyPop();
     }
     //zapamiętuje stan tablicy w okreslonym momencie czasu
@@ -318,7 +359,6 @@ class VitrualTable {
             alert("nie zalogowany");
             return;
         }
-
         if (Global.nodeRef)
             off(Global.nodeRef);
 
@@ -329,56 +369,80 @@ class VitrualTable {
         onValue(Global.nodeRef, (snapshot) => {
             if (snapshot.exists()) {
                 const mapa = snapshot.val();
-                let last = null;
-                for (const i in mapa) {
-                    last = i;
-                }
-                this.sceneClear();
-                this.historyClear();
-                for (const j in mapa[last]) {
-                    const o = mapa[last][j];
-                    let shape
-                    if (o.type == cShape.NGON) {
-                        shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
-                        shape.Z = o.Z;
-                        shape.drawFromPoints(o.points);
-                        this.addShape(shape);
-                    } else if (o.type == cShape.FREEPEN) {
-                        const pts = o.prev.split(",").map(Number)
-                        const points = [];
-                        for (let i = 0; i < pts.length - 1; i += 2) {
-                            points.push([pts[i], pts[i + 1]]);
-                        }
-                        shape = new FreePen(this.scene, points[0],
-                            points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
-                        shape.Z = o.Z;
-                        shape.mirrorX = o.mirrorX;
-                        shape.mirrorY = o.mirrorY;
-                        shape.drawShape();
-                        this.addShape(shape);
-                    } else if (o.type == cShape.TEXT) {
-                        shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
-                        shape.Z = o.Z;
-                        shape.mirrorX = o.mirrorX;
-                        shape.mirrorY = o.mirrorY;
+                this.timeLapse = new TimeLapse();
+                this.timeLapse.setMap(JSON.parse(JSON.stringify(mapa)));
+                this.timeLapse.start(this.drawScene.bind(this));
+        
+                // let last = null;
+                // for (const i in mapa) {
+                //     last = i;
+                // }
+                // this.drawScene(mapa, last);
 
-                        this.onNewShape(shape);
-                    }
-                }
-                this.select(null);
-                this.type = cShape.SELECT;
+
             } else {
-                console.log("No data available");
+                console.log("Brak danych dla sesji");
             }
         }, {
             onlyOnce: Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
         });
 
     }
+    drawScene(mapa, last) {
+        this.OBJECTS = [];
+        this.meshes = [];
+        this.sceneClear();
+        this.historyClear();
+        for (const j in mapa[last]) {
+            const o = mapa[last][j];
+            let shape;
+            if (o.type == cShape.NGON) {
+                shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
+                shape.Z = o.Z;
+                shape.drawFromPoints(o.points);
+                this.addShape(shape);
+            } else if (o.type == cShape.POLYGON) {
+                shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
+                shape.Z = o.Z;
+                shape.drawShape();
+                const pts = o.points.split(",").map(Number);
+                for (let i = 0; i < pts.length; i += 3) {
+                    shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
+                }
+                this.addShape(shape);
+            }
+            else if (o.type == cShape.FREEPEN) {
+                const pts = o.prev.split(",").map(Number);
+                const points = [];
+                for (let i = 0; i < pts.length - 1; i += 2) {
+                    points.push([pts[i], pts[i + 1]]);
+                }
+                shape = new FreePen(this.scene, points[0],
+                    points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
+                shape.Z = o.Z;
+                shape.mirrorX = o.mirrorX;
+                shape.mirrorY = o.mirrorY;
+                shape.drawShape();
+                this.addShape(shape);
+            } else if (o.type == cShape.TEXT) {
+                shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
+                shape.Z = o.Z;
+                shape.mirrorX = o.mirrorX;
+                shape.mirrorY = o.mirrorY;
+
+                this.onNewShape(shape);
+            }
+        }
+        this.select(null);
+        this.type = cShape.SELECT;
+    }
+
     historyAdd() {
         //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
         //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
-        while (this.histStack.length > 0 && this.histPointer < (this.histStack.length - 1)) this.histStack.pop();
+        while (this.histStack.length > 0 && this.histPointer < (this.histStack.length - 1)) {
+            this.histStack.pop();
+        }
         const timStamp = [];
         const firebaseData = [];
         this.OBJECTS.forEach(obj => {
@@ -391,14 +455,15 @@ class VitrualTable {
         });
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if (Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1') {
+        if (Global.user && Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1') {
             if (JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer])) {
-                Global.user && Global.fb && push(ref(Global.fb, `Sessions/${Global.currentSession+"/"}/${Shape.dateToTicks(new Date())}`),
+                Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
                     firebaseData);
-                this.histStack.push(timStamp);
-                this.histPointer++;
+                    console.log("DODANO do FB");
+                }
             }
-        }
+        this.histStack.push(timStamp);
+        this.histPointer++;
     }
 
     sceneClear() {
@@ -408,16 +473,28 @@ class VitrualTable {
         const lightA = new THREE.AmbientLight(0xffffff);
         lightA.position.set(0, 20, 0);
         this.scene.add(lightA);
+        
+        this.crosshair.visible = this.gridSnap;
+        this.grid.visible = this.gridOn;
+        this.scene.add(this.crosshair);
+        this.scene.add(this.grid);
+        
+            
     }
     historyClear() {
         this.histStack = [];
     }
     historyPop() {
-        if (this.histPointer == 0) return;
+        if (this.histStack.length <= this.histPointer) {
+            this.histPointer = this.histStack.length - 1;
+            console.log(this.histPointer);
+            //return;
+        }
         //this.histStack.pop();
-        this.histPointer--;
-
+        
         const list = this.histStack[this.histPointer];
+        this.histPointer--;
+        console.log(this.histPointer);
         this.OBJECTS = [];
         this.meshes = [];
         list?.forEach(obj => {
@@ -443,7 +520,7 @@ class VitrualTable {
 
                         const node = new Ngon(this.scene, p.x, p.y, "prostokat",
                             document.getElementById("rect_height").value, 4,
-                            "0x" + document.getElementById('color').value,
+                            "0x" + document.getElementById('color').value.substr(1),
                             document.getElementById("rect_width").value, true);
 
                         this.onNewShape(node);
@@ -455,13 +532,13 @@ class VitrualTable {
                         break;
                     }
                     case cShape.NGON: {
-                        const node = new Ngon(this.scene, p.x, p.y, "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value);
+                        const node = new Ngon(this.scene, p.x, p.y, "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value.substr(1));
                         this.onNewShape(node);
                         break;
                     }
                     case cShape.TEXT:
                         const node = new Text(this.scene, p.x, p.y, document.getElementById('txt').value,
-                            "0x" + document.getElementById('color').value,
+                            "0x" + document.getElementById('color').value.substr(1),
                             document.getElementById('txt_size').value,
                             //   document.getElementById('txt_height').value
                             10);
@@ -469,13 +546,14 @@ class VitrualTable {
                         break;
                     case cShape.FREEPEN: {
                         //this.finalizeFreePenFig(targetPanel);
+                        this.action = cAction.NONE;
                         this.freePenSeparator = true;
 
                         break;
                     }
                     case cShape.POLYGON: {
                         if (this.action !== cAction.POLYGON) {
-                            const node = new Polygon(this.scene, p, "0x" + document.getElementById('color').value);
+                            const node = new Polygon(this.scene, p, "0x" + document.getElementById('color').value.substr(1));
                             this.onNewShape(node);
                             this.selectedNode = node;
                             this.action = cAction.POLYGON;
@@ -485,7 +563,8 @@ class VitrualTable {
                                 this.selectedNode?.addPoint(p);
                                 if (this.selectedNode.figureIsClosed) {
                                     this.action = cAction.NONE;
-                                    this.selectedNode = null;
+                                    // this.selectedNode = null;
+                                    this.historyAdd();
                                 }
                             }
                         }
@@ -527,7 +606,7 @@ class VitrualTable {
     finalizeFreePenFig(targetPanel) {
         if (!this.prevPoint) return;
         const node = new FreePen(this.scene, this.prevPoint[0],
-            this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value);
+            this.prevPoint[1], this.freePenPoints, "freePen", parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value.substr(1));
         this.deleteTempNodes();
         this.tmpNodes = null;
         this.onNewShape(node);

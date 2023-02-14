@@ -31,6 +31,7 @@ const cShape ={
     POLY_CLOSE:     32,
     BEZIER:         33,
     TO_CORNER:         34,
+    START_NEW_SESSION:  35,
 };
 
 const cRole = {
