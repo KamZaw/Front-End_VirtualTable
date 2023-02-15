@@ -42,7 +42,7 @@ class ShapeDelete extends Component {
         return (
             <div>
                 <ul>
-                {this.state.shapes.forEach((shape, index) => {
+                {this.state.shapes.map((shape, index) => {
                 return (
                     <div key={index}>
                         <li>{shape.date + " " + shape.color}  </li>

@@ -16,13 +16,15 @@ class FreePen extends Shape{
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany
-        if (THREE == null)
+            if (THREE == null)
             return;
-
+        const verts = [];
+        const normals = [];
+        
         const prev = this.prev;
         
         
-   
+        
 
         let minX = 9999, minY = 99999, maxX = -99999, maxY = -99999;
         
@@ -35,109 +37,106 @@ class FreePen extends Shape{
             let x = prev[i][0];
             let y = prev[i][1];
             const obj = new THREE.Vector3(x, y , 0);
-            lists[ptr].push(obj);
             if (i < prev.length-1)
-                if(x == prev[i+1][0] && y == prev[i+1][1]) {
-                    i++;
-                    lists.push([]);
-                    ptr++;
-                    continue;
-                }
+            if(x == prev[i+1][0] && y == prev[i+1][1]) {
+                i++;
+                lists.push([]);
+                ptr++;
+                continue;
             }
-            if(lists[0].length < 1) return;
-            this.mesh = new THREE.Group();
-            for(let i = 0; i < lists.length; i++) {
-                const verts = [];
-                const normals = [];
-                const list = lists[i];
-                if(list.length <= 0 ) continue;
-                let curve = new THREE.SplineCurve( list);
-                curve = curve.getPoints(list.length*10);
+            lists[ptr].push(obj);
+        }
+        if(lists[0].length < 1) return;
+        this.mesh = new THREE.Group();
+        for(let i = 0; i < lists.length; i++) {
+            if(lists.length > 1 && lists[i].length<4) continue;
+            const list = lists[i];
+            if(list.length <= 0 ) continue;
+            let curve = new THREE.SplineCurve( list);
+            curve = curve.getPoints(list.length*10);
+            
+            for(let i = 0; i < curve.length-1; i++) {
+                let a = this.size;
+                let b = this.size;            
+
+                const pt = curve[i];
+                const pt1 = curve[i+1];
+                let x = pt.x;
+                let y = pt.y;
+                if(x < minX)
+                    minX = x;
+                if(x > maxX)
+                    maxX = x;
+                if(y < minY)
+                    minY = y;
+                if(y > maxY)
+                    maxY = y;
                 
-                for(let i = 0; i < curve.length-1; i++) {
-                    let a = this.size;
-                    let b = this.size;            
-
-                    const pt = curve[i];
-                    const pt1 = curve[i+1];
-                    let x = pt.x;
-                    let y = pt.y;
-                    if(x < minX)
-                        minX = x;
-                    if(x > maxX)
-                        maxX = x;
-                    if(y < minY)
-                        minY = y;
-                    if(y > maxY)
-                        maxY = y;
-                    
-                    const sX = pt1.x;//rev[i+1][0];
-                    const sY = pt1.y;//rev[i+1][1];
-                    // if (i < prev.length-2)
-                    //     if(sX == prev[i+2][0] && sY == prev[i+2][1]) {
-                    //         i++;
-                    //         continue;
-                    //     }
+                const sX = pt1.x;//rev[i+1][0];
+                const sY = pt1.y;//rev[i+1][1];
+                // if (i < prev.length-2)
+                //     if(sX == prev[i+2][0] && sY == prev[i+2][1]) {
+                //         i++;
+                //         continue;
+                //     }
 
 
-                    // if(x < sX - a/2 ) {
-                    //     a = -a;
-                    // }
-                    
-                    // if(y  > sY+ b/2) {
-                    //     b = -b;
-                    // }
-                    //buduj w lewo/prawo a nie w dół.górę
-                    //2
-                    verts.push(sX,b+sY,0);
-                    //this.points.push(new Point(0 + sX,a + sY));
-                    normals.push(0,0,1);
-                    //1
-                    verts.push(x,y,0);
-                    //this.points.push(new Point(0 + x,0 + y));
-                    normals.push(0,0,1);
-                    //4
-                    verts.push(a+sX,b+sY,0);
-                    //this.points.push(new Point(b)+ sX,a + sY);
-                    normals.push(0,0,1);
-
-                    //4
-                    verts.push(a+sX,b+sY,0);
-                    //this.points.push(new Point((b) + sX,a + sY));
-                    normals.push(0,0,1);
-                    
-                    //2
-                    verts.push(x,y,0);
-                    //this.points.push(new Point(sX,sY));
-                    normals.push(0,0,1);
-                    //3
-                    verts.push(a+x,y,0);
-                    //this.points.push(new Point((b)+ x,y));
-                    normals.push(0,0,1);
-
-                    const geometry = new THREE.BufferGeometry();
-                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-                    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-                    const material = new THREE.MeshStandardMaterial({
-                        color: this.iColor,//0xE9E9E9,
-                        wireframe: !true,
-                    });
-                    material.side = THREE.DoubleSide; 
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.name = "name";
-                    mesh.position.set(0,0, this.Z);
-                    mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
-                    this.mesh.add(mesh);
-                }            
+                // if(x < sX - a/2 ) {
+                //     a = -a;
+                // }
                 
+                // if(y  > sY+ b/2) {
+                //     b = -b;
+                // }
+                //buduj w lewo/prawo a nie w dół.górę
+                //2
+                verts.push(sX,b+sY,0);
+                //this.points.push(new Point(0 + sX,a + sY));
+                normals.push(0,0,1);
+                //1
+                verts.push(x,y,0);
+                //this.points.push(new Point(0 + x,0 + y));
+                normals.push(0,0,1);
+                //4
+                verts.push(a+sX,b+sY,0);
+                //this.points.push(new Point(b)+ sX,a + sY);
+                normals.push(0,0,1);
+
+                //4
+                verts.push(a+sX,b+sY,0);
+                //this.points.push(new Point((b) + sX,a + sY));
+                normals.push(0,0,1);
                 
-            }         
-            this.mesh.position.set(0,0, this.Z);
-            this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
-            this.scene.add(this.mesh);
+                //2
+                verts.push(x,y,0);
+                //this.points.push(new Point(sX,sY));
+                normals.push(0,0,1);
+                //3
+                verts.push(a+x,y,0);
+                //this.points.push(new Point((b)+ x,y));
+                normals.push(0,0,1);
+
+            }            
+            
+            
+        }         
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        const material = new THREE.MeshStandardMaterial({
+            color: this.iColor,//0xE9E9E9,
+            wireframe: !true,
+        });
+        material.side = THREE.DoubleSide; 
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = "name";
+        mesh.position.set(0,0, this.Z);
+        mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        this.mesh = mesh;
+        this.mesh.position.set(0,0, this.Z);
+        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        this.scene.add(this.mesh);
     
-    
-
         let b = this.size; 
         const path = new THREE.Path();
         path.moveTo(minX-b, minY-b);
@@ -163,10 +162,10 @@ class FreePen extends Shape{
     }
     // przysłania domyślną procedurę zaznaczania figury
     setFillColor(color) {
-        //this.mesh.material.color.setHex( color ^ this.iColor );
+        this.mesh.material.color.setHex( color ^ this.iColor );
     }
     setDefaultColor() {
-        //this.mesh.material.color.setHex( this.iColor );
+        this.mesh.material.color.setHex( this.iColor );
     }
     rescale() {
         super.rescale();

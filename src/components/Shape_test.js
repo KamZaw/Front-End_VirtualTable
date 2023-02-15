@@ -62,7 +62,7 @@ class Shape_test extends Component {
             <div>
                 <h3>Lista:</h3>
                 <ul>
-                {this.state.shapes.forEach((shape, index) => (
+                {this.state.shapes.map((shape, index) => (
                     <div key={index}>
                         <li>{shape.date + " " + shape.sDescription}  </li>
                     </div>

@@ -48,12 +48,12 @@ class SessionDialog extends Component {
 
         const dbRef = ref(Global.fb);
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
-        this.lista = [];
         Global.nodeRef = child(dbRef, `Sessions/`);
         const snapshot = await get(Global.nodeRef); 
-
+        
         if (snapshot.exists()) {
             const mapa = snapshot.val();
+            this.lista = [];
 
             
             for(const i in mapa) {
@@ -85,7 +85,7 @@ class SessionDialog extends Component {
                     </div>
                     <p className="message_text"><b>Sesje archiwalne:</b></p>
                     <ul className="w3-ul w3-border">
-                        {this.lista.forEach( (s, i) => <li key={i} onClick={this.sessionSelect.bind(this)} val={s.val} ><b>{s.val} {s.data}</b><br/>od: {s.czasStart}<br/>od: {s.czasStop}</li>)}
+                        {this.lista.map( (s, i) => <li key={i} onClick={this.sessionSelect.bind(this)} val={s.val} ><b>{s.val} {s.data}</b><br/>od: {s.czasStart}<br/>od: {s.czasStop}</li>)}
                     </ul>
                     <br/>
 

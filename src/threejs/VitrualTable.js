@@ -251,7 +251,8 @@ class VitrualTable {
                     case cShape.POLYGON:
                         if (this.selectedNode ) {
                             //console.log(p);
-                            this.selectedNode.updateLastPos(p);
+                            if(this.selectedNode.updateLastPos)
+                                this.selectedNode.updateLastPos(p);
                         }
                         break;
                     case cShape.FREEPEN: {
@@ -374,14 +375,14 @@ class VitrualTable {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
                 shape.drawShape();
-                const pts = o.points.split(",").forEach(Number);
+                const pts = o.points.split(",").map(Number);
                 for (let i = 0; i < pts.length; i += 3) {
                     shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
                 }
                 this.addShape(shape);
             }
             else if (o.type === cShape.FREEPEN) {
-                const pts = o.prev.split(",").forEach(Number);
+                const pts = o.prev.split(",").map(Number);
                 const points = [];
                 for (let i = 0; i < pts.length - 1; i += 2) {
                     points.push([pts[i], pts[i + 1]]);

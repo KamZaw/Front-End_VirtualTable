@@ -33,7 +33,7 @@ class Main extends Component {
         }
         Global.firebaseApp = initializeApp(firebaseConfig);
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
-            currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
+            //currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
             Global.user = currentUser;
             // Global.user.hasMic = false;
             // if(Global.user.uid === "VRGQyqLSB0axkDKbmgye3wyDGJo1")

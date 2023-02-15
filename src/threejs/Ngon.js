@@ -106,7 +106,7 @@ class Ngon extends Shape{
 
     //odtwarza obiekt z obiektu JSON przesłanego z bazy danych
     drawFromPoints(pointsS){
-        const pts = pointsS.split(",").forEach(Number);
+        const pts = pointsS.split(",").map(Number);
         const path = new THREE.Shape();
         path.moveTo(pts[0],pts[1]);
         const cornerSize = Global.cornerSize;

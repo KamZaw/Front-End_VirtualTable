@@ -27,8 +27,8 @@ class Sessionbar extends Component {
                 for(const i in mapa) {
                     students.push(mapa[i]);
                 }
-                this.setState({...this.state, students: students});
-
+                //this.state.students = students;
+                setTimeout( () =>this.setState({...this.state, students: students}), 100);
             } 
         }, {
             onlyOnce: false
@@ -48,7 +48,7 @@ class Sessionbar extends Component {
         
         return(<>
         <div className="sessionbar">
-            {this.state.students.forEach((s) => {
+            {this.state.students.map((s) => {
                 //console.log(s);                
                 if(s.loggedIn)
                     return(

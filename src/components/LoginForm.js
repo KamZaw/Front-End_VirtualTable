@@ -72,7 +72,7 @@ class LoginForm extends Component {
         .then((userCredential) => {
             this.setState({...this.state, user: userCredential.user});
             this.props.action(false);
-            console.log(userCredential.user);
+            // console.log(userCredential.user);
         })
         .catch((error) => {
             const errorCode = error.code;
