@@ -46,7 +46,7 @@ class Shape {
         this.Z+=2;
         this.mesh && (this.mesh.position.z = this.Z);
         this.linie && (this.linie.position.z = this.Z+1);
-        this.node  && this.node.map(pt=> {
+        this.node  && this.node.forEach(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
             pt.linie && (pt.linie.position.z = this.Z+1);
         });
@@ -56,7 +56,7 @@ class Shape {
         this.Z-=2;
         this.mesh && (this.mesh.position.z = this.Z);
         this.linie && (this.linie.position.z = this.Z+1);
-        this.node  && this.node.map(pt=> {
+        this.node  && this.node.forEach(pt=> {
             pt.mesh && (pt.mesh.position.z = this.Z);
             pt.linie && (pt.linie.position.z = this.Z+1);
         });
@@ -127,17 +127,13 @@ class Shape {
 
         switch(obj.type) {
             case cShape.RECT:
-                {
-                    obj.mesh.position.set(this.mesh.position.x - this.b,this.mesh.position.y,this.mesh.position.z);
-                    obj.linie && obj.linie.position.set(this.linie.position.x - this.b,this.linie.position.y,this.linie.position.z);
-                            }
+                obj.mesh.position.set(this.mesh.position.x - this.b,this.mesh.position.y,this.mesh.position.z);
+                obj.linie && obj.linie.position.set(this.linie.position.x - this.b,this.linie.position.y,this.linie.position.z);
                 break;
             case cShape.NGON:
-                {
-                    obj.mesh.position.set(this.mesh.position.x - this.radius*2,this.mesh.position.y,this.mesh.position.z);
-                    obj.linie && obj.linie.position.set(this.linie.position.x - this.radius*2,this.linie.position.y,this.linie.position.z);
-                }
-
+                obj.mesh.position.set(this.mesh.position.x - this.radius*2,this.mesh.position.y,this.mesh.position.z);
+                obj.linie && obj.linie.position.set(this.linie.position.x - this.radius*2,this.linie.position.y,this.linie.position.z);
+                break;
             default:
                 break;
         }
@@ -177,7 +173,7 @@ class Shape {
             normals.push(0,0,1);
             
         }
-        if(obj.points.length == 7) {
+        if(obj.points.length === 7) {
             pkt.push(new THREE.Vector3(obj.points[1].x, obj.points[1].y, 0));
             pkt.push(new THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));
             pkt.push(new THREE.Vector3(obj.points[0].x, obj.points[0].y, 0));

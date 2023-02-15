@@ -1,8 +1,8 @@
 import "../assets/w3.css"
 import { Component } from "react";
-import {update, ref, } from "firebase/database"
-import Global from "../Global"
-import { Shape } from "../threejs/Shape";
+// import {update, ref, } from "firebase/database"
+// import Global from "../Global"
+// import { Shape } from "../threejs/Shape";
 
 
 class Student extends Component {

@@ -1,9 +1,9 @@
 import "../assets/loginform.css"
 import "../assets/w3.css"
 import { Component } from "react";
-import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
-import {initializeApp} from "firebase/app"
-import {firebaseConfig} from "../firebase-config"
+// import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
+// import {initializeApp} from "firebase/app"
+// import {firebaseConfig} from "../firebase-config"
 import Global from "../Global";
 
 class MessageBox extends Component {

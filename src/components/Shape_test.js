@@ -1,6 +1,6 @@
 import  { Component } from "react";
 import  Global from "../Global";
-import  axios  from "axios";
+
 
 
 //komponent pobierający kształty z backendu
@@ -27,13 +27,7 @@ class Shape_test extends Component {
             method: 'GET',
         });//.then(responce => {return responce.json()}).then(responceData => {return responceData});
         return await result.json();
-       
-        //console.log((result.date));
-        
-        // result = axios.get(url,  {
-        //     responseType: "json",
-        //   }, {headers})
-        // .then(responce => {return responce.data}).then(responceData => {return responceData});
+     
     }
 
     async getShapes() {
@@ -43,7 +37,7 @@ class Shape_test extends Component {
         //response = JSON.parse(response);
         let shapes = [];
         
-        response.map(sh => {
+        response.forEach(sh => {
             let shape = {
                 date: sh.date,
                 points: sh.points,
@@ -68,7 +62,7 @@ class Shape_test extends Component {
             <div>
                 <h3>Lista:</h3>
                 <ul>
-                {this.state.shapes.map((shape, index) => (
+                {this.state.shapes.forEach((shape, index) => (
                     <div key={index}>
                         <li>{shape.date + " " + shape.sDescription}  </li>
                     </div>

@@ -19,12 +19,12 @@ class Ngon extends Shape{
 
     }
     rmShape() {
-        this.node?.map((pt) => pt.rmShape());
+        this.node?.forEach((pt) => pt.rmShape());
         super.rmShape();
     }
     select(flag) {
-        !flag && super.select(flag);
-        this.node?.map((pt) => {
+        !flag && super.select(flag); 
+        this.node?.forEach((pt) => {
             pt.mesh && (pt.mesh.visible = flag);
             pt.linie && (pt.linie.visible = flag);
         });
@@ -47,7 +47,7 @@ class Ngon extends Shape{
         if(this.parent) {
             if(!this.isBezier) {
                 const n = this;
-                this.parent.node?.map((pt) => { 
+                this.parent.node?.forEach((pt) => { 
                     if(pt.isBezier) {
                         if(n === pt.prev) {
                             pt.arms[1].geometry.attributes.position.needsUpdate = true; 
@@ -70,13 +70,13 @@ class Ngon extends Shape{
         if(!this.parent ) 
         {
             super.mvShape(start, stop);
-            this.node?.map((pt) => {
+            this.node?.forEach((pt) => {
                 pt.x += stop[0] - start[0];
                 pt.y += stop[1] - start[1];
                 pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
                 pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
                 if(pt.isBezier) {
-                    pt.arms.map( arm=> {
+                    pt.arms.forEach( arm=> {
                         arm.geometry.attributes.position.needsUpdate = true; 
                         const linie = arm.geometry.attributes.position.array; 
                         linie[0] += stop[0] - start[0];
@@ -94,7 +94,7 @@ class Ngon extends Shape{
         const linie = this.parent.linie.geometry.attributes.position.array;
         linie[this.cornerCnt*3] += stop[0] - start[0];
         linie[this.cornerCnt*3+1] += stop[1] - start[1];
-        if(this.cornerCnt == 0) {
+        if(this.cornerCnt === 0) {
             linie[(linie.length  - 3)] += stop[0] - start[0];
             linie[(linie.length - 3)+1] += stop[1] - start[1];
         }
@@ -106,7 +106,7 @@ class Ngon extends Shape{
 
     //odtwarza obiekt z obiektu JSON przesłanego z bazy danych
     drawFromPoints(pointsS){
-        const pts = pointsS.split(",").map(Number);
+        const pts = pointsS.split(",").forEach(Number);
         const path = new THREE.Shape();
         path.moveTo(pts[0],pts[1]);
         const cornerSize = Global.cornerSize;
@@ -129,7 +129,7 @@ class Ngon extends Shape{
         this.linie.position.set(this.x, this.y, this.linie.position.z);
         this.scene.add(this.linie);
         this.recreateMesh(true);
-        this.node?.map((pt) => {
+        this.node?.forEach((pt) => {
             pt.drawShape();
             pt.parent = this;
         });
@@ -210,7 +210,7 @@ class Ngon extends Shape{
         }
         
         this.node && (obj.node = []);
-        this.node?.map((n)=>{
+        this.node?.forEach((n)=>{
             const crn = n.carbonCopy(bDraw);
             crn.parent = obj;
             obj.node.push(crn);
@@ -224,9 +224,7 @@ class Ngon extends Shape{
     drawShape() {
         if(this.mesh !== null)
             return; //już jest dodany
-        const verts = [];
-        const normals = [];
-        const pkt = [];    
+
         const cornerSize = Global.cornerSize;
 
         let segmentCount = this.n;
@@ -283,7 +281,7 @@ class Ngon extends Shape{
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
         
         
-        this.node?.map((pt) => pt.drawShape());
+        this.node?.forEach((pt) => pt.drawShape());
         //this.createMesh(verts, normals, pkt);
     }
     
@@ -365,7 +363,7 @@ class Ngon extends Shape{
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
 
 
-        this.node?.map((pt) => pt.drawShape());
+        this.node?.forEach((pt) => pt.drawShape());
     }
 }
 

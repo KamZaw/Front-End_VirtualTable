@@ -57,9 +57,9 @@ class Polygon extends Shape {
         }
     }
     drawShape() {
-        const targetPanel = document.getElementById('plansza');
-        const wd = targetPanel.offsetWidth ; // parseInt(dh.offsetWidth);
-        const hd = targetPanel.offsetHeight; //parseInt(window.innerHeight * .6);
+        // const targetPanel = document.getElementById('plansza');
+        // const wd = targetPanel.offsetWidth ; // parseInt(dh.offsetWidth);
+        // const hd = targetPanel.offsetHeight; //parseInt(window.innerHeight * .6);
         const cornerSize = Global.cornerSize;
         
         const node = new Ngon(this.scene, this.x, this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
@@ -91,7 +91,7 @@ class Polygon extends Shape {
         this.pts.push(p);
         
         path.moveTo(this.pts[0].x, this.pts[0].y);
-        this.pts.map(p => path.lineTo(p.x, p.y));
+        this.pts.forEach(p => path.lineTo(p.x, p.y));
         
         const dist = Point.distance([p.x,p.y],[this.pts[0].x, this.pts[0].y]);
         //console.log(dist);
@@ -104,7 +104,7 @@ class Polygon extends Shape {
         }
         const points = path.getPoints();
         //console.log(points.length);
-        //points.map(p => console.log(p));
+        //points.forEach(p => console.log(p));
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         const mat = new THREE.LineBasicMaterial({
             color: 0xffffff,//this.iColor,
@@ -139,7 +139,7 @@ class Polygon extends Shape {
         
         
         path.moveTo(this.pts[0].x, this.pts[0].y);
-        this.pts.map(p => path.lineTo(p.x, p.y));
+        this.pts.forEach(p => path.lineTo(p.x, p.y));
         
         
         while(this.pts.length > this.node.length)
@@ -152,7 +152,7 @@ class Polygon extends Shape {
         const points = path.getPoints();
         
         //console.log(points.length);
-        //points.map(p => console.log(p));
+        //points.forEach(p => console.log(p));
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         const mat = new THREE.LineBasicMaterial({
             color: 0xffffff,//this.iColor,
@@ -169,7 +169,7 @@ class Polygon extends Shape {
     }
 
     rmShape() {
-        this.node?.map((pt) => pt.rmShape());
+        this.node?.forEach((pt) => pt.rmShape());
         super.rmShape();
     }
     rescale() {
@@ -185,7 +185,7 @@ class Polygon extends Shape {
     }
     select(flag) {
         !flag && super.select(flag);
-        this.node?.map((pt) => {
+        this.node?.forEach((pt) => {
             pt.mesh && (pt.mesh.visible = flag);
             pt.linie && (pt.linie.visible = flag);
         });
@@ -288,7 +288,7 @@ class Polygon extends Shape {
         }
         
         this.node && (obj.node = []);
-        this.node?.map((n)=>{
+        this.node?.forEach((n)=>{
             const crn = n.carbonCopy(bDraw);
             crn.parent = obj;
             obj.node.push(crn);
@@ -303,11 +303,11 @@ class Polygon extends Shape {
     mvShape(start, stop) {
         super.mvShape(start, stop);
         let isBezier = false;
-        this.node?.map((pt) => {
+        this.node?.forEach((pt) => {
             if(pt.isBezier) {
                 isBezier = true;
                 pt.mvShape(start, stop, true);
-                pt.arms.map( arm => {
+                pt.arms.forEach( arm => {
                     arm.position.x += stop[0] - start[0]; 
                     arm.position.y += stop[1] - start[1]; 
                 });

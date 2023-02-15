@@ -129,7 +129,7 @@ class VitrualTable {
              inkscape:window-maximized="1"
              inkscape:current-layer="svg5" />\n`
 
-        this.OBJECTS.map(o => str+=o.toSVG()+"\n");
+        this.OBJECTS.forEach(o => str+=o.toSVG()+"\n");
 
         str += '</svg>'
 
@@ -288,7 +288,7 @@ class VitrualTable {
                         if (!this.selectedNode) break;
                         if (this.selectedCorner !== null && this.action !== cAction.BEZIER) {
                             if (Point.distance([this.selectedCorner.x, this.selectedCorner.y], [p.x, p.y]) > Global.cornerSize * 2) {
-                                this.selectedNode.node?.map(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
+                                this.selectedNode.node?.forEach(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
                                 this.onSelection(event, targetPanel); //sprawdź czy nie klikamy na drugi węzeł
                                 this.type = cShape.SELECT;
                                 break;
@@ -374,14 +374,14 @@ class VitrualTable {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
                 shape.drawShape();
-                const pts = o.points.split(",").map(Number);
+                const pts = o.points.split(",").forEach(Number);
                 for (let i = 0; i < pts.length; i += 3) {
                     shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
                 }
                 this.addShape(shape);
             }
             else if (o.type === cShape.FREEPEN) {
-                const pts = o.prev.split(",").map(Number);
+                const pts = o.prev.split(",").forEach(Number);
                 const points = [];
                 for (let i = 0; i < pts.length - 1; i += 2) {
                     points.push([pts[i], pts[i + 1]]);
@@ -659,8 +659,8 @@ class VitrualTable {
             for (let shapeNode of this.selectedNode.node) {
                 if (shapeNode.isBezier) {
                     shapeNode.mesh.visible = shapeNode.linie.visible = true;
-                    shapeNode.node.map( n => n.mesh.visible = true);
-                    shapeNode.arms.map( n => n.visible = true);
+                    shapeNode.node.forEach( n => n.mesh.visible = true);
+                    shapeNode.arms.forEach( n => n.visible = true);
                     for (let shape of shapeNode.node) {
 
                         if (pole === shape.mesh) {

@@ -119,22 +119,18 @@ class Main extends Component {
         //alert(type);
         const vt = this.vt;
         switch(type) {
-            case cShape.NEW:{
+            case cShape.NEW:
                 //TODO: może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
                 vt.clearAll()
                 vt.type = cShape.SELECT;
-            }
-            break;
+                break;
             case cShape.START_NEW_SESSION:
-            {
                 vt.clearAll()
                 if(Global.user && Global.currentSession) {
                     //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
                     vt.onNewShape(new Shape(cShape.NONE, this.scene,  0, 0, "czas start", 0x000000 ));
                 }
-        
-            }
-            break;
+                break;
             case cShape.UNDO:
                 vt.sceneClear();
                 vt.historyPop();
@@ -157,15 +153,11 @@ class Main extends Component {
                 vt.loadDataFromSession(Global.currentSession);
                 break;
             case cShape.TO_CORNER:
-            {
                 vt.toCorner();
-            }
-            break;
+                break;
             case cShape.BEZIER:
-            {
                 vt.toBezier();
-            }
-            break;
+                break;
             case cShape.SAVE_SVG:            
                 this.saveToSVG(vt);
                 break;
@@ -275,8 +267,8 @@ class Main extends Component {
         }
         vt.scene.remove(selectedNode.mesh);
         selectedNode.linie && vt.scene.remove(selectedNode.linie);
-        vt.OBJECTS = vt.OBJECTS.filter((obj) => obj != selectedNode);
-        vt.meshes = vt.meshes.filter((obj) => obj != selectedNode.mesh);
+        vt.OBJECTS = vt.OBJECTS.filter((obj) => obj !== selectedNode);
+        vt.meshes = vt.meshes.filter((obj) => obj !== selectedNode.mesh);
         selectedNode.rmShape();
 
         if(!keepIt)
@@ -290,17 +282,15 @@ class Main extends Component {
         //console.log(url);
         let response = await this.getShapesRequest(url);
         //response = JSON.parse(response);
-        let shapes = [];
-        
-            try{
-                response.map(sh => {
-                    const shape = new Shape(THREE, this.scene,  0, 0, "");
-                this.vt.addShape(shape);
-                    shape.recreateShape(sh);
-                });
-            }catch(err) {
-                console.log(err.message);
-            }
+        try{
+            response.forEach(sh => {
+                const shape = new Shape(THREE, this.scene,  0, 0, "");
+            this.vt.addShape(shape);
+                shape.recreateShape(sh);
+            });
+        }catch(err) {
+            console.log(err.message);
+        }
         //this.setState({shapes: shapes});
     }
 
@@ -365,22 +355,22 @@ class Main extends Component {
         //przesuwamy
         if( vt.selectedNode) {  //vt.type == cShape.SELECT &&
             const multiply = event.ctrlKey?vt.gridRes:1;
-            if (keyCode == event.DOM_VK_DOWN) {
+            if (keyCode === event.DOM_VK_DOWN) {
                 this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[0,1*multiply]);
                 // down
-            } else if (keyCode == event.DOM_VK_UP) {
+            } else if (keyCode === event.DOM_VK_UP) {
                 this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[0,-1*multiply]);
                 // left
-            } else if (keyCode == event.DOM_VK_RIGHT) {
+            } else if (keyCode === event.DOM_VK_RIGHT) {
                 this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[1*multiply,0]);
                 // right
-            } else if (keyCode == event.DOM_VK_LEFT) {
+            } else if (keyCode === event.DOM_VK_LEFT) {
                 this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[-1*multiply,0]);
-            }else if (keyCode == event.DOM_VK_DELETE) {
+            }else if (keyCode === event.DOM_VK_DELETE) {
                 this.delete(vt.selectedNode);
             }
         }

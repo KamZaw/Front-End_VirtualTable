@@ -51,7 +51,7 @@ class LoginForm extends Component {
             loggedIn: false,
         });
 
-        console.log("!!!!!!!!!!!");
+        //console.log("!!!!!!!!!!!");
         if(Global.nodeRef)
             off(Global.nodeRef);
         await signOut(getAuth(Global.firebaseApp));
@@ -83,20 +83,16 @@ class LoginForm extends Component {
         });
     }    
     onPasswordChange(event) {
-        this.state.password = event.target.value;
-        this.setState({...this.state, errorMessage: ""})
+        this.setState({...this.state, password: event.target.value, errorMessage: ""})
     }   
     onLoginChange(event) {
-        this.state.loginName = event.target.value;
-        this.setState({...this.state, errorMessage: ""})
+        this.setState({...this.state,loginName: event.target.value, errorMessage: ""})
     } 
     onLastNameChange(event) {
-        this.state.lastName = event.target.value;
-        this.setState({...this.state, errorMessage: ""})
+        this.setState({...this.state,lastName: event.target.value, errorMessage: ""})
     } 
     onFirstNameChange(event) {
-        this.state.firstName = event.target.value;
-        this.setState({...this.state, errorMessage: ""})
+        this.setState({...this.state, firstName: event.target.value, errorMessage: ""})
     } 
 
     validateFormFields() {

@@ -74,7 +74,7 @@ class Bezier extends Ngon {
         
         //klonuje wierzchołki ramion wodzączych (p1 i p2)
         this.node && (obj.node = []);
-        this.node?.map((n)=>{
+        this.node?.forEach((n)=>{
             const crn = n.carbonCopy(bDraw);
             crn.parent = obj;
             obj.node.push(crn);
@@ -82,7 +82,7 @@ class Bezier extends Ngon {
 
         //klonuje linie ramion
         this.arms && (obj.arms = []);
-        this.arms?.map((n)=>{
+        this.arms?.forEach((n)=>{
             const crn = new THREE.Line( 
                 n.geometry.clone(), 
                 new THREE.LineBasicMaterial().copy( n.material )
@@ -112,15 +112,15 @@ class Bezier extends Ngon {
         
     }
     rmShape() {
-        this.node?.map((pt) => pt.rmShape());
-        this.arms?.map((line) => this.scene.remove(line));
+        this.node?.forEach((pt) => pt.rmShape());
+        this.arms?.forEach((line) => this.scene.remove(line));
         super.rmShape();  
     }
     mvShape(start, stop, mvFig) {
         //przesuń ramiona
         //przesuwa główny wierzchołek
         // super.mvShape(start, stop);  
-        const p={x:this.x, y:this.y};
+        // const p={x:this.x, y:this.y};
         this.x += stop[0] - start[0];
         this.y += stop[1] - start[1];
 
@@ -147,7 +147,7 @@ class Bezier extends Ngon {
         //przesuń linie wodzące
         if(!this.isBezier) 
         {
-            this.arms.map( arm => {
+            this.arms.forEach( arm => {
                 const p={x:arm.position.x, y:arm.position.y};
                 p.x += stop[0] - start[0];
                 p.y += stop[1] - start[1];
@@ -158,7 +158,7 @@ class Bezier extends Ngon {
         
         const arms = this.arms;
         //przesuń węzły
-        this.node?.map((pt) => {
+        this.node?.forEach((pt) => {
             let p={x:pt.mesh.position.x, y:pt.mesh.position.y};
             p.x += stop[0] - start[0];
             p.y += stop[1] - start[1];
@@ -181,12 +181,12 @@ class Bezier extends Ngon {
 
     select(flag) {
         !flag && super.select(flag);
-        this.arms?.map( arm =>
+        this.arms?.forEach( arm =>
             { 
             arm.visible = flag;
             arm.visible = flag;
         });
-        this.node?.map((pt) => {
+        this.node?.forEach((pt) => {
             pt.mesh && (pt.mesh.visible = flag);
             pt.linie && (pt.linie.visible = flag);
         });

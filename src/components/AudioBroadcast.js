@@ -45,11 +45,11 @@ class AudioBroadcast extends Component {
         return (
             <>
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <button className={"toolbutton "+(this.state.chkMic ?"checked ":" ") } 
+                <img className="toolimg" src={this.state.chkMic?mic_on:mic_off} alt="mic"/>
+                {/* <button className={"toolbutton "+(this.state.chkMic ?"checked ":" ") } 
                     type="" id="mic" name="mic"  onClick = {this.onCheckedMic.bind(this)}>
-                    <img className="toolimg" src={this.state.chkMic?mic_on:mic_off}/>
                     <span className="tooltiptext">{(this.state.chkMic ?"Wyłącz mikrofon ":"Włącz mikrofon")}</span>
-                </button>
+                </button> */}
                 &nbsp;&nbsp;&nbsp;&nbsp;
             </>
         );

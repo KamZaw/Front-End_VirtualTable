@@ -27,7 +27,7 @@ class Broadcast {
                 playAudio.src = url;
                 playAudio.play();
             })
-            .catch((error) => {
+            .catch(() => {
                 if(src != 'ambient')
                     this.onPlay("ambient")
 
@@ -35,89 +35,86 @@ class Broadcast {
     }
 
     async broadcast() {
-        {
-            this.dataArray = [];
+        this.dataArray = [];
 
-            navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia ||
-                navigator.mediaDevices.webkitGetUserMedia ||
-                navigator.mediaDevices.mozGetUserMedia ||
-                navigator.mediaDevices.msGetUserMedia;
+        navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia ||
+            navigator.mediaDevices.webkitGetUserMedia ||
+            navigator.mediaDevices.mozGetUserMedia ||
+            navigator.mediaDevices.msGetUserMedia;
 
-            const that = this;
-            this.audio = document.getElementById('audio1');
-            let stream = null;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
-                    video: false
-                });
-            } catch (err) {
-                // console.log(err);
-                return;
-            }
-
-            if ("srcObject" in this.audio) {
-                this.audio.srcObject = stream;
-            } else {
-                this.audio.src = window.URL
-                    .createObjectURL(stream);
-            }
-
-
-            this.rec = new MediaRecorder(stream, {
-                mimeType: "audio/ogg"
+        const that = this;
+        this.audio = document.getElementById('audio1');
+        let stream = null;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false
             });
-            this.audio.onloadedmetadata = function (ev) {
-                that.audio.muted = true;
-                that.audio.play();
-                that.rec.start();
-                console.log(that.rec.state);
-            };
+        } catch (err) {
+            // console.log(err);
+            return;
+        }
 
-            this.rec.ondataavailable = (ev) => {
-                that.dataArray.push(ev.data);
-                let audioData = new Blob(that.dataArray, {
-                    'type': 'audio/ogg;'
-                });
-                let audioSrc = window.URL
-                    .createObjectURL(ev.data);
+        if ("srcObject" in this.audio) {
+            this.audio.srcObject = stream;
+        } else {
+            this.audio.src = window.URL
+                .createObjectURL(stream);
+        }
 
-                // console.log("PUSH:"+JSON.stringify(that.dataArray));
-                // that.putData(audioSrc, that.dataArray.length);
 
-            }
-            this.rec.onstop = function (ev) {
-                let audioData = new Blob(that.dataArray, {
-                    'type': 'audio/ogg;'
-                });
-                const file = new File([audioData], `${that.fileName}.ogg`, {
-                    type: "audio/ogg"
-                });
-                const storage = getStorage();
-                const storageRef = ref(storage, `${that.fileName}.ogg`); //audio_sesje/
+        this.rec = new MediaRecorder(stream, {
+            mimeType: "audio/ogg"
+        });
+        this.audio.onloadedmetadata = function (ev) {
+            that.audio.muted = true;
+            that.audio.play();
+            that.rec.start();
+            console.log(that.rec.state);
+        };
 
-                // 'file' comes from the Blob or File API
-                uploadBytes(storageRef, file).then((snapshot) => {
-                    console.log(`${that.fileName}.ogg Wrzucono na FB!`);
-                });
+        this.rec.ondataavailable = (ev) => {
+            that.dataArray.push(ev.data);
+            // let audioData = new Blob(that.dataArray, {
+            //     'type': 'audio/ogg;'
+            // });
+            // let audioSrc = window.URL
+            //     .createObjectURL(ev.data);
 
-                // const a = document.createElement('a');
-                // a.download = 'demo.ogg';
-                // a.href = URL.createObjectURL(audioData);
-                // a.addEventListener('click', (e) => {
-                // setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);});
-                // a.click();
+            // console.log("PUSH:"+JSON.stringify(that.dataArray));
+            // that.putData(audioSrc, that.dataArray.length);
 
-                that.dataArray = [];
-                const audioSrc = window.URL
-                    .createObjectURL(audioData);
-                // console.log(JSON.stringify(audioData));
-                // console.log(JSON.stringify(audioSrc));
+        }
+        this.rec.onstop = function (ev) {
+            let audioData = new Blob(that.dataArray, {
+                'type': 'audio/ogg;'
+            });
+            const file = new File([audioData], `${that.fileName}.ogg`, {
+                type: "audio/ogg"
+            });
+            const storage = getStorage();
+            const storageRef = ref(storage, `${that.fileName}.ogg`); //audio_sesje/
 
-                // const playAudio = document.createElement('audio');
-                // playAudio.src = audioSrc;
-                //playAudio.play();
-            }
+            // 'file' comes from the Blob or File API
+            uploadBytes(storageRef, file).then((snapshot) => {
+                console.log(`${that.fileName}.ogg Wrzucono na FB!`);
+            });
+
+            // const a = document.createElement('a');
+            // a.download = 'demo.ogg';
+            // a.href = URL.createObjectURL(audioData);
+            // a.addEventListener('click', (e) => {
+            // setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);});
+            // a.click();
+
+            that.dataArray = [];
+            // const audioSrc = window.URL.createObjectURL(audioData);
+            // console.log(JSON.stringify(audioData));
+            // console.log(JSON.stringify(audioSrc));
+
+            // const playAudio = document.createElement('audio');
+            // playAudio.src = audioSrc;
+            //playAudio.play();
         }
     }
     async putData(obj, id) {
