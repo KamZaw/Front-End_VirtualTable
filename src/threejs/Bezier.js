@@ -1,10 +1,10 @@
-import {Shape} from './Shape.js'
-import Point from './Point.js'
+// import {Shape} from './Shape.js'
+// import Point from './Point.js'
 import {Ngon} from './Ngon.js'
-import { cShape } from '../shapetype.js';
+// import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
 import Global from '../Global.js';
-import { onIdTokenChanged } from 'firebase/auth';
+// import { onIdTokenChanged } from 'firebase/auth';
 
 
 //punkt p0 beziera

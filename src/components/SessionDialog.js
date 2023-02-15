@@ -1,11 +1,11 @@
 import "../assets/loginform.css"
 import "../assets/w3.css"
 import { Component } from "react";
-import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
-import {initializeApp} from "firebase/app"
-import {firebaseConfig} from "../firebase-config"
+// import {createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth"
+// import {initializeApp} from "firebase/app"
+// import {firebaseConfig} from "../firebase-config"
 import Global from "../Global";
-import {ref,  child,    onValue,    get} from "firebase/database";
+import {ref,  child, get} from "firebase/database";
 class SessionDialog extends Component {
     constructor(props){
         super(props);

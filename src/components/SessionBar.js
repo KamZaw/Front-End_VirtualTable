@@ -1,5 +1,4 @@
 import { Component } from "react";
-import { randInt } from "three/src/math/MathUtils";
 import Student from "./Student"
 import {ref, child, onValue, off} from "firebase/database"
 import Global from "../Global"
@@ -7,7 +6,7 @@ import Global from "../Global"
 class Sessionbar extends Component {
     constructor(props) {
         super(props);
-        const colors = ["w3-teal", "w3-khaki","w3-cyan","w3-red", "w3-brown"];
+        // const colors = ["w3-teal", "w3-khaki","w3-cyan","w3-red", "w3-brown"];
         const students = [];//[{firstName:"Mirek", lastName:"Kowalski", color: colors[~~(Math.random()*colors.length-1)]}, {firstName:"Bartosz", lastName:"Głowacki",color: colors[~~(Math.random()*colors.length-1)]}];
         this.state = {
             students: students,
@@ -44,12 +43,12 @@ class Sessionbar extends Component {
     }
 
     render() {
-        if(this.state.students.length == 0)
+        if(this.state.students.length === 0)
             return (<></>);
         
         return(<>
         <div className="sessionbar">
-            {this.state.students.map((s) => {
+            {this.state.students.forEach((s) => {
                 //console.log(s);                
                 if(s.loggedIn)
                     return(

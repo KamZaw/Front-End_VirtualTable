@@ -1,7 +1,7 @@
 import {Shape} from './Shape.js'
 import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
-import Global from '../Global.js';
+// import Global from '../Global.js';
 import { FontLoader } from './FontLoader.js';
 import { TextGeometry } from'./TextGeometry.js'
 

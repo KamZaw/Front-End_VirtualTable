@@ -530,7 +530,7 @@ class VitrualTable {
 
                         break;
                     }
-                    case cShape.POLYGON: {
+                    case cShape.POLYGON: 
                         if (this.action !== cAction.POLYGON) {
                             const node = new Polygon(this.scene, p, "0x" + document.getElementById('color').value.substr(1));
                             this.onNewShape(node);
@@ -547,33 +547,32 @@ class VitrualTable {
                                 }
                             }
                         }
+                        break;
+                    case cShape.SELECT:
+                        if (this.prevPoint && Point.distance(this.prevPoint, [p.x, p.y]) < 10) {
+                            this.onSelection(event, targetPanel);
+                        }
+                        case cShape.CORNER:
+                        case cShape.MOVE:
+                            if (!this.prevPoint) return;
+
+                            const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
+                            selected && selected.mvShape(this.prevPoint, [p.x, p.y]);
+                            this.historyAdd(); 
+                            this.prevPoint = null;
+                            if(this.selectedCorner && this.action === cAction.BEZIER) 
+                                this.select(this.selectedCorner.mesh);
+                            this.action = cAction.SELECT;
+                            break;
+
+                        default:
+                            break;
                     }
+                    return;
+                case 3: //right
                     break;
-                case cShape.SELECT:
-                    if (this.prevPoint && Point.distance(this.prevPoint, [p.x, p.y]) < 10) {
-                        this.onSelection(event, targetPanel);
-                    }
-                    case cShape.CORNER:
-                    case cShape.MOVE:
-                        if (!this.prevPoint) return;
-
-                        const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
-                        selected && selected.mvShape(this.prevPoint, [p.x, p.y]);
-                        this.historyAdd(); 
-                        this.prevPoint = null;
-                        if(this.selectedCorner && this.action === cAction.BEZIER) 
-                            this.select(this.selectedCorner.mesh);
-                        this.action = cAction.SELECT;
-                        break;
-
-                    default:
-                        break;
-                }
-                return;
-            case 3: //right
-                break;
-            default:
-                break;
+                default:
+                    break;
         }
     }
     cancelFreePenFig(targetPanel) {
@@ -607,11 +606,9 @@ class VitrualTable {
             //TODO: dodac sortowanie po buferze Z
             // for(let i = intersects.length-1; i>=0; i--)
             // if(intersects[i].object.visible)
-            {
-                const i = intersects.length - 1;
-                this.select(intersects[i].object);
-                return;
-            }
+            const i = intersects.length - 1;
+            this.select(intersects[i].object);
+            return;
         } else
             this.select(null);
     }
@@ -633,7 +630,7 @@ class VitrualTable {
     deleteTempNodes() {
         if (!this.tmpNodes) return;
 
-        this.tmpNodes.map((selectedNode) => {
+        this.tmpNodes.forEach((selectedNode) => {
             if (selectedNode === null) return;
             this.scene.remove(selectedNode.mesh);
             selectedNode.linie && this.scene.remove(selectedNode.linie);
