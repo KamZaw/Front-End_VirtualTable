@@ -10,7 +10,6 @@ import del from '../assets/navbar/del.png';
 
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
 import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu } from "./DefaultMenu";
-import { useBootstrapBreakpoints } from "react-bootstrap/esm/ThemeProvider";
 class NavBar extends Component {
     constructor(props){
         super(props);

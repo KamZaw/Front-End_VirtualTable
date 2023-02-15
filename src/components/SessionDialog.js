@@ -50,26 +50,24 @@ class SessionDialog extends Component {
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
         this.lista = [];
         Global.nodeRef = child(dbRef, `Sessions/`);
-        const snapshot = await get(Global.nodeRef) 
-        {
-                if (snapshot.exists()) {
-                    const mapa = snapshot.val();
+        const snapshot = await get(Global.nodeRef); 
 
-                    
-                    for(const i in mapa) {
-                        // console.log(Object.keys(mapa[i])[0]);console.log(">"+ Object.keys(mapa[i])[Object.keys(mapa[i]).length-1]);
-                        this.lista.push({val:`${i}`, 
-                        data: `${new Date(parseInt(Object.keys(mapa[i])[0] - 621355968000000000)/10000).toLocaleDateString('pl-PL')}`,
-                        czasStart: `${new Date(parseInt(Object.keys(mapa[i])[0] - 621355968000000000)/10000).toLocaleTimeString('pl-PL')}`,
-                        czasStop: `${new Date(parseInt(Object.keys(mapa[i])[Object.keys(mapa[i]).length-1] - 621355968000000000)/10000)
-                        .toLocaleTimeString('pl-PL')}`,
-                      });
-                    }
-            } else {
-                console.log("Brak danych dla sesji");
+        if (snapshot.exists()) {
+            const mapa = snapshot.val();
+
+            
+            for(const i in mapa) {
+                // console.log(Object.keys(mapa[i])[0]);console.log(">"+ Object.keys(mapa[i])[Object.keys(mapa[i]).length-1]);
+                this.lista.push({val:`${i}`, 
+                data: `${new Date(parseInt(Object.keys(mapa[i])[0] - 621355968000000000)/10000).toLocaleDateString('pl-PL')}`,
+                czasStart: `${new Date(parseInt(Object.keys(mapa[i])[0] - 621355968000000000)/10000).toLocaleTimeString('pl-PL')}`,
+                czasStop: `${new Date(parseInt(Object.keys(mapa[i])[Object.keys(mapa[i]).length-1] - 621355968000000000)/10000)
+                .toLocaleTimeString('pl-PL')}`,
+                });
             }
-        };
-
+        } else {
+            console.log("Brak danych dla sesji");
+        }
         return this.lista;
     } 
     render() {
