@@ -12,7 +12,6 @@ class TimeLapse {
         for (const i in mapa) {
             this.startTime = parseInt(i);
             break;
-            const tim = parseInt(i); 
         }
     }
     //odpala podmianę 
@@ -33,7 +32,7 @@ class TimeLapse {
                 else
                 current = parseInt(i);
             }
-            if(that.lastOne != current) {
+            if(that.lastOne !== current) {
                 that.lastOne = current;
                 const tm = TimeLapse.dateFromTicks(current) - TimeLapse.dateFromTicks(parseInt(this.startTime)); 
                 console.log(`tim: ${tim} tm: ${tm}`);

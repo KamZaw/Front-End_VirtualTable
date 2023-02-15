@@ -6,7 +6,7 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import {initializeApp} from "firebase/app"
-import { getDatabase, ref, set, update } from "firebase/database";
+import { getDatabase, ref, update } from "firebase/database";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';

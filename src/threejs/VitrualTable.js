@@ -24,14 +24,14 @@ import {
 import Point from './Point';
 import TimeLapse from './TimeLapse';
 import {
-    getDatabase,
+    // getDatabase,
     ref,
     set,
-    get,
+    // get,
     child,
     onValue,
     off,
-    push
+    // push
 } from "firebase/database";
 
 class VitrualTable {
@@ -67,31 +67,6 @@ class VitrualTable {
 
     init() {
         Text.loadFontOnce(); //inicjacja fotnów
-
-        return;
-        //testowy trójkąt
-        const x = 500;
-        const y = 100;
-        const node = new Polygon(this.scene, {
-            x: 100 + x,
-            y: 100 + y
-        }, "0x" + document.getElementById('color').value.substr(1));
-        this.onNewShape(node);
-        this.selectedNode = node;
-        node.addPoint({
-            x: 200 + x,
-            y: 300 + y
-        });
-        node.addPoint({
-            x: 300 + x,
-            y: 100 + y
-        });
-        node.addPoint({
-            x: 100 + x,
-            y: 100 + y
-        });
-        node.figureIsClosed = true;
-        this.type = cShape.SELECT;
     }
 
 
@@ -233,9 +208,9 @@ class VitrualTable {
         this.action === cAction.POLYGON && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.BEZIER && this.onMouseDown(event, targetPanel, camera, wd, hd);
-        this.cShape == cAction.MOVE && this.selectedNode !== null && 
+        this.cShape === cAction.MOVE && this.selectedNode !== null && 
         this.onMouseDown(event, targetPanel, camera, wd, hd);
-        this.type != cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig(); //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
+        this.type !== cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig(); //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
     }
 
     //TODO: dorysować raminowa, zamienić punkt na bezier
@@ -289,10 +264,6 @@ class VitrualTable {
                             } else
                                 this.prevPoint = this.freePenPoints[this.freePenPoints.length - 1];
                         }
-                        //else 
-                        {
-
-                        }
                         const node = new FreePen(this.scene, p.x, p.y,
                             [this.prevPoint], "freePen",
                             parseInt(document.getElementById("size").value), "0x" + document.getElementById('color').value.substr(1), true);
@@ -315,7 +286,7 @@ class VitrualTable {
                     case cShape.MOVE:
 
                         if (!this.selectedNode) break;
-                        if (this.selectedCorner !== null && this.action != cAction.BEZIER) {
+                        if (this.selectedCorner !== null && this.action !== cAction.BEZIER) {
                             if (Point.distance([this.selectedCorner.x, this.selectedCorner.y], [p.x, p.y]) > Global.cornerSize * 2) {
                                 this.selectedNode.node?.map(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
                                 this.onSelection(event, targetPanel); //sprawdź czy nie klikamy na drugi węzeł
@@ -344,7 +315,7 @@ class VitrualTable {
 
     }
     isRedo() {
-        if (this.histPointer == (this.histStack.length - 1)) return false;
+        if (this.histPointer === (this.histStack.length - 1)) return false;
         return true;
     }
     historyRedo() {
@@ -394,12 +365,12 @@ class VitrualTable {
         for (const j in mapa[last]) {
             const o = mapa[last][j];
             let shape;
-            if (o.type == cShape.NGON) {
+            if (o.type === cShape.NGON) {
                 shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
                 shape.Z = o.Z;
                 shape.drawFromPoints(o.points);
                 this.addShape(shape);
-            } else if (o.type == cShape.POLYGON) {
+            } else if (o.type === cShape.POLYGON) {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
                 shape.drawShape();
@@ -409,7 +380,7 @@ class VitrualTable {
                 }
                 this.addShape(shape);
             }
-            else if (o.type == cShape.FREEPEN) {
+            else if (o.type === cShape.FREEPEN) {
                 const pts = o.prev.split(",").map(Number);
                 const points = [];
                 for (let i = 0; i < pts.length - 1; i += 2) {
@@ -422,7 +393,7 @@ class VitrualTable {
                 shape.mirrorY = o.mirrorY;
                 shape.drawShape();
                 this.addShape(shape);
-            } else if (o.type == cShape.TEXT) {
+            } else if (o.type === cShape.TEXT) {
                 shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
                 shape.Z = o.Z;
                 shape.mirrorX = o.mirrorX;
@@ -721,7 +692,7 @@ class VitrualTable {
                 shape.select(false);
             }
             else if (pole != null) {
-                if (shape.type != cShape.FREEPEN && shape.type != cShape.TEXT)
+                if (shape.type !== cShape.FREEPEN && shape.type !== cShape.TEXT)
                     shape.setDefaultColor();
                 // else
                 //     shape.setFillColor(0xFFFFFF);
@@ -740,7 +711,7 @@ class VitrualTable {
                 shape.select(true);
             }
         }
-        if (pole === null) {
+        if (pole === null) { 
             this.selectedNode = null;
             Global.selectedShape = this.selectedNode;
             this.selectedCorner = null;
