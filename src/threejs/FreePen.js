@@ -1,6 +1,8 @@
 import {Shape} from './Shape.js'
 import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
+// import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'three.meshline';
+
 
 class FreePen extends Shape{
 
@@ -27,14 +29,25 @@ class FreePen extends Shape{
         const verts = [];
         const normals = [];
 
-        for(let i = 0; i < prev.length-1; i++) {
+        const list = [];
+        for(let i = 0; i < prev.length; i++) {
             
-            let a = this.size/2;
-            let b = this.size;            
             
             let x = prev[i][0];
             let y = prev[i][1];
-            
+            list.push(new THREE.Vector3(x, y , 0));
+        }
+        let curve = new THREE.SplineCurve( list);
+        curve = curve.getPoints(list.length*10);
+        
+        for(let i = 0; i < curve.length-1; i++) {
+            let a = this.size;
+            let b = this.size;            
+
+            const pt = curve[i];
+            const pt1 = curve[i+1];
+            let x = pt.x;
+            let y = pt.y;
             if(x < minX)
                 minX = x;
             if(x > maxX)
@@ -44,47 +57,24 @@ class FreePen extends Shape{
             if(y > maxY)
                 maxY = y;
             
-            const sX = prev[i+1][0];
-            const sY = prev[i+1][1];
-            if (i < prev.length-2)
-                if(sX == prev[i+2][0] && sY == prev[i+2][1]) {
-                    i++;
-                    continue;
-                }
+            const sX = pt1.x;//rev[i+1][0];
+            const sY = pt1.y;//rev[i+1][1];
+            // if (i < prev.length-2)
+            //     if(sX == prev[i+2][0] && sY == prev[i+2][1]) {
+            //         i++;
+            //         continue;
+            //     }
 
 
-            if(x < sX) {
-                a = -a;
-            }
+            // if(x < sX - a/2 ) {
+            //     a = -a;
+            // }
             
-            if(y > sY) {
-                b = -b;
-            }
-            
+            // if(y  > sY+ b/2) {
+            //     b = -b;
+            // }
             //buduj w lewo/prawo a nie w dół.górę
-            if(Math.abs(y-sY) < Math.abs(x - sX)) {     //dodawaj nowy z punktów 4 i 3 a nie 2 i 4
-                //2
-                verts.push(sX,b+sY,0);
-                normals.push(0,0,1);
-                //1
-                verts.push(sX,sY,0);
-                normals.push(0,0,1);
-                //4
-                verts.push(x,y,0);
-                normals.push(0,0,1);
-
-                //4
-                verts.push(x,y,0);
-                normals.push(0,0,1);
-                
-                //2
-                verts.push(sX,b+sY,0);
-                normals.push(0,0,1);
-                //3
-                verts.push(x,b+y,0);
-                normals.push(0,0,1);
-            }
-            else {
+ {
                 //2
                 verts.push(sX,b+sY,0);
                 //this.points.push(new Point(0 + sX,a + sY));
@@ -121,7 +111,7 @@ class FreePen extends Shape{
     
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor,//0xE9E9E9,
-            wireframe: true,
+            wireframe: !true,
         });
         material.side = THREE.DoubleSide; 
     

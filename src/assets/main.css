@@ -236,6 +236,9 @@ canvas {
   .toolbar, .sessionbar {
     top: 130px;
   }
+  .w3-third, .w3-quarter, .w3-rest {
+    min-width: 100%;
+  }
 }
 
 @media only screen and (min-width: 710px) {
@@ -253,6 +256,10 @@ canvas {
   .right {
     right: 25px;
     bottom: 9px;
+    }
+    #open_loginform {
+      font-size: 0;
+      max-width: 64px;
     }
   }
 
@@ -333,13 +340,12 @@ input:active {
 
 
 .button_menu  {
-  /* display: inline-block; */
+
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   width: 80px;
   height: 32px;
-  /* cursor: pointer; */
   margin-top: 7px;
   margin-left: 2px;
   margin-right: 2px;

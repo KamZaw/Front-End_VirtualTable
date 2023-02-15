@@ -389,10 +389,8 @@ class VitrualTable {
 
     }
     drawScene(mapa, last) {
-        this.OBJECTS = [];
-        this.meshes = [];
-        this.sceneClear();
-        this.historyClear();
+        this.clearAll();
+
         for (const j in mapa[last]) {
             const o = mapa[last][j];
             let shape;
@@ -435,6 +433,13 @@ class VitrualTable {
         }
         this.select(null);
         this.type = cShape.SELECT;
+    }
+
+    clearAll() {
+        this.sceneClear();
+        this.historyClear();
+        this.OBJECTS = [];
+        this.meshes = [];
     }
 
     historyAdd() {
@@ -507,6 +512,9 @@ class VitrualTable {
     //wybiera obiekty do przeglądania przy klikaniu
     //obsluga zdarzenia kliku na planszę
     onClick(event, targetPanel, camera, wd, hd) {
+
+        //nie pozwalaj klikać po zalogowaniu na ekran użytkownikowi, który nie jest nauczycielem
+        if(Global.user && (Global.user.uid !== "VRGQyqLSB0axkDKbmgye3wyDGJo1")) return; 
 
         const p = {
             x: (this.gridOn && this.gridSnap) ? parseInt((event.clientX - targetPanel.offsetLeft) / this.gridRes) * this.gridRes : (event.clientX - targetPanel.offsetLeft),

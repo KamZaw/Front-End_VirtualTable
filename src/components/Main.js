@@ -1,7 +1,6 @@
 import { Component } from 'react';
 import React from 'react';
 import * as THREE from 'three';
-import {TrackballControls}  from '../threejs/TrackballControls.js';
 import {VitrualTable} from '../threejs/VitrualTable.js'
 import Global from '../Global';
 import {Shape} from '../threejs/Shape'
@@ -23,7 +22,6 @@ class Main extends Component {
         this.camera = null;
         this.scene = null;
         this.renderer = null;
-        this.controls = null; 
         this.vt = null;
         this.itemPicked = this.itemPicked.bind(this);
         this.onFBUpdate = this.onFBUpdate.bind(this);
@@ -51,6 +49,14 @@ class Main extends Component {
       } ).bind(this);
     }
 
+    async changeName(imie, nazwisko) {
+        if(!Global.user ) return;
+        Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+        {
+            imie: imie,
+            nazwisko: nazwisko,
+        });
+    }
     componentDidMount() {
 
         //console.log("MAIN* * * ")
@@ -115,21 +121,20 @@ class Main extends Component {
         switch(type) {
             case cShape.NEW:{
                 //TODO: może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
-                vt.historyClear();
-                vt.sceneClear();
-                vt.OBJECTS = [];
-                vt.meshes = [];
+                vt.clearAll()
                 vt.type = cShape.SELECT;
             }
             break;
             case cShape.START_NEW_SESSION:
-                {
-                    if(Global.user && Global.currentSession) {
-                        vt.onNewShape(new Shape(cShape.NONE, this.scene,  0, 0, "czas start", 0x000000 ));
-                    }
-            
+            {
+                vt.clearAll()
+                if(Global.user && Global.currentSession) {
+                    //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
+                    vt.onNewShape(new Shape(cShape.NONE, this.scene,  0, 0, "czas start", 0x000000 ));
                 }
-                break;
+        
+            }
+            break;
             case cShape.UNDO:
                 vt.sceneClear();
                 vt.historyPop();
@@ -301,7 +306,6 @@ class Main extends Component {
 
     animate = () => {
         requestAnimationFrame(this.animate);
-        this.controls.update();
         this.renderer.render( this.scene, this.camera );
     } 
 
@@ -325,22 +329,11 @@ class Main extends Component {
         const camera = new THREE.OrthographicCamera( 0, wd, 0, hd, -1000, 1000);   //przestrzeń ORTHO - 2D
         camera.position.set(0, 0, 0);
         camera.lookAt(new THREE.Vector3(0,0,0));
-        const controls = new TrackballControls(camera, renderer.domElement);
-        controls.minDistance = 0;
-        controls.maxDistance = 1000;
-        
-        controls.rotateSpeed = 0;
-        controls.zoomSpeed = 0.8;
-        controls.panSpeed = 0.3;
-        
-        controls.noRotate = true;
-        controls.noZoom = true;
-        controls.noPan = true;
+
         
         this.camera = camera;
         this.scene = scene;
         this.renderer = renderer;
-        this.controls = controls; 
 
         this.lightOn(this.scene);
 

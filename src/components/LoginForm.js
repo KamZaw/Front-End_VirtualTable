@@ -125,32 +125,33 @@ class LoginForm extends Component {
                         <span onClick={this.onClosing.bind(this)} className="w3-button w3-display-topright">&times;</span>
                         <h2>Logowanie</h2>
                     </div>
-                    <label htmlFor="login">Imię</label>
-                    <br/>
-                    <input autoFocus type="text" id="firstname" placeholder="imię studenta..."  defaultValue={this.state.firstName} onChange={this.onFirstNameChange.bind(this)}/>
-                    <br/>
-                    <label htmlFor="login">Nazwisko</label>
-                    <br/>
-                    <input autoFocus type="text" id="lastname" placeholder="nazwisko studenta..."  defaultValue={this.state.lastName} onChange={this.onLastNameChange.bind(this)}/>
-                    <br/>
+                    <div className="login-body">
+                        <label htmlFor="login">Imię</label>
+                        <br/>
+                        <input autoFocus type="text" id="firstname" placeholder="imię studenta..."  defaultValue={this.state.firstName} onChange={this.onFirstNameChange.bind(this)}/>
+                        <br/>
+                        <label htmlFor="login">Nazwisko</label>
+                        <br/>
+                        <input autoFocus type="text" id="lastname" placeholder="nazwisko studenta..."  defaultValue={this.state.lastName} onChange={this.onLastNameChange.bind(this)}/>
+                        <br/>
 
-                    <label htmlFor="login">Login</label>
-                    <br/>
-                    <input autoFocus type="text" id="login" placeholder="login..." defaultValue={this.state.loginName} onChange={this.onLoginChange.bind(this)}/>
-                    <br/>
-                    <label htmlFor="password">Hasło</label>
-                    <br/>
-                    <input type="password" id="password" placeholder="hasło..." defaultValue={this.state.password} onChange={this.onPasswordChange.bind(this)}/>
-                    <br/>
-                    <button onClick={this.onLogin}>Zaloguj się</button>
-                    <br/>
-                    <hr/>
-                    <br/>
-                    <button onClick={this.onRegister}>Rejestracja</button>
-                    {/* <button onClick={this.onLogOut.bind(this)}>Wyloguj się</button> */}
-                    <br/>
-                    {/* <a href="#"><p className="small">Forgot your password?</p></a> */}
-                    <p className="error_msg">{this.state.errorMessage}</p>
+                        <label htmlFor="login">Login</label>
+                        <br/>
+                        <input autoFocus type="text" id="login" placeholder="login..." defaultValue={this.state.loginName} onChange={this.onLoginChange.bind(this)}/>
+                        <br/>
+                        <label htmlFor="password">Hasło</label>
+                        <br/>
+                        <input type="password" id="password" placeholder="hasło..." defaultValue={this.state.password} onChange={this.onPasswordChange.bind(this)}/>
+                    </div>
+                    <div className="login-footer">
+                        <button onClick={this.onLogin}>Zaloguj się</button>
+                        <hr/>
+                        <button id="btnreg" onClick={this.onRegister}>Rejestracja</button>
+                        {/* <button onClick={this.onLogOut.bind(this)}>Wyloguj się</button> */}
+                        <br/>
+                        {/* <a href="#"><p className="small">Forgot your password?</p></a> */}
+                        <p className="error_msg">{this.state.errorMessage}</p>
+                    </div>
                 </div>
                 </div>
             </div>
