@@ -2,8 +2,8 @@ import {Shape} from './Shape.js'
 import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
 import Global from '../Global.js';
-import { FontLoader } from '../threejs/FontLoader';
-import { TextGeometry } from'three/examples/jsm/geometries/TextGeometry.js'
+import { FontLoader } from './FontLoader.js';
+import { TextGeometry } from'./TextGeometry.js'
 
 
 
