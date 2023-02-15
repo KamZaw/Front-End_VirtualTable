@@ -25,6 +25,16 @@ class LoginForm extends Component {
     }
     onRegister = async (event) => {
         try {
+            if(!this.validateFormFields()) {
+                this.setState({...this.state, errorMessage: "Należy podać login i hasło"})
+                event.preventDefault();
+                return;
+            }
+            if(!this.validateRegisterFields()) {
+                this.setState({...this.state, errorMessage: "Należy podać imię i nazwisko"})
+                event.preventDefault();
+                return;
+            }
             const user = await createUserWithEmailAndPassword(getAuth(Global.firebaseApp),this.state.loginName, this.state.password);//"guest@email.com", "guest01!"
             this.registrationComplete = true;
             const fb = getDatabase(Global.firebaseApp);
@@ -64,9 +74,11 @@ class LoginForm extends Component {
         //     await signOut(getAuth(Global.firebaseApp));
         // }
         if(!this.validateFormFields()) {
-            alert("Należy podać login i hasło");
+            this.setState({...this.state, errorMessage: "Należy podać login i hasło"})
             event.preventDefault();
+            return;
         }
+
         //const app = initializeApp(firebaseConfig);
         signInWithEmailAndPassword(getAuth(), this.state.loginName, this.state.password)
         .then((userCredential) => {
@@ -97,6 +109,9 @@ class LoginForm extends Component {
 
     validateFormFields() {
         return this.state.loginName.length > 0 && this.state.password.length > 0;
+    }
+    validateRegisterFields() {
+        return this.state.firstName.length > 0 && this.state.lastName.length > 0;
     }
     componentWillUnmount() {
         //this.onLogOut();
