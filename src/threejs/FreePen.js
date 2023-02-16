@@ -188,6 +188,23 @@ class FreePen extends Shape{
             points: this.linie?.geometry.attributes.position.array.toString(),
         };
     }
+    toSVG() {
+        let str = "";
+
+        
+        str += ` <path
+        style="fill:none;stroke:#${Shape.pad(this.iColor.toString(16),6)};stroke-width:${this.size}px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+        d="M `;
+
+        const pts = JSON.parse(JSON.stringify(this.prev));
+        pts.pop();
+        str += `${(pts[0][0]) + this.x},${(pts[0][1]) + this.y} `;
+        for(let i = 1; i < pts.length; i++)
+            str += `${((pts[i][0]))},${((pts[i][1]))} `;
+        str += `"\nid="${this.linie.name}" />\n`;
+
+        return str;
+    }
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
         let obj = new FreePen(this.scene,this.x,this.y, this.prev, this.label,this.size,this.iColor, this.ignoreZ);
