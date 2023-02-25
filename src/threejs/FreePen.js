@@ -191,17 +191,44 @@ class FreePen extends Shape{
     toSVG() {
         let str = "";
 
+        const prev = this.prev;
+        let ptr = 0;
+        const lists = [[]];
+        lists[ptr].push(new THREE.Vector3(prev[0][0], prev[0][1] , 0));
+        for(let i = 0; i < prev.length; i++) {
+            let x = prev[i][0];
+            let y = prev[i][1];
+            const obj = new THREE.Vector3(x, y , 0);
+            if (i < prev.length-1)
+            if(x == prev[i+1][0] && y == prev[i+1][1]) {
+                i++;
+                lists.push([]);
+                ptr++;
+                continue;
+            }
+            lists[ptr].push(obj);
+        }
+        this.mesh = new THREE.Group();
+        for(let i = 0; i < lists.length; i++) {
+            if(lists.length < 2 ) continue;
+            const list = lists[i];
+            if(list.length <= 0 ) continue;
+            let curve = new THREE.SplineCurve( list);
+            curve = curve.getPoints(list.length*10);
+            
+            str += ` <path
+            style="fill:none;stroke:#${Shape.pad(this.iColor.toString(16),6)};stroke-width:${this.size}px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+            d="M `;
+            for(let i = 0; i < curve.length-1; i++) {
+                const pts = curve[i];
+                //pts.pop();
+                str += `${((pts.x))},${((pts.y))} `;
+            }
+            str += `"\nid="${this.linie.name+"_"+i}" />\n`;
+        }
+                
         
-        str += ` <path
-        style="fill:none;stroke:#${Shape.pad(this.iColor.toString(16),6)};stroke-width:${this.size}px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-        d="M `;
 
-        const pts = JSON.parse(JSON.stringify(this.prev));
-        pts.pop();
-        str += `${(pts[0][0]) + this.x},${(pts[0][1]) + this.y} `;
-        for(let i = 1; i < pts.length; i++)
-            str += `${((pts[i][0]))},${((pts[i][1]))} `;
-        str += `"\nid="${this.linie.name}" />\n`;
 
         return str;
     }

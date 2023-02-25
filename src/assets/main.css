@@ -201,13 +201,18 @@ canvas {
   margin-left: 0px;
   /* z-index: -1; */
 }
+.w3-container { 
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* flex-grow: 1; */
+}
 .w3-third, .w3-quarter, .w3-rest {
   color:silver;
   font-weight: lighter;
-
+  
   
   /* position: sticky; */
-  /* align-content: flex-start; */
   min-width: 350px;
   background-color: #3c4b58;
   height: 42px;
@@ -376,8 +381,8 @@ input:active {
   width: 150px;
 }
 #color1 {
-  margin-top: 20px;
-  height: 28px;
+  /* margin-top: 20px; */
+  height: inherit;
 }
 #color {
   

@@ -237,6 +237,7 @@ class Main extends Component {
                 vt.historyAdd();
                 break;
             }
+
             // case cShape.RECT:
             // case cShape.NGON:
             // case cShape.FREEPEN:

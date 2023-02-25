@@ -6,7 +6,8 @@ const cShape ={
     POLYGON:    4,
     FREEPEN:    5,
     CORNER:     6,
-    
+    CHART:      7,
+
     ZPLUS:          11,
     ZMINUS:         12,
     SELECT:         13,
@@ -50,5 +51,6 @@ const cAction = {
     FREEPEN:    5,
     BEZIER:     6,
     MOVE:       7,
+    CHART:      8,
 }
 export { cShape, cAction, cRole};

@@ -22,6 +22,8 @@ import {
     cAction
 } from '../shapetype';
 import Point from './Point';
+import Chart from './Chart';
+
 import TimeLapse from './TimeLapse';
 import {
     // getDatabase,
@@ -197,7 +199,8 @@ class VitrualTable {
         this.action !== cAction.FREEPEN && (this.type !== cShape.FREEPEN && this.type !== cShape.TEXT) && node.setFillColor(0xffffff);
         //this.action === cAction.NONE && this.putData(node);
 
-        (this.type !== cShape.FREEPEN && (this.action !== cAction.POLYGON && this.type !== cShape.POLYGON )) && this.historyAdd();
+        (this.type !== cShape.FREEPEN && (this.action !== cAction.POLYGON && this.type !== cShape.POLYGON )
+                                      && (this.action !== cAction.CHART && this.type !== cShape.CHART )) && this.historyAdd();
         // this.type = cShape.SELECT;
     }
 
@@ -208,6 +211,7 @@ class VitrualTable {
         this.action === cAction.POLYGON && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.BEZIER && this.onMouseDown(event, targetPanel, camera, wd, hd);
+        this.action === cAction.CHART && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.cShape === cAction.MOVE && this.selectedNode !== null && 
         this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.type !== cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig(); //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
@@ -246,6 +250,11 @@ class VitrualTable {
                         break;
                     }
                     case cShape.NGON: {
+                        break;
+                    }
+                    case cShape.CHART: {
+                        if(this.selectedNode && this.action === cAction.CHART) 
+                            this.selectedNode.movePoint(p);
                         break;
                     }
                     case cShape.POLYGON:
@@ -511,6 +520,23 @@ class VitrualTable {
                         // this.addShape(node1);
                         break;
                     }
+                    case cShape.CHART: {
+                        if (this.action !== cAction.CHART) {
+                            const node = new Chart(this.scene, p.x, p.y, 1, 1, document.getElementById("json_chart").value, "0x" + document.getElementById('color').value.substr(1) );
+                            this.onNewShape(node);
+                            this.selectedNode = node;
+                            this.action = cAction.CHART;
+                        } else {
+                            if (this.selectedNode && this.selectedNode.type === cShape.CHART) {
+                                this.selectedNode.movePoint(p);
+                                this.selectedNode.fillChart();
+                                this.action = cAction.NONE;
+                                this.historyAdd();
+                            }
+                        }
+
+                        break;
+                    }
                     case cShape.NGON: {
                         const node = new Ngon(this.scene, p.x, p.y, "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value.substr(1));
                         this.onNewShape(node);
@@ -538,7 +564,7 @@ class VitrualTable {
                             this.selectedNode = node;
                             this.action = cAction.POLYGON;
                         } else {
-                            if (this.selectedNode) {
+                            if (this.selectedNode && this.selectedNode.type === cShape.POLYGON) {
                                 // console.log(`addPoint(${p})`);
                                 this.selectedNode?.addPoint(p);
                                 if (this.selectedNode.figureIsClosed) {

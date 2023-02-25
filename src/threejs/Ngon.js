@@ -110,13 +110,7 @@ class Ngon extends Shape{
         const path = new THREE.Shape();
         path.moveTo(pts[0],pts[1]);
         const cornerSize = Global.cornerSize;
-        this.node = [];
-        this.node.push(new Ngon(this.scene, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
-        for(let i = 3; i < pts.length; i+=3) {
-            path.lineTo(pts[i],pts[i+1]);
-            this.node.push(new Ngon(this.scene, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
-        }
-        this.node.pop();
+
         
         const points = path.getPoints();
         const materialL = new THREE.LineBasicMaterial({
@@ -129,6 +123,13 @@ class Ngon extends Shape{
         this.linie.position.set(this.x, this.y, this.linie.position.z);
         this.scene.add(this.linie);
         this.recreateMesh(true);
+        this.node = [];
+        this.node.push(new Ngon(this.mesh, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
+        for(let i = 3; i < pts.length; i+=3) {
+            path.lineTo(pts[i],pts[i+1]);
+            this.node.push(new Ngon(this.mesh, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
+        }
+        this.node.pop();        
         this.node?.forEach((pt) => {
             pt.drawShape();
             pt.parent = this;
@@ -280,7 +281,12 @@ class Ngon extends Shape{
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
         
-        
+        for (let i = 0; i < segmentCount; i++) {
+            let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
+            let x = Math.round(Math.cos(theta) * radius *b);
+            let y = Math.round(Math.sin(theta) * radius);
+            this.node?.push(new Ngon(this.mesh, x , y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, i));
+        }       
         this.node?.forEach((pt) => pt.drawShape());
         //this.createMesh(verts, normals, pkt);
     }

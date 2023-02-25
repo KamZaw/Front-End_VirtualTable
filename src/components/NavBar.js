@@ -7,9 +7,10 @@ import ngon from '../assets/navbar/ngon.png';
 import polygon from '../assets/navbar/polygon.png';
 import text from '../assets/navbar/text.png';
 import del from '../assets/navbar/del.png';
+import chart from '../assets/navbar/chart.png';
 
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -51,6 +52,10 @@ class NavBar extends Component {
             case cShape.POLYGON:
                 this.component = <PolygonMenu action={this.props.action}/>;
                 break;
+            case cShape.CHART:
+                this.component = <ChartMenu action={this.props.action}/>;
+                break;
+
             case cShape.CORNER:
                 this.component = <CornerMenu action={this.props.action}/>;
                 break;
@@ -81,6 +86,8 @@ class NavBar extends Component {
                     <MenuOption id="ngon" type = {cShape.NGON} select={this.state.type} src={ngon} action={this.menuItemSelectedHandler}>ngon</MenuOption>
                     <br/>
                     <MenuOption id="polygon" type = {cShape.POLYGON} select={this.state.type} src={polygon} action={this.menuItemSelectedHandler}>polygon</MenuOption>
+                    <br/>
+                    <MenuOption id="chart" type = {cShape.CHART} select={this.state.type} src={chart} action={this.menuItemSelectedHandler}>chart</MenuOption>
                     <br/>
                     <br/>
                     {/* nigdy nie podświetlaj przycisku DELETe - zawsze jednorazowe działanie*/}

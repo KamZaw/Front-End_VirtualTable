@@ -186,7 +186,7 @@ class DefaultMenu extends Component {
                     <span className="tooltiptext">Narzędzie "snap"</span>
                 </button>
             </div>
-            <div className="w3-quarter">
+            <div className="w3-container w3-quarter">
                 <span id="color1" className="">
                     <input id="color" className="" type="color"
                         defaultValue={this.state.defaultValue} 
@@ -350,6 +350,55 @@ class RectangleMenu extends DefaultMenu {
     }
 }
 
+class ChartMenu extends DefaultMenu {
+    constructor(){
+        super();
+        this.state.defaultValue = "#17B854";
+    }
+    render() {
+        return(
+            <div className="w3-row">
+            {super.render()}
+            <div className="w3-container w3-quarter">
+            <div id="menubar" className = "">
+                <b>Dane wykresu </b> 
+                json:
+                <input id="json_chart" className="button_menu" placeholder="dane JSON..." defaultValue='{
+                    "title": "PLN/EUR",
+                    "data": [{
+                        "value": 4.8132,
+                        "label": "2023.02.16_12:30:00",
+                        "color": "0xAA0000"
+                        },
+                        {
+                        "value": 4.8000,
+                        "label": "2023.02.16_12:35:00",
+                        "color": "0x000A22"
+                        },
+                        {
+                        "value": 4.8050,
+                        "label": "2023.02.16_12:35:00",
+                        "color": "0x557A22"
+                        },
+                        {
+                            "value": 4.8247,
+                            "label": "2023.02.16_12:35:00",
+                            "color": "0x0000AA"
+                        },
+                        {
+                            "value": 4.8207,
+                            "label": "2023.02.16_12:35:00",
+                            "color": "0xAA00AA"
+                        }
+                    ]
+                    }'/>
+            </div>
+            </div>
+            </div>
+            );
+    }
+}
+
 class NGONMenu extends DefaultMenu {
     constructor(){
         super();
@@ -501,4 +550,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu}
