@@ -7,10 +7,11 @@ import Global from '../Global.js';
 
 class Ngon extends Shape{
 
-    constructor(scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt ) {
+    constructor(scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt, radius2 ) {
         super(cShape.NGON, scene, y, x, label, color);
         this.isBezier = false;
         this.radius = radius;
+        this.radius2 = radius2 != null? radius2: radius;
         this.n = ngons;
         this.node = iNode?null:[];                  //definiuj liste jeśli true
         this.offsetRot = offsetRot?Math.PI/4:0;     //dla Rectangle PI/4.
@@ -249,14 +250,18 @@ class Ngon extends Shape{
         const cornerSize = Global.cornerSize;
 
         let segmentCount = this.n;
-        const radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
+        let radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
         const b = (this.b/this.radius);
         const path = new THREE.Shape();
-
         
-        
+        const RAD = this.radius;
+        const rad = this.radius2;
         for (let i = 0; i < segmentCount; i++) {
             let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
+            
+            //parametr dla tyu STAR
+            radius = (i % 2)?rad:RAD;
+
             let x = Math.round(Math.cos(theta) * radius *b);
             let y = Math.round(Math.sin(theta) * radius);
             if(i === 0)
@@ -265,6 +270,9 @@ class Ngon extends Shape{
                 path.lineTo( x, y );
         }
         let theta =  Math.PI * 2 +this.offsetRot;
+        //parametr dla tyu STAR
+        radius = (segmentCount % 2)?rad:RAD;
+
         let x = Math.round(Math.cos(theta) * radius *b);
         let y = Math.round(Math.sin(theta) * radius);
         path.lineTo(x,y);
@@ -300,6 +308,9 @@ class Ngon extends Shape{
         
         for (let i = 0; i < segmentCount; i++) {
             let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
+            //parametr dla tyu STAR
+            radius = (i % 2)?rad:RAD;
+
             let x = Math.round(Math.cos(theta) * radius *b);
             let y = Math.round(Math.sin(theta) * radius);
             const node = new Ngon(this.mesh, x , y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, i);

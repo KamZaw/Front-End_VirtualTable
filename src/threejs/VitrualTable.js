@@ -520,6 +520,7 @@ class VitrualTable {
                         // node1.drawFromPoints(o.points);
                         // this.addShape(node1);
                         break;
+                    
                     }
                     case cShape.CHART: {
                         if (this.action !== cAction.CHART) {
@@ -535,11 +536,17 @@ class VitrualTable {
                                 this.historyAdd();
                             }
                         }
-
+                        
                         break;
                     }
                     case cShape.NGON: {
                         const node = new Ngon(this.scene, p.x, p.y, "ngon", document.getElementById("radius").value, document.getElementById("ngons").value, "0x" + document.getElementById('color').value.substr(1));
+                        this.onNewShape(node);
+                        break;
+                    }
+                    case cShape.STAR: {
+                        const node = new Ngon(this.scene, p.x, p.y, "star", document.getElementById("radius1").value, parseInt(document.getElementById("n").value)*2, "0x" + document.getElementById('color').value.substr(1), 
+                        null, null, null, null, document.getElementById("radius2").value);
                         this.onNewShape(node);
                         break;
                     }

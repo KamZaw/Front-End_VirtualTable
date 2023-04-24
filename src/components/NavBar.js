@@ -8,9 +8,10 @@ import polygon from '../assets/navbar/polygon.png';
 import text from '../assets/navbar/text.png';
 import del from '../assets/navbar/del.png';
 import chart from '../assets/navbar/chart.png';
+import star from '../assets/navbar/star.png';
 
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu, StarMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -55,7 +56,9 @@ class NavBar extends Component {
             case cShape.CHART:
                 this.component = <ChartMenu action={this.props.action}/>;
                 break;
-
+            case cShape.STAR:
+                this.component = <StarMenu action={this.props.action}/>;
+                break;
             case cShape.CORNER:
                 this.component = <CornerMenu action={this.props.action}/>;
                 break;
@@ -84,6 +87,8 @@ class NavBar extends Component {
                     <MenuOption id="rect" type = {cShape.RECT} select={this.state.type} src={sq} action={this.menuItemSelectedHandler}>sq</MenuOption>
                     <br/>
                     <MenuOption id="ngon" type = {cShape.NGON} select={this.state.type} src={ngon} action={this.menuItemSelectedHandler}>ngon</MenuOption>
+                    <br/>
+                    <MenuOption id="star" type = {cShape.STAR} select={this.state.type} src={star} action={this.menuItemSelectedHandler}>star</MenuOption>
                     <br/>
                     <MenuOption id="polygon" type = {cShape.POLYGON} select={this.state.type} src={polygon} action={this.menuItemSelectedHandler}>polygon</MenuOption>
                     <br/>

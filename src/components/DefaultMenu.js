@@ -357,6 +357,8 @@ class RectangleMenu extends DefaultMenu {
     }
 }
 
+
+
 class ChartMenu extends DefaultMenu {
     constructor(){
         super();
@@ -422,6 +424,29 @@ class NGONMenu extends DefaultMenu {
                         n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
                         r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
                         
+                    </div>
+                </div>
+            </div>
+            );
+    }
+}
+
+class StarMenu extends DefaultMenu {
+    constructor(){
+        super();
+        this.state.defaultValue= "#1778F4";
+    }
+    render() {
+        
+        return(
+            <div className="w3-row">
+                {super.render()}
+                <div className="w3-container w3-quarter">
+                    <div id="menubar" className = "">
+                        <b>Gwiazda </b>
+                        n:<input id="n" className="button_menu" placeholder="Liczba boków" defaultValue="12"/>
+                        r1:<input id="radius1" className="button_menu" placeholder="Promień zew..." defaultValue="200"/>
+                        r2:<input id="radius2" className="button_menu" placeholder="Promień wew..." defaultValue="50"/>
                     </div>
                 </div>
             </div>
@@ -557,4 +582,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu, StarMenu}

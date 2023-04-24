@@ -7,6 +7,7 @@ const cShape ={
     FREEPEN:    5,
     CORNER:     6,
     CHART:      7,
+    STAR:       8,
 
     ZPLUS:          11,
     ZMINUS:         12,
