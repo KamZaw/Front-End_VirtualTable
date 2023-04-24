@@ -70,28 +70,24 @@ class Ngon extends Shape{
         if(!this.parent ) 
         {
             super.mvShape(start, stop);
-            this.node?.forEach((pt) => {
-                pt.x += stop[0] - start[0];
-                pt.y += stop[1] - start[1];
-                pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
-                pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
-                if(pt.isBezier) {
-                    pt.arms.forEach( arm=> {
-                        arm.geometry.attributes.position.needsUpdate = true; 
-                        const linie = arm.geometry.attributes.position.array; 
-                        linie[0] += stop[0] - start[0];
-                        linie[1] += stop[1] - start[1];
-                        linie[3] += stop[0] - start[0];
-                        linie[4] += stop[1] - start[1];
-                    });
-                }
-            });
             return;
         }
         
-        //przesuwamy cornery
+        // //przesuwamy cornery
+
+        console.log("Wchodzi");
         this.parent.linie.geometry.attributes.position.needsUpdate = true;
+        this.parent.mesh.geometry.attributes.position.needsUpdate = true;
         const linie = this.parent.linie.geometry.attributes.position.array;
+        const mesh = this.parent.mesh.geometry.attributes.position.array;
+
+        for(let i = 0; i < mesh.length; i+=3) {
+               if(mesh[i] == linie[this.cornerCnt*3] && mesh[i + 1] == linie[this.cornerCnt*3 + 1]) {
+                    mesh[i] += stop[0] - start[0];
+                    mesh[i + 1] += stop[1] - start[1];
+               }
+        }
+
         linie[this.cornerCnt*3] += stop[0] - start[0];
         linie[this.cornerCnt*3+1] += stop[1] - start[1];
         if(this.cornerCnt === 0) {
@@ -100,8 +96,14 @@ class Ngon extends Shape{
         }
         
         //przetwarzamy mesh
-        this.parent.recreateMesh(true);
         super.mvShape(start, stop);     //przesuwa same czarne cornery NGONa
+        if(this.parent.type== cShape.POLYGON) {
+            const cc = this.cornerCnt;
+            this.parent.recreateMesh(true);
+            //this.node?.forEach(n => n.cornerCnt === cc && n.select(true));
+            // this.select(true);
+        }
+        //this.parent.recreateMesh(true);
     }
 
     //odtwarza obiekt z obiektu JSON przesłanego z bazy danych
@@ -111,6 +113,8 @@ class Ngon extends Shape{
         path.moveTo(pts[0],pts[1]);
         const cornerSize = Global.cornerSize;
 
+        for(let i = 3; i < pts.length; i+=3)
+            path.lineTo(pts[i], pts[i+1]);
         
         const points = path.getPoints();
         const materialL = new THREE.LineBasicMaterial({
@@ -120,20 +124,21 @@ class Ngon extends Shape{
         });        
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         this.linie = new THREE.Line(geometryL, materialL);
-        this.linie.position.set(this.x, this.y, this.linie.position.z);
-        this.scene.add(this.linie);
+        //this.linie.position.set(this.x, this.y, this.linie.position.z);
         this.recreateMesh(true);
+        this.mesh.add(this.linie);
         this.node = [];
-        this.node.push(new Ngon(this.mesh, pts[0] + this.x, pts[1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
+        this.node.push(new Ngon(this.mesh, pts[0] , pts[1] , "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
         for(let i = 3; i < pts.length; i+=3) {
             path.lineTo(pts[i],pts[i+1]);
-            this.node.push(new Ngon(this.mesh, pts[i] + this.x, pts[i+1] + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
+            this.node.push(new Ngon(this.mesh, pts[i] , pts[i+1] , "corner",cornerSize,4, "0x000000", cornerSize, true, true, i/3));
         }
         this.node.pop();        
         this.node?.forEach((pt) => {
             pt.drawShape();
             pt.parent = this;
         });
+        
     }
     recreateMesh(bDraw) {
 
@@ -145,25 +150,39 @@ class Ngon extends Shape{
             path.lineTo(linie[i], linie[i+1]);
         }
         path.lineTo(linie[0], linie[1]);
-        this.scene.remove(this.mesh);
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor, //0xE9E9E9,
                 //wireframe: true,
-            // transparent: this.cornerCnt?false:true,
-            // opacity: 0.7,
-            side:  THREE.DoubleSide,
-        });
-
+                // transparent: this.cornerCnt?false:true,
+                // opacity: 0.7,
+                side:  THREE.DoubleSide,
+            });
+            
+        const oldmesh = this.mesh;
         const geometry = new THREE.ShapeGeometry(path);
         this.mesh = new THREE.Mesh( geometry, material );
         this.mesh.position.set(this.x, this.y, this.mesh.position.z);
-        bDraw && this.scene.add( this.mesh );        
+        if(bDraw && oldmesh) {
+            this.mesh.rotateZ(oldmesh.rotation.z);
+            console.log(oldmesh.children.length);
+            oldmesh.children.forEach(chld => {
+                oldmesh.remove(chld);
+                this.mesh.add(chld);
+                chld.visible = true;
+            });   //kopiuj linie i kornery
+            this.scene.remove(oldmesh);
+        }
+        bDraw && this.scene.add( this.mesh );
+        
+        
 
+        //this.linie.position.set(-this.x,-this.y,0);
+        
     }
 
     rescale() {
         super.rescale();
-        this.recreateMesh(true);
+        //this.recreateMesh(true);
         this.mvShape([0, 0], [0, 0]);
     }
     toJSON() {
@@ -180,6 +199,7 @@ class Ngon extends Shape{
     
     //tworzy i wraca kopię obiektu
     carbonCopy(bDraw) {
+        
         let obj = new Ngon(this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
         super.carbonCopy(obj);
         const material = new THREE.MeshStandardMaterial({
@@ -239,7 +259,6 @@ class Ngon extends Shape{
             let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
             let x = Math.round(Math.cos(theta) * radius *b);
             let y = Math.round(Math.sin(theta) * radius);
-            this.node?.push(new Ngon(this.scene, x + this.x, y + this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, i));
             if(i === 0)
                 path.moveTo(x,y);
             else
@@ -269,26 +288,30 @@ class Ngon extends Shape{
         this.mesh.position.set(this.x, this.y, this.mesh.position.z);
         this.scene.add( this.mesh );
 
-        if(this.node){
-            for(let c of this.node)
-                c.parent = this;        
-        }
+    
         
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         this.linie = new THREE.Line(geometryL, materialL);
-        this.linie.position.set(this.x, this.y, this.Z+1);
-        this.scene.add(this.linie);
-        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        //this.linie.position.set(this.x, this.y, this.Z+1);
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
+        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
+        this.linie.position.z = 1;
+        this.mesh.add(this.linie);
         
         for (let i = 0; i < segmentCount; i++) {
             let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
             let x = Math.round(Math.cos(theta) * radius *b);
             let y = Math.round(Math.sin(theta) * radius);
-            this.node?.push(new Ngon(this.mesh, x , y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, i));
-        }       
-        this.node?.forEach((pt) => pt.drawShape());
-        //this.createMesh(verts, normals, pkt);
+            const node = new Ngon(this.mesh, x , y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, i);
+            node.parent = this;
+            
+            this.node?.push(node);
+        }
+
+        this.node?.forEach((pt) =>{ 
+            pt.drawShape();
+            pt.mesh.position.z = 1;
+        });
     }
     
     toSVG() {
@@ -329,47 +352,6 @@ class Ngon extends Shape{
         }
 
         return str;
-    }
-    createMesh(verts, normals, pkt) {
-        let geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-
-
-        const material = new THREE.MeshStandardMaterial({
-            color: this.iColor, //0xE9E9E9,
-            // wireframe: true,
-            // transparent: this.cornerCnt?false:true,
-            // opacity: 0.7,
-            side:  THREE.DoubleSide,
-        });
-
-
-        let box = new THREE.Mesh(geometry, material);
-        box.name = "name";
-        this.scene.add(box);
-        
-        
-        
-        const materialL = new THREE.LineBasicMaterial({
-            color: 0x000000,
-            linewidth: 1,
-            transparent: false,
-        });
-        const geometryL = new THREE.BufferGeometry().setFromPoints(pkt);
-        const linie = new THREE.LineSegments(geometryL, materialL);
-        
-        this.scene.add(linie);
-        box.position.set(this.x, this.y, this.Z);
-        linie.position.set(this.x, this.y, this.Z + 1);
-        this.mesh = box;
-        this.linie = linie;
-
-        this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
-        this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-
-
-        this.node?.forEach((pt) => pt.drawShape());
     }
 }
 

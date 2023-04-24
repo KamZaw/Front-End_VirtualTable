@@ -33,6 +33,7 @@ const cShape ={
     BEZIER:         33,
     TO_CORNER:         34,
     START_NEW_SESSION:  35,
+    ROTATEZ:        36,
 };
 
 const cRole = {

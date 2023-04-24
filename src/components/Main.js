@@ -188,15 +188,30 @@ class Main extends Component {
                 break;
             case cShape.SCALEX:
                 const sX = parseFloat(document.getElementById("scaleX").value);
-                if(isNaN(sX)) return;
+                if(isNaN(sX)) {
+                    vt.type = cShape.SELECT;
+                    break;
+                };
                 vt.selectedNode && vt.selectedNode.setScaleX(sX);
                 vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.SCALEY:
                 const sY = parseFloat(document.getElementById("scaleY").value);
-                if(isNaN(sY)) return;
-
+                if(isNaN(sY)) {
+                    vt.type = cShape.SELECT;
+                    break;
+                };
                 vt.selectedNode && vt.selectedNode.setScaleY(sY);
+                vt.selectedNode && vt.historyAdd();
+                break;
+            case cShape.ROTATEZ:
+                const rot = parseFloat(document.getElementById("rotateZ").value);
+                if(isNaN(rot)) {
+                    vt.type = cShape.SELECT;
+                    break;
+                };
+
+                vt.selectedNode && vt.selectedNode.setRotate(rot);
                 vt.selectedNode && vt.historyAdd();
                 break;
     
@@ -453,7 +468,7 @@ class Main extends Component {
 
     //wybór menu z obiektu vt po selekcji obiektu danego typu
     selectMenuCallback(type) {
-        this.navbar.current.menuItemSelectedHandler(type);
+        this.navbar.current?.menuItemSelectedHandler(type);
     }
     lightOn(scene) {
         //ambientne światło

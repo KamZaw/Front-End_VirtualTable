@@ -153,9 +153,9 @@ class FreePen extends Shape{
         const points = path.getPoints();
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         this.linie = new THREE.Line(geometryL, materialL);
-        this.linie.position.set(this.x, this.y, this.Z+1);
+        //this.linie.position.set(this.x, this.y, this.Z+1);
         if(prev.length > 2)
-            this.scene.add(this.linie);
+            this.mesh.add(this.linie);
         
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
         

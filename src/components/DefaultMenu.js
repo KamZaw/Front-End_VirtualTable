@@ -292,6 +292,7 @@ class EmptyMenu extends DefaultMenu {
         this.copyFig = this.copyFig.bind(this);
         this.onScaleXChange = this.onScaleXChange.bind(this);
         this.onScaleYChange = this.onScaleYChange.bind(this);
+        this.onRotateZChange = this.onRotateZChange.bind(this);
     }
     componentDidMount() {
         this.componentDidUpdate();
@@ -302,6 +303,9 @@ class EmptyMenu extends DefaultMenu {
 
    onScaleXChange() {
         this.props.action(cShape.SCALEX);
+    }
+    onRotateZChange() {
+        this.props.action(cShape.ROTATEZ);
     }
     onScaleYChange() {
         this.props.action(cShape.SCALEY);
@@ -316,6 +320,9 @@ class EmptyMenu extends DefaultMenu {
                     <img className="toolimg" src={copy}/>
                     <span className="tooltiptext">Kopiuj obiekt</span>
                 </button>
+                <b>Obróć:</b>
+                <input id="rotateZ" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onRotateZChange}/>
+
                 <b>Skaluj:</b>
                 <input id="scaleX" className="button_menu" placeholder="x..." defaultValue={1}  onChange = {this.onScaleXChange}/>
                 <input id="scaleY" className="button_menu" placeholder="y..." defaultValue={1}  onChange = {this.onScaleYChange}/>

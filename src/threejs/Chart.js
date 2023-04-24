@@ -7,6 +7,8 @@ import * as THREE from 'three';
 
 class Chart extends Shape{
 
+    static margin = 50;
+    static marginH = 25;
     constructor(scene, x, y, width, height, json, color ) {
         super(cShape.CHART, scene, y, x, json.title, color);
 
@@ -40,15 +42,15 @@ class Chart extends Shape{
         });
         
         this.linie = new THREE.Line(geometryL, mat);
-        this.linie.position.set(this.x, this.y, this.Z+1);
+        // this.linie.position.set(this.x, this.y, this.Z+1);
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-        this.scene.add(this.linie);
-
+        
         const geometry = new THREE.ShapeGeometry(path);
         this.mesh = new THREE.Mesh( geometry, material );
         this.mesh.position.set(this.x, this.y, this.Z);
         this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
         this.scene.add(this.mesh);
+        this.mesh.add(this.linie);
     }
     movePoint(p) {
         this.width = p.x - this.x;
@@ -62,13 +64,15 @@ class Chart extends Shape{
     }
 
     drawAxis() {
-        const margin = 25;
+        const margin = Chart.margin;
+        const marginH = Chart.marginH;
+
         const path = new THREE.Shape();
-        path.moveTo(margin, margin);
-        path.lineTo(margin, this.height - margin + 5 );
-        path.lineTo(margin,this.height - margin );
-        path.lineTo(5,this.height - margin );
-        path.lineTo(this.width - margin, this.height -margin );
+        path.moveTo(margin, marginH);
+        path.lineTo(margin, this.height - marginH + 5 );
+        path.lineTo(margin,this.height - marginH );
+        path.lineTo(5,this.height - marginH );
+        path.lineTo(this.width - 5, this.height -marginH );
 
         const points = path.getPoints();
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
@@ -117,13 +121,18 @@ class Chart extends Shape{
         this.mesh.add(mesh);
         
     }
+
+    //tworzy wykres
+    //buduje osie
+    //dodaje kolumny oraz etykiety pionowe i poziome oraz nazwę wykresu
     fillChart() {
-        const margin = 25;
-        const barWidth = (this.width - 2 * (margin+10) - 10)/this.json.data.length;
+        const margin = Chart.margin;
+        const marginH = Chart.marginH;
+        const barWidth = (this.width - 1 * (margin+10) - 25)/this.json.data.length;
 
         this.drawAxis();
         const w = this.width - margin;
-        const h = this.height - margin;
+        const h = this.height - marginH;
 
         let min = 9999999;
         let max = -9999999;
@@ -137,19 +146,42 @@ class Chart extends Shape{
             const hh = (d.value - min) * mul;
             this.drawBar({x: margin+ 5 + (barWidth+5)*i,y:h - hh}, barWidth,hh, parseInt(d.color));
 
-            const node = new Text(this.mesh, margin+ 5 + (barWidth+5)*i, h+20, d.label,"0x000000",10, 10);
+            //etykieta pod kolumnę
+            const maxSigns = parseInt(barWidth/8);
+            let label = d.label;
+            if(maxSigns+3 < d.label.length) {
+                if(maxSigns < 10)
+                    label = d.label.substr(0,maxSigns);
+                else 
+                    label = d.label.substr(0,maxSigns)+"...";
+            }
+
+
+            const node = new Text(this.mesh, margin+ 5 + (barWidth+5)*i, h+20, label,"0x000000",10, 10);
             node.drawShape();
             node.linie.visible = false;
             node.mesh.position.z = 0;
-    
+            
         }
-
+        //etykiety osi oy
+        {
+            const hh = h - (0) * mul + 20;
+            const node = new Text(this.mesh, 5, hh, min,"0x000000",10, 10);
+            node.drawShape();
+            node.linie.visible = false;
+            node.mesh.position.z = 0;
+        }
+        {
+            const hh = h - (max - min) * mul + 20;
+            const node = new Text(this.mesh, 5, hh, max,"0x000000",10, 10);
+            node.drawShape();
+            node.linie.visible = false;
+            node.mesh.position.z = 0;
+        }
         const node = new Text(this.mesh, w/2 - this.json.title.length/2 * 10, 20, this.json.title,"0x000000",12, 10);
         node.drawShape();
         node.linie.visible = false;
         node.mesh.position.z = 0;
-
-
 
     }
 }

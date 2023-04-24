@@ -301,12 +301,13 @@ class VitrualTable {
                                 this.selectedNode.node?.forEach(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
                                 this.onSelection(event, targetPanel); //sprawdź czy nie klikamy na drugi węzeł
                                 this.type = cShape.SELECT;
+                                this.prevPoint = [p.x, p.y];
                                 break;
                             }
                         }
                         const selected = this.selectedCorner != null ? this.selectedCorner : this.selectedNode;
                         if (!this.prevPoint) {
-                            (this.prevPoint = [p.x, p.y]);
+                            this.prevPoint = [p.x, p.y];
                         } else {
                             selected.mvShape(this.prevPoint, [p.x, p.y]);
                             this.prevPoint = null;
@@ -584,7 +585,8 @@ class VitrualTable {
                             if (!this.prevPoint) return;
 
                             const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
-                            selected && selected.mvShape(this.prevPoint, [p.x, p.y]);
+                            if(selected) 
+                                selected.mvShape(this.prevPoint, [p.x, p.y]);
                             this.historyAdd(); 
                             this.prevPoint = null;
                             if(this.selectedCorner && this.action === cAction.BEZIER) 

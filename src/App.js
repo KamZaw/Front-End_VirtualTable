@@ -5,6 +5,13 @@ import Main from './components/Main';
 // import Global from './Global';
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
 
+
+//wiadomość dla urządzeń mobilnych
+function NoMobile() {
+
+  return(<div class="info"><div class="info-text">{"Aplikacja nie działa na urządzeniach mobilnych (;"}</div></div>);
+}
+
 function App() {
 
 
@@ -23,11 +30,15 @@ function App() {
   // f();
   
   //eventSource.close();
-  
+  const regexp = /android|iphone|kindle|ipad/i;
+  const isMobileDevice = regexp.test(navigator.userAgent);
+      
+
   
   return (
     <div id="menu" className="App">
       
+      {/* {isMobileDevice?<NoMobile/>:<Main/>} */}
       <Main/>
         
         {/* { <Router>

@@ -28,6 +28,7 @@ class Shape {
         this.Z = Shape.Z;
         this.mirrorX = 1;
         this.mirrorY = 1;
+        this.rotate = 0;
         
         !ignoreZ ? Shape.Z++:this.Z--;
         !ignoreZ && (Shape.Zmax = Shape.Z+1);
@@ -36,6 +37,19 @@ class Shape {
     setMirrorX() {
         this.mirrorX *= -1;
         this.rescale();
+    }
+    setRotate(rot) {
+        try {
+            rot = -(Math.PI * rot)/180.0;
+            this.rotate = rot;
+            this.mesh && (this.mesh.rotation.z = rot);
+            this.node?.forEach(n => {
+                n.mesh && (n.label !== 'linie' && (n.mesh.rotation.z = -rot));   //nie obracaj węzłów
+            });
+        }
+        catch(err) {
+            
+        }
     }
     setMirrorY() {
         this.mirrorY *= -1;
@@ -65,29 +79,34 @@ class Shape {
     toSVG() {}
 
     setScaleX(val) {
+        if(!val || val == 0) return;
         this.scaleX = val;
         this.rescale();
     }
     rescale() {
-        this.mesh.scale.set(this.scaleX * this.mirrorX, this.scaleY * this.mirrorY);
-        this.linie?.scale.set(this.scaleX* this.mirrorX, this.scaleY * this.mirrorY);
+        
+        this.mesh?.scale.set(this.scaleX * this.mirrorX, this.scaleY * this.mirrorY);
+        this.node?.forEach(n => {
+            //reskaluje do normalnej wielkości punkty node aby nie rosły/malały wraz z całą figurą
+            n.mesh && (n.label !== 'linie' && (n.mesh.scale.set((1.0/this.scaleX) * this.mirrorX, (1.0/this.scaleY) * this.mirrorY)));   //nie obracaj węzłów
+        });
     }
 
     setScaleY(val) {
+        if(!val || val == 0) return;
         this.scaleY = val;
         this.rescale();
     }
 
     rmShape() {
         this.mesh && this.scene.remove(this.mesh);
-        this.linie && this.scene.remove(this.linie);
         this.mesh = this.linie = null;
     }
     mvShape(start, stop) {
         this.x += stop[0] - start[0];
         this.y += stop[1] - start[1];
-        this.mesh?.position.set(this.x, this.y, this.Z);
-        this.linie?.position.set(this.x, this.y, this.Z+1);
+        this.mesh?.position.set(this.x, this.y, this.mesh?.position.z);
+        //this.linie?.position.set(this.x, this.y, this.Z+1);
     }
  
     toJSON() {
@@ -104,6 +123,7 @@ class Shape {
             mirrorX: this.mirrorX,
             mirrorY: this.mirrorY,
             opacity: 1.0,
+            rotate: this.rotate,
         };
     }
     carbonCopy(obj) {

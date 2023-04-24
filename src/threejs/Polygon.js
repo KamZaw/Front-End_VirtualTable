@@ -21,7 +21,6 @@ class Polygon extends Shape {
     
     }
     recreateMesh(bDraw) {
-
         const path = new THREE.Shape();
         const linie = this.linie.geometry.attributes.position.array;
         path.moveTo(linie[0], linie[1]);
@@ -39,21 +38,56 @@ class Polygon extends Shape {
             else
                 path.lineTo(linie[i], linie[i+1] );
         }
-
         //jak będzie gotowe MESH
         //(linii nie trzeba zmieniać, te się same modyfikują)
         if(this.figureIsClosed) {
+            const oldrot = this.mesh?.rotate;
             this.scene.remove(this.mesh);
+            this.scene.remove(this.linie);
+            this.node?.forEach(n => this.scene.remove(n.rmShape()));
+            
             const material = new THREE.MeshStandardMaterial({
                 color: this.iColor, //0xE9E9E9,
                 side:  THREE.DoubleSide,
             });
-
+            
+            
             const geometry = new THREE.ShapeGeometry(path);
             this.mesh = new THREE.Mesh( geometry, material );
             this.mesh.position.set(this.x, this.y, this.Z);
             this.mesh.name = `${this.label}_${this.x}x${this.y}_mesh`;
-            bDraw && this.scene.add( this.mesh ); 
+            
+            //ODBUDOWA WĘZŁÓW
+            this.node = [];
+            const cornerSize = Global.cornerSize;
+            for(let i = 0; i < linie.length-3; i+=3)
+            {
+                const node = new Ngon(this.mesh, linie[i], linie[i+1] , "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
+                node.parent = this;
+                node.drawShape();
+                node.setRotate(-oldrot);
+                // node.mesh.position.set(0,0,1);
+                // node.linie.position.set(0,0,1);
+                this.node?.push(node); 
+            }
+
+            const points = path.getPoints();
+            const materialL = new THREE.LineBasicMaterial({
+                color: 0x000000,
+                linewidth: 1,
+                transparent: false,
+            });        
+            const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+            this.linie = new THREE.Line(geometryL, materialL);
+            //this.linie.position.set(this.x, this.y, this.linie.position.z);
+            
+            
+            if(bDraw) {
+                this.scene.add( this.mesh ); 
+                this.linie.position.set(0,0,1);
+                this.mesh.add(this.linie);
+                this.setRotate(oldrot);
+            }
         }
     }
     drawShape() {
@@ -95,7 +129,7 @@ class Polygon extends Shape {
         
         const dist = Point.distance([p.x,p.y],[this.pts[0].x, this.pts[0].y]);
         //console.log(dist);
-        if(dist > 5) {
+        if(dist > cornerSize/2) {
             path.lineTo(p.x+1, p.y);
             const node = new Ngon(this.scene, p.x + this.x , p.y + this.y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
             node.parent = this;
@@ -115,10 +149,10 @@ class Polygon extends Shape {
         this.linie.position.set(this.x, this.y, this.Z+1);
         
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
-
         this.scene.add(this.linie);
-
-        if(dist < 5) {
+        
+        
+        if(dist < cornerSize/2) {
             this.figureIsClosed = true;
             this.recreateMesh(true);
         }
@@ -169,13 +203,13 @@ class Polygon extends Shape {
     }
 
     rmShape() {
-        this.node?.forEach((pt) => pt.rmShape());
+        //this.node?.forEach((pt) => pt.rmShape());
         super.rmShape();
     }
     rescale() {
         super.rescale();
-        this.recreateMesh(true);
-        this.mvShape([0, 0], [0, 0]);
+        // this.recreateMesh(true);
+        // this.mvShape([0, 0], [0, 0]);
     }
     toJSON() {
         const obj = super.toJSON()
@@ -301,26 +335,50 @@ class Polygon extends Shape {
     }
 
     mvShape(start, stop) {
+        
+        if(this.parent) {
+            console.log("Wchodzi");
+            
+            this.parent.linie.geometry.attributes.position.needsUpdate = true;
+            this.parent.mesh.geometry.attributes.position.needsUpdate = true;
+            const linie = this.parent.linie.geometry.attributes.position.array;
+            const mesh = this.parent.mesh.geometry.attributes.position.array;
+
+            linie[this.cornerCnt*3] += stop[0] - start[0];
+            linie[this.cornerCnt*3+1] += stop[1] - start[1];
+            // if(this.cornerCnt === 0) {
+            //     linie[(linie.length  - 3)] += stop[0] - start[0];
+            //     linie[(linie.length - 3)+1] += stop[1] - start[1];
+            //     // mesh[mesh.length - 3] += stop[0] - start[0];
+            //     // mesh[mesh.length - 3 + 1] += stop[1] - start[1];
+            // }
+            this.parent.recreateMesh(true);
+            //this.parent.mvShape([0,0],[0,0]);
+            return;
+        }
         super.mvShape(start, stop);
-        let isBezier = false;
-        this.node?.forEach((pt) => {
-            if(pt.isBezier) {
-                isBezier = true;
-                pt.mvShape(start, stop, true);
-                pt.arms.forEach( arm => {
-                    arm.position.x += stop[0] - start[0]; 
-                    arm.position.y += stop[1] - start[1]; 
-                });
-            }
-            else {
-                pt.x += stop[0] - start[0];
-                pt.y += stop[1] - start[1];
-                pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
-                pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
-            }
-        });
-        if(isBezier)
-            this.recreateMesh(true);
+        // this.recreateMesh(true);
+        
+        
+        // let isBezier = false;
+        // this.node?.forEach((pt) => {
+        //     if(pt.isBezier) {
+        //         isBezier = true;
+        //         pt.mvShape(start, stop, true);
+        //         pt.arms.forEach( arm => {
+        //             arm.position.x += stop[0] - start[0]; 
+        //             arm.position.y += stop[1] - start[1]; 
+        //         });
+        //     }
+        //     else {
+        //         pt.x += stop[0] - start[0];
+        //         pt.y += stop[1] - start[1];
+        //         pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
+        //         pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
+        //     }
+        // });
+        // if(isBezier)
+        //     this.recreateMesh(true);
     }
     
 }
