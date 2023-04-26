@@ -35,9 +35,10 @@ import {
     off,
     // push
 } from "firebase/database";
+import { ChatMessage } from './ChatMessage';
 
 class VitrualTable {
-    constructor(THREE, scene, selectMenuCallback) {
+    constructor(THREE, scene, selectMenuCallback, updateChat) {
         this.type = cShape.NONE;
         this.action = cAction.NONE;
         this.THREE = THREE;
@@ -60,6 +61,7 @@ class VitrualTable {
         this.tmpNodes = null;
         this.freePenSeparator = false; //klika gdy luzujemy przycisk myszki, ważne 
         this.selectMenu = selectMenuCallback;
+        this.updateChat = updateChat;
         this.histStack = [];
         this.histPointer = -1;
         this.timeLapse = new TimeLapse(); 
@@ -182,6 +184,7 @@ class VitrualTable {
     }
     //dodaje kształt z bazy firebase
     addShape(node) {
+        // if(!node.mesh) return;
         this.OBJECTS.push(node);
         this.meshes.push(node.mesh);
     }
@@ -199,7 +202,7 @@ class VitrualTable {
         this.action !== cAction.FREEPEN && (this.type !== cShape.FREEPEN && this.type !== cShape.TEXT) && node.setFillColor(0xffffff);
         //this.action === cAction.NONE && this.putData(node);
 
-        (this.type !== cShape.FREEPEN && (this.action !== cAction.POLYGON && this.type !== cShape.POLYGON )
+        ((this.type !== cShape.FREEPEN && node.type !== cShape.CHATMSG) && (this.action !== cAction.POLYGON && this.type !== cShape.POLYGON )
                                       && (this.action !== cAction.CHART && this.type !== cShape.CHART )) && this.historyAdd();
         // this.type = cShape.SELECT;
     }
@@ -236,6 +239,10 @@ class VitrualTable {
         this.select(this.selectedCorner.mesh);
         this.selectedCorner.mvShape([0,0], [0,0]);
 
+    }
+    addChatMsg(msg) {
+        const node = new ChatMessage(this.scene, msg, "0x000000");
+        this.onNewShape(node);
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
 
@@ -366,13 +373,12 @@ class VitrualTable {
                 console.log("Brak danych dla sesji");
             }
         }, {
-            onlyOnce: Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
+            onlyOnce: false;
         });
 
     }
     drawScene(mapa, last) {
         this.clearAll();
-
         for (const j in mapa[last]) {
             const o = mapa[last][j];
             let shape;
@@ -411,6 +417,12 @@ class VitrualTable {
                 shape.mirrorY = o.mirrorY;
 
                 this.onNewShape(shape);
+            }else if (o.type === cShape.CHATMSG) {
+                shape = new ChatMessage(this.scene, o.label, "0x" + o.color.toString(16));
+                let str = o.label.split(Global.separator);
+                // console.log(str[1]);
+                this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
+                this.onNewShape(shape);
             }
         }
         this.select(null);
@@ -418,6 +430,7 @@ class VitrualTable {
     }
 
     clearAll() {
+        this.updateChat(null);
         this.sceneClear();
         this.historyClear();
         this.OBJECTS = [];

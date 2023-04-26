@@ -30,7 +30,28 @@ body {
   margin-top: 5px;
   max-width: calc(250px);
   min-width: 0px;
-  height: 70%;
+  height: 45%;
+  min-height: 100px;
+  box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+/*
+  styl dla paska mediów (chat, rozpoczęcie sesji, przekazanie pulpitu, ipt)
+  w prawym dolnym rogu ekranu
+*/
+.mediabar {
+  background-color: #3c4b58;
+  position: fixed;
+  
+  bottom: 20px;
+  right: 20px;
+  margin: 0;
+  padding: 5px;
+  max-height: 50px;
+  min-height: 50px;
+  min-width: 250px;
+  /* min-width: calc(50px); */
+  /* height: 70%; */
   box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.25);
 }
 

@@ -1,0 +1,92 @@
+
+.chatwindow {
+    background-color: #3c4b58;
+    position: fixed;
+    bottom: 85px;
+    right: 20px;
+    margin: 0;
+    padding: 5px;
+    max-height: 35%;
+    min-height: 255px;
+    min-width: 250px;
+    /* min-width: calc(50px); */
+    /* height: 70%; */
+    box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.25);
+    border: 1px solid #34414d;
+}
+
+
+@keyframes chatanim {
+    0% {
+        opacity: 0%;
+  }
+  
+  100% {
+    opacity: 100%;
+}
+}
+
+
+
+.showchat {
+    visibility: visible;
+    animation-duration: 1.0s;
+    animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation-name: chatanim;
+}
+
+.hidechat {
+    /* visibility: visible;
+
+    animation-duration: 1.0s;
+    animation-name: chatanim;
+    animation-direction: reverse;   */
+}
+
+div.chatarea {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 10px;
+    padding: 2px;
+    text-align: start;
+    overflow-y:scroll;
+    min-width: calc(inherit-5);
+    max-width: calc(inherit-5);
+    height: 200px;
+    opacity: 70%;
+    resize: none;
+    background-color: #5b758d;
+    border: 1px solid #34414d;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: rgb(36, 36, 36);
+}
+
+.tweet{
+    max-width: 220px; 
+    overflow-wrap: break-word;
+    word-spacing: 0%;
+    line-height: 0.98em;
+}
+.chatarea div>span{
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    font-size: 1.05em;   
+    font-weight: bolder;
+    color: black;
+    line-height: 1.05em;
+}
+#message_input {
+    min-width: 80%;
+}
+/* formatuje przycisk wysyłania tweeta */
+#send_tweet {
+    max-width: 36px;
+    max-height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+#send_tweet>img {
+}

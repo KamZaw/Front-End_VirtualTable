@@ -5,13 +5,10 @@ import React from 'react';
 // import $ from 'jquery'
 import { cShape } from "../shapetype";
 import LoginForm from "./LoginForm"
-import AudioBroadcast from "./AudioBroadcast"
 import MessageBox from "./MessageBox"
-import SessionDialog from "./SessionDialog"
 import undo from '../assets/navbar/undo.png';
 import redo from '../assets/navbar/redo.png';
 import save from '../assets/navbar/save.png';
-import load from '../assets/navbar/load.png';
 import zplus from '../assets/navbar/z_plus.png';
 import zminus from '../assets/navbar/z_minus.png';
 import grid from '../assets/navbar/grid.png';
@@ -20,8 +17,7 @@ import nowy from '../assets/navbar/new.png';
 import copy from '../assets/navbar/copy.png';
 import freelinefinish from '../assets/navbar/freelinefinish.png';
 import freelinecancel from '../assets/navbar/freelinecancel.png';
-import newsession from '../assets/navbar/newsession.png';
-import newsessionoff from '../assets/navbar/newsessionstop.png';
+
 import mirrorx from '../assets/navbar/mirrorX.png';
 import mirrory from '../assets/navbar/mirrorY.png';
 import logged from '../assets/navbar/logged.png';
@@ -44,8 +40,7 @@ class DefaultMenu extends Component {
             defaultValue: "#FF0000",
             chkGrid: Global.chkGrid,
             chkSnap: Global.chkSnap,//this.props.status.gridSnap,
-            
-            isOpenSessionWindow: false,
+
             isOpenMsgWindow: false,
             isInputField: false,
             title: "",
@@ -60,17 +55,12 @@ class DefaultMenu extends Component {
     onNew() {
         this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false});
     }
-    onNewSession(state) {
-        this.setState({...this.state, title:"Utwórz sesję", msg: "Podaj nazwę nowej sesji", isOpenMsgWindow: state, isInputField: state});
-        !state && this.sessionRef.current.onNewSession();       //kończymy nagranie audio i wysyłamy plik na serwer
-    }
+
     onSaveSVG() {
         
         this.props.action(cShape.SAVE_SVG);
     }
-    onLoadFB () {
-        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true});
-    }
+
     onRedo(){
         this.props.action(cShape.REDO);
     }
@@ -120,16 +110,7 @@ class DefaultMenu extends Component {
     hideLoginWindow(val, val2) {
         this.setState({...this.state, isLoginWindow: val});
     }
-    loadSession(val) {
-        if(typeof val === 'string') {
-            Global.currentSession = val;
-            this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
-            this.props.action(cShape.LOAD_FIREBASE);
-            this.sessionRef.current.onPlay();
-        }
-        
-        this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
-    }
+
     responseMsg(val) {
         if(typeof val === 'string') {
             //TODO: sprawdź czy nie ma juz takiej sesji
@@ -163,8 +144,6 @@ class DefaultMenu extends Component {
                     <span className="tooltiptext">Zapisz widok tablicy do pliku w formacie SVG</span>
                 </button>
                 
-                <NewSession action={this.onNewSession.bind(this)} ref={this.sessionRef}/>
-                <LoadArchiveSessions action={this.onLoadFB.bind(this)}/>
                 
                 
                 <button className="toolbutton "  id="history_undo" onClick = {this.onUndo.bind(this) }>
@@ -211,77 +190,14 @@ class DefaultMenu extends Component {
                 
                 <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
                 <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsg.bind(this)}/>
-                <SessionDialog isVisible={this.state.isOpenSessionWindow} title={this.state.title} action={this.loadSession.bind(this)} />
             </div>
             </>
             
             );
     }
 }
-class LoadArchiveSessions extends Component {
 
-    constructor(props) {
-        super();
-    }
-    onLoadFB() {
-        this.props.action();
-    }
-    render() {
-        if(!Global.user ) {
-            return (<></>);
-        }
-        return (
-            <>
-                <button className="toolbutton "  id="load_firebase" onClick = {this.onLoadFB.bind(this) }>
-                    <img className="toolimg" src={load}/>
-                    <span className="tooltiptext">Wczytaj sesje z chmury</span>
-                </button>
-            </>
-        );
-    }
-}
 
-class NewSession extends Component {
-
-    constructor(props) {
-        super();
-        this.state = {
-            clicked: Global.sessionOn,
-        }
-        this.updateAudio = React.createRef();
-    }
-
-    onNewSession() {
-        Global.sessionOn = !Global.sessionOn;
-        this.setState({...this.state, clicked: Global.sessionOn});
-        if(Global.sessionOn)
-            this.updateAudio.current.run();
-        else {
-            this.updateAudio.current.stop(Global.currentSession);
-            Global.currentSession = null;
-        }
-    }
-    onPlay() {
-        this.updateAudio.current.play();
-    }
-    onNew() {
-        this.props.action(!Global.sessionOn);
-    }
-    render() {
-        if(!Global.user ) {
-            return (<></>);
-        }
-        return (
-            <>
-                <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
-                    <img className="toolimg" src={Global.sessionOn?newsessionoff:newsession}/>
-                    <span className="tooltiptext">Nowa sesja</span>
-                </button>
-                <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>
-            </>
-        );
-    }
-}
 
 class EmptyMenu extends DefaultMenu {
     constructor(){
@@ -444,7 +360,7 @@ class StarMenu extends DefaultMenu {
                 <div className="w3-container w3-quarter">
                     <div id="menubar" className = "">
                         <b>Gwiazda </b>
-                        n:<input id="n" className="button_menu" placeholder="Liczba boków" defaultValue="12"/>
+                        n:<input id="n" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
                         r1:<input id="radius1" className="button_menu" placeholder="Promień zew..." defaultValue="200"/>
                         r2:<input id="radius2" className="button_menu" placeholder="Promień wew..." defaultValue="50"/>
                     </div>

@@ -11,6 +11,7 @@ import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
 import Sessionbar from './SessionBar.js';
+import MediaBar from './MediaBar.js';
 
 
 const targetPanelString = 'main_panel';
@@ -30,6 +31,7 @@ class Main extends Component {
 
         this.state = {
             loggedIn: false,
+            msgs: [],
         }
         Global.firebaseApp = initializeApp(firebaseConfig);
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
@@ -115,7 +117,7 @@ class Main extends Component {
 
     }
     //metoda przekazywana do NavBar, wyboru opcji z menu bocznego
-    itemPicked(type) {
+    itemPicked(type, param) {
         //alert(type);
         const vt = this.vt;
         switch(type) {
@@ -176,6 +178,13 @@ class Main extends Component {
             case cShape.ZMINUS:
                 vt.selectedNode && vt.selectedNode.ZMinus();
                 vt.selectedNode && vt.historyAdd();
+                break;
+            case cShape.CHATMSG:
+                //alert(param);
+                vt.addChatMsg(param);
+                vt.historyAdd();
+                let tweet = param.split(Global.separator);
+                this.updateChat([...tweet, Global.currentUserColor]);
                 break;
             case cShape.GRIDON_OFF:
                 this.gridSwitch();
@@ -343,7 +352,7 @@ class Main extends Component {
 
         this.lightOn(this.scene);
 
-        this.vt = new VitrualTable(THREE, this.scene, this.selectMenuCallback);
+        this.vt = new VitrualTable(THREE, this.scene, this.selectMenuCallback, this.updateChat.bind(this));
         const vt = this.vt;
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
@@ -459,6 +468,18 @@ class Main extends Component {
         return grid;
     }
 
+    //tweet = [author,label]
+    updateChat(tweet) {
+
+        if(tweet === null)
+            this.state.msgs = [];
+        else
+            this.state.msgs.push(tweet);
+        
+        this.setState({...this.state, msgs:  this.state.msgs});  
+
+
+    }
     //siatka ON/OFF
     gridSwitch() {
         this.vt.grid.visible = !this.vt.grid.visible;
@@ -483,6 +504,7 @@ class Main extends Component {
            {/* <FirebaseUpdate action={this.onFBUpdate}/> */}
            <NavBar action={this.itemPicked} ref={this.navbar} status={this.vt}/>
            {Global.user &&  <Sessionbar />}
+           {Global.user &&  <MediaBar action={this.itemPicked} status={this.vt} msgs={this.state.msgs} />}
            
            </>
         );

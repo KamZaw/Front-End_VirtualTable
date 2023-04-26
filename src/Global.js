@@ -8,6 +8,7 @@ class Global {
     static get halfSize() { return Global.cornerSize/2}; 
     static selectedShape = null;
     static user = null;
+    static currentUserColor = "#4444AA";
     static fb = null;
     static firebaseApp = null;
     static currentSession = "sesja1";          //nazwa sesji pobrana z internetu albo od użytkownika    
@@ -16,6 +17,9 @@ class Global {
     static chkGrid = true;
     static chkSnap = !true;
     static sessionOn = false;
+    static students = new Map();
+    static separator = "!@!";
+    static adminRights = ['VRGQyqLSB0axkDKbmgye3wyDGJo1'];
 
 }
 
