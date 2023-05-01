@@ -1,0 +1,67 @@
+
+/* formatowanie paska sesji */
+.sessionbar {
+    background-color: #3c4b58;
+    position: fixed;
+    padding: 5px;
+    top: 55px;
+    right: 20px;
+    margin: 0;
+    margin-top: 5px;
+    max-width: calc(250px);
+    min-width: 0px;
+    height: 45%;
+    min-height: 100px;
+    box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.sessionbar>div {
+    height: 90%;
+    overflow-y:scroll;
+}
+/* Formatowanie nazwy sesji w pasku sesji */
+#session_name {
+    margin: auto;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+	
+    -webkit-user-select: none;  
+	-moz-user-select: none;    
+	-ms-user-select: none;      
+	user-select: none;
+
+    padding: 0 14px;
+    overflow: hidden;
+    border: 1px solid #71798a;
+    border-radius: 6px;
+    font: normal 14px/normal "Antic", Helvetica, sans-serif;
+    color: rgb(139, 139, 139);
+    text-decoration: normal;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    background: rgba(40, 40, 40, 0.4);
+    -webkit-box-shadow: 1px 1px 2px 0 rgba(0, 0, 0, 0.5) inset;
+    box-shadow: 1px 1px 2px 0 rgba(0, 0, 0, 0.5) inset;
+}
+
+.student_badge:hover .tooltipstudent {
+    animation-delay: 1.5s;
+    animation-duration: 2.5s;
+    animation-name: tooltip;
+  }
+  
+  .tooltipstudent {
+    visibility: hidden;
+    width: 120px;
+    background-color: inherit;
+    color: #fff;
+    font-size: 0.5em;
+    text-align: center;
+    padding: 2px 0;
+    border-radius: 6px;
+    border: 1px solid silver;
+    margin-left: -120px;
+  
+    position: absolute;
+  }

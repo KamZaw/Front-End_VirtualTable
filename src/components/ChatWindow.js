@@ -39,9 +39,9 @@ class ChatWindow extends Component {
             <>
             <div className={"chatwindow " + (!this.props.visible?"showchat":"hidechat")}>
             <div className="chatarea">
-                <div className="tweet">start </div>
-                {this.props.msgs.map( (msg, i) => <div key={i}> <div  className="tweet" ><span> <font color={msg[3]}>{msg[0]}</font></span> </div> <div className="tweet">{msg[1]}</div></div>).reverse()}
-                <div className="tweet">dno </div>
+                {/* <div className="tweet">start </div> */}
+                {this.props.msgs.map( (msg, i) => <div key={i}> <div  className={`tweet ${msg[3]}`} ><span> <font color={msg[3]}>{msg[0]}</font></span> </div> <div className="tweet">{msg[1]}</div></div>).reverse()}
+                {/* <div className="tweet">dno </div> */}
             </div>
             <input id="message_input" className="button_menu" type="text" placeholder="Wpisz wiadomość..."  onChange = {this.onChange} onKeyUp={this.onKeyUp.bind(this)}></input>
             <button className="toolbutton" id="send_tweet" onClick={this.send.bind(this)} ><img className="toolimg" src={send}/><span className="tooltiptext">Wyślij</span></button>

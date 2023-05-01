@@ -9,6 +9,8 @@ const cShape ={
     CHART:      7,
     STAR:       8,
     CHATMSG:    9,
+    CLOSE_DLG:  10,
+    
 
     ZPLUS:          11,
     ZMINUS:         12,
@@ -35,7 +37,9 @@ const cShape ={
     BEZIER:         33,
     TO_CORNER:         34,
     START_NEW_SESSION:  35,
-    ROTATEZ:        36,
+    STOP_NEW_SESSION:  36,
+    ROTATEZ:        37,
+    JOIN_ACIVE_SESSION:  38,
 };
 
 const cRole = {

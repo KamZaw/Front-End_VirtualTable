@@ -32,6 +32,8 @@ class Main extends Component {
         this.state = {
             loggedIn: false,
             msgs: [],
+            isOKField: false,
+            msg: "",
         }
         Global.firebaseApp = initializeApp(firebaseConfig);
         onAuthStateChanged(getAuth(Global.firebaseApp), (currentUser) => {
@@ -51,6 +53,10 @@ class Main extends Component {
       } ).bind(this);
     }
 
+    //dialog zamykania sesji LIVE
+    endOfLiveSession(msg) {
+        this.setState({...this.state, isOKField:true, msg: msg, title: "Uwaga"});
+    }
     async changeName(imie, nazwisko) {
         if(!Global.user ) return;
         Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
@@ -122,36 +128,62 @@ class Main extends Component {
         const vt = this.vt;
         switch(type) {
             case cShape.NEW:
-                //TODO: może dialog pytający się czy na pewno wyczyścić tablicę bez zapisu
                 vt.clearAll()
                 vt.type = cShape.SELECT;
                 break;
             case cShape.START_NEW_SESSION:
-                vt.clearAll()
+                vt.clearAll();
+                vt.openLiveSession();
+                console.log(Global.user.uid);
+                console.log(Global.currentSession);
                 if(Global.user && Global.currentSession) {
+                    Global.bLive = true;
                     //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
-                    vt.onNewShape(new Shape(cShape.NONE, this.scene,  0, 0, "czas start", 0x000000 ));
+                    vt.onNewShape(new Shape(cShape.START_NEW_SESSION, this.scene,  0, 0, "czas start", 0x000000 ));
+                    //vt.loadDataFromSession(Global.currentSession);
+                    this.setState({...this.state, sessionName: Global.currentSession});
                 }
                 break;
-            case cShape.UNDO:
-                vt.sceneClear();
-                vt.historyPop();
-                break;
-            case cShape.REDO:
-                if (vt.isRedo()) {
-                    vt.sceneClear();
-                    vt.historyRedo();
+            case cShape.JOIN_ACIVE_SESSION:
+                vt.clearAll();
+                if(Global.user && Global.currentSession) {
+                    Global.bLive = true;
+                    vt.openLiveSession();
+                    console.log("Opening Live ...");
+                    this.setState({...this.state, sessionName: Global.currentSession});
                 }
                 break;
-            
+                case cShape.STOP_NEW_SESSION:
+                    if(Global.user && Global.currentSession) {
+                        //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
+                        vt.onNewShape(new Shape(cShape.STOP_NEW_SESSION, this.scene,  0, 0, "czas stop", 0x000000 ));
+                        Global.currentSession = null;
+                        vt.clearAll();
+                    }
+                    break;
+                    case cShape.CLOSE_DLG:
+                        this.setState({...this.state, isOKField:false, msg: "", title: ""});
+                        break;
+                        case cShape.UNDO:
+                            vt.sceneClear();
+                            vt.historyPop();
+                            break;
+                            case cShape.REDO:
+                                if (vt.isRedo()) {
+                                    vt.sceneClear();
+                                    vt.historyRedo();
+                                }
+                break;
+                
             case cShape.LOAD_FIREBASE:
                 if(!Global.currentSession || Global.currentSession.length < 1) return;
                 vt.historyClear();
-
+                
                 vt.sceneClear();
                 vt.OBJECTS = [];
                 vt.meshes = [];
                 
+                this.setState({...this.state, sessionName: Global.currentSession});
                 vt.loadDataFromSession(Global.currentSession);
                 break;
             case cShape.TO_CORNER:
@@ -184,7 +216,7 @@ class Main extends Component {
                 vt.addChatMsg(param);
                 vt.historyAdd();
                 let tweet = param.split(Global.separator);
-                this.updateChat([...tweet, Global.currentUserColor]);
+                //this.updateChat([...tweet, Global.currentUserColor]);
                 break;
             case cShape.GRIDON_OFF:
                 this.gridSwitch();
@@ -352,7 +384,7 @@ class Main extends Component {
 
         this.lightOn(this.scene);
 
-        this.vt = new VitrualTable(THREE, this.scene, this.selectMenuCallback, this.updateChat.bind(this));
+        this.vt = new VitrualTable(THREE, this.scene, this.selectMenuCallback, this.updateChat.bind(this), this.endOfLiveSession.bind(this));
         const vt = this.vt;
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
@@ -503,8 +535,8 @@ class Main extends Component {
            <>
            {/* <FirebaseUpdate action={this.onFBUpdate}/> */}
            <NavBar action={this.itemPicked} ref={this.navbar} status={this.vt}/>
-           {Global.user &&  <Sessionbar />}
-           {Global.user &&  <MediaBar action={this.itemPicked} status={this.vt} msgs={this.state.msgs} />}
+           {Global.user &&  <Sessionbar name={this.state.sessionName}/>}
+           {Global.user &&  <MediaBar action={this.itemPicked} status={this.vt} msgs={this.state.msgs} ok={this.state.isOKField} msg={this.state.msg} title={this.state.title?this.state.title:null}/>}
            
            </>
         );

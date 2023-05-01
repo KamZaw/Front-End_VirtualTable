@@ -16,8 +16,6 @@ import MessageBox from "./MessageBox"
     Pasek do komunikacji i interakcji, rozpoczynania sesji, przekazywania praw rysowania itp
 */
 
-// import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu, StarMenu } from "./DefaultMenu";
 class MediaBar extends Component {
     constructor(props){
         super(props);
@@ -26,18 +24,26 @@ class MediaBar extends Component {
         this.state = {
             isOpenSessionWindow: false,
             isOpenMsgWindow: false,
+            isOKField: false,
+            loadLive: false,
             title: "",
             msg: "",
+            errmsg: "",
             chatWindow: false
         };
         this.menuItemSelectedHandler = this.menuItemSelectedHandler.bind(this);
     }
     onNewSession(state) {
-        this.setState({...this.state, title:"Utwórz sesję", msg: "Podaj nazwę nowej sesji", isOpenMsgWindow: state, isInputField: state});
-        !state && this.sessionRef.current.onNewSession();       //kończymy nagranie audio i wysyłamy plik na serwer
+        if(state) {
+            this.setState({...this.state, title:"Utwórz sesję", msg: "Podaj nazwę nowej sesji", isOpenMsgWindow: state, isInputField: state});
+        }
+        this.sessionRef.current.onNewSession(state);       //kończymy nagranie audio i wysyłamy plik na serwer
     }
     onLoadFB () {
-        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true});
+        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !false});
+    }
+    onLoadFBLive () {
+        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !true});
     }
     onOpenChat () {
         this.setState({...this.state, chatWindow: !this.state.chatWindow});
@@ -45,13 +51,25 @@ class MediaBar extends Component {
     loadSession(val) {
         if(typeof val === 'string') {
             Global.currentSession = val;
+            Global.bLive = false;
             this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
             this.props.action(cShape.LOAD_FIREBASE);
             this.sessionRef.current.onPlay();
         }
+        else if (val === cShape.JOIN_ACIVE_SESSION) {
+            this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
+            this.props.action(cShape.JOIN_ACIVE_SESSION);
+
+        }
         
         this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
     }
+    hideAudioBar() {
+        document.getElementById('audio1').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
+    }
+
+
+    //powrót dialogu z podawaną nazwą sesji
     responseMsg(val) {
         if(typeof val === 'string') {
             //TODO: sprawdź czy nie ma juz takiej sesji
@@ -59,17 +77,34 @@ class MediaBar extends Component {
             //     this.setState({...this.state, isOpenMsgWindow: true,});
             //     return;
             // }
+            const lista = [...Global.listaAktulane, ...Global.listaArchiwalne];
+            lista.map( l => console.log(l.val));
+            if(lista.filter(s => s.val == val).length > 0) {
+                //alert("zgłoś błąd");
+                this.setState({...this.state, errmsg: `Sesja <<${val}>>jest już w systemie.`});
+                return;
+            }
             Global.currentSession = val;
-            this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false,});
+            this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false, errmsg:"", });
             // this.props.action(cShape.LOAD_FIREBASE);
             //            this.props.action(cShape.LOAD_FIREBASE);
-
-            this.sessionRef.current.onNewSession();
+            this.hideAudioBar();
+            this.sessionRef.current.onNewSession(true);
             this.props.action(cShape.START_NEW_SESSION);
+            console.log("Session LIVE start");
         }
         else if(val)
             this.props.action(cShape.NEW);
-        this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false,});
+        else {
+            Global.sessionOn = false;
+            this.props.action(cShape.CLOSE_DLG);
+        }
+        this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false, errmsg:"", });
+    }
+
+    //zamykamy aktualną sesję klikiem na czerwony kwadrat
+    stopLiveSession() {
+        this.props.action(cShape.STOP_NEW_SESSION);
     }
     menuItemSelectedHandler(type) {
 
@@ -94,19 +129,22 @@ class MediaBar extends Component {
             <>
                 {this.component}
                 <div id="mediabar" className = "w3-row mediabar">
-                <NewSession action={this.onNewSession.bind(this)} ref={this.sessionRef}/>
+                <NewSession action={Global.adminRights.includes(Global.user.uid)?this.onNewSession.bind(this):this.onLoadFBLive.bind(this)} stop={this.stopLiveSession.bind(this)} ref={this.sessionRef} live={this.state.loadLive}/>
                 <LoadArchiveSessions action={this.onLoadFB.bind(this)}/>
                 <ChatSession action={this.onOpenChat.bind(this)} 
                     actionSnd={this.props.action} 
                     msgs={this.props.msgs}
                     visible={this.state.chatWindow}  />
-                <MessageBox isVisible={this.state.isOpenMsgWindow} 
-                    title={this.state.title} 
-                    msg={this.state.msg} 
-                    input={this.state.isInputField} 
+                <MessageBox 
+                    isVisible={this.state.isOpenMsgWindow || this.props.ok} 
+                    title={this.props.title || this.state.title } 
+                    msg={this.props.msg?this.props.msg: this.state.msg} 
+                    input={!this.props.ok && this.state.isInputField} 
+                    ok={this.props.ok?this.props.ok:false}
+                    errmsg={this.state.errmsg}
                     action={this.responseMsg.bind(this)}/>
 
-                <SessionDialog isVisible={this.state.isOpenSessionWindow} title={this.state.title} action={this.loadSession.bind(this)} />                
+                <SessionDialog isVisible={this.state.isOpenSessionWindow} title={this.state.title} action={this.loadSession.bind(this)} live={this.state.loadLive} />
                 </div>
             </>
             );
@@ -123,26 +161,33 @@ class NewSession extends Component {
         this.updateAudio = React.createRef();
     }
 
-    onNewSession() {
-        Global.sessionOn = !Global.sessionOn;
+    onNewSession(sessinoState) {
+        //TODO: gdy klikamy na anuluj sesję to nadal pojawia się czerwony kwadrat - tutaj tkwi problem
+        Global.sessionOn = sessinoState;//!Global.sessionOn;
         this.setState({...this.state, clicked: Global.sessionOn});
         if(Global.sessionOn)
             this.updateAudio.current.run();
         else {
             this.updateAudio.current.stop(Global.currentSession);
-            Global.currentSession = null;
+            this.props.stop();     //kończymy sesję
+            console.log("Session LIVE stop");
         }
     }
     onPlay() {
         this.updateAudio.current.play();
     }
+    hideAudioBar() {
+        document.getElementById('audio1').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
+    }
+
     onNew() {
         this.props.action(!Global.sessionOn);
+        
     }
     render() {
-        if(!Global.user || Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'   ) {
-            return (<></>);
-        }
+        // if(!Global.user || Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'   ) {
+        //     return (<></>);
+        // }
         return (
             <>
                 <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
@@ -163,7 +208,7 @@ class ChatSession extends Component {
         this.props.action();
     }
     render() {
-        console.log("ChatSession: "+(this.props.msgs.length));
+        // console.log("ChatSession: "+(this.props.msgs.length));
         return (
 
             <>

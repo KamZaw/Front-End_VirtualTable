@@ -11,8 +11,10 @@ class Global {
     static currentUserColor = "#4444AA";
     static fb = null;
     static firebaseApp = null;
-    static currentSession = "sesja1";          //nazwa sesji pobrana z internetu albo od użytkownika    
+    static currentSession = null;          //nazwa sesji pobrana z internetu albo od użytkownika    
+    static bLive = false;               //jeśli currentSession && bLive tzn. aktualizuj w FB
     static nodeRef = null;
+    static liveRef = null;                  //referencja do sesji LIVE
     static broadcast = null;
     static chkGrid = true;
     static chkSnap = !true;
@@ -20,7 +22,8 @@ class Global {
     static students = new Map();
     static separator = "!@!";
     static adminRights = ['VRGQyqLSB0axkDKbmgye3wyDGJo1'];
-
+    static listaAktulane = [];
+    static listaArchiwalne = [];
 }
 
 export default Global;

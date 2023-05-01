@@ -29,6 +29,7 @@ import {
     // getDatabase,
     ref,
     set,
+    update,
     // get,
     child,
     onValue,
@@ -38,7 +39,7 @@ import {
 import { ChatMessage } from './ChatMessage';
 
 class VitrualTable {
-    constructor(THREE, scene, selectMenuCallback, updateChat) {
+    constructor(THREE, scene, selectMenuCallback, updateChat, endOfLiveSession) {
         this.type = cShape.NONE;
         this.action = cAction.NONE;
         this.THREE = THREE;
@@ -52,7 +53,7 @@ class VitrualTable {
         this.gridRes = 10;
         this.crosshair = null;
         this.grid = null;
-
+        this.endOfLiveSession = endOfLiveSession;
 
         this.selectedCorner = null;
         this.meshes = [];
@@ -184,9 +185,11 @@ class VitrualTable {
     }
     //dodaje kształt z bazy firebase
     addShape(node) {
-        // if(!node.mesh) return;
+        if(!node ) return;
         this.OBJECTS.push(node);
-        this.meshes.push(node.mesh);
+        if(node.mesh) 
+            this.meshes.push(node.mesh);
+
     }
 
     onNewShape(node) {
@@ -241,8 +244,14 @@ class VitrualTable {
 
     }
     addChatMsg(msg) {
-        const node = new ChatMessage(this.scene, msg, "0x000000");
+        if(!Global.user || Global.currentSession == null || Global.bLive === false) return;
+        const node = new ChatMessage(this.scene, msg, Global.currentUserColor.replace("#","0x"));
         this.onNewShape(node);
+
+        //dodaje do FB wpis dla usera innego niż profesor
+        Global.user && Global.user.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
+            [{...node.toJSON(), author: Global.user?.uid}]);
+        console.log("DODANO do FB Chat");
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
 
@@ -344,6 +353,7 @@ class VitrualTable {
     //zapamiętuje stan tablicy w okreslonym momencie czasu
     //stąd też następuje zapis do bazy danych
     loadDataFromSession(session) {
+        this.updateChat(null);
         if (!Global.user) {
             alert("nie zalogowany");
             return;
@@ -353,7 +363,7 @@ class VitrualTable {
 
         const dbRef = ref(Global.fb);
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
-
+        
         Global.nodeRef = child(dbRef, `Sessions/${Global.currentSession}/`);
         onValue(Global.nodeRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -361,41 +371,69 @@ class VitrualTable {
                 this.timeLapse = new TimeLapse();
                 this.timeLapse.setMap(JSON.parse(JSON.stringify(mapa)));
                 this.timeLapse.start(this.drawScene.bind(this));
-        
-                // let last = null;
-                // for (const i in mapa) {
-                //     last = i;
-                // }
-                // this.drawScene(mapa, last);
+            } else {
+                console.log("Brak danych dla sesji");
+            }
+        }, {
+            onlyOnce: true //dla załadowania sesji tylko raz   //Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
+        });
+    }
 
+    //otwieramy sesję LIVE
+    openLiveSession(session) {
+        
+        if (!Global.user) {
+            alert("nie zalogowany");
+            return;
+        }
+        if (Global.nodeRef)
+            off(Global.nodeRef);
+
+        const dbRef = ref(Global.fb);
+        //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
+        
+        Global.liveRef = child(dbRef, `Sessions/${Global.currentSession}/`);
+        onValue(Global.liveRef, (snapshot) => {
+            if (snapshot.exists()) {
+                this.updateChat(null);
+                const mapa = snapshot.val();
+                const live = true;
+                for (const i in mapa) {
+                    this.drawScene(mapa, i, live);
+                }
 
             } else {
                 console.log("Brak danych dla sesji");
             }
         }, {
-            onlyOnce: false;
+            onlyOnce: false    //Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
         });
 
     }
-    drawScene(mapa, last) {
-        this.clearAll();
+    drawScene(mapa, last, live) {
+        //this.clearAll();
+        
+
         for (const j in mapa[last]) {
             const o = mapa[last][j];
+            
             let shape;
             if (o.type === cShape.NGON) {
                 shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
                 shape.Z = o.Z;
+                shape.id = o.id;
                 shape.drawFromPoints(o.points);
-                this.addShape(shape);
+                // this.addShape(shape);
             } else if (o.type === cShape.POLYGON) {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
+                shape.id = o.id;
                 shape.drawShape();
                 const pts = o.points.split(",").map(Number);
                 for (let i = 0; i < pts.length; i += 3) {
                     shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
                 }
-                this.addShape(shape);
+                // this.addShape(shape);
             }
             else if (o.type === cShape.FREEPEN) {
                 const pts = o.prev.split(",").map(Number);
@@ -406,27 +444,39 @@ class VitrualTable {
                 shape = new FreePen(this.scene, points[0],
                     points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
+                shape.id = o.id;
                 shape.mirrorX = o.mirrorX;
                 shape.mirrorY = o.mirrorY;
                 shape.drawShape();
-                this.addShape(shape);
+                // this.addShape(shape);
             } else if (o.type === cShape.TEXT) {
                 shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
                 shape.Z = o.Z;
+                shape.id = o.id;
                 shape.mirrorX = o.mirrorX;
                 shape.mirrorY = o.mirrorY;
 
-                this.onNewShape(shape);
+                // this.onNewShape(shape);
             }else if (o.type === cShape.CHATMSG) {
-                shape = new ChatMessage(this.scene, o.label, "0x" + o.color.toString(16));
+                shape = new ChatMessage(this.scene, o.label, o.color);
+                shape.id = o.id;
                 let str = o.label.split(Global.separator);
-                // console.log(str[1]);
+                console.log(str[1]);
                 this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
-                this.onNewShape(shape);
+                // this.onNewShape(shape);
             }
+            else if(o.type == cShape.STOP_NEW_SESSION) {
+                //zamykamy sesję i likwidujemy listenera - trzeba wyświetlić dialog - koniec sesji
+                (live && Global.liveRef) && off(Global.liveRef);
+                this.endOfLiveSession(`Koniec sesji <<${Global.currentSession}>>`);
+                Global.bLive = false;
+                // console.log("koniec sesji");
+
+            }
+            if(o.author !== Global.user.uid) this.addShape(shape);
+            this.select(null);
+            this.type = cShape.SELECT;
         }
-        this.select(null);
-        this.type = cShape.SELECT;
     }
 
     clearAll() {
@@ -437,6 +487,7 @@ class VitrualTable {
         this.meshes = [];
     }
 
+    
     historyAdd() {
         //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
         //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
@@ -448,20 +499,24 @@ class VitrualTable {
         this.OBJECTS.forEach(obj => {
             const o = obj.carbonCopy(false);
             timStamp.push(o);
-            firebaseData.push({
-                ...o.toJSON(),
-                author: Global.user?.uid
-            });
         });
+        
+        firebaseData.push({
+            ...timStamp[timStamp.length-1].toJSON(),
+            author: Global.user?.uid
+        });
+        console.log(Global.user?.uid);
+        console.log(Global.currentSession);
+        console.log(Global.bLive);
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if (Global.user && Global.user?.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1') {
+        if (Global.fb && Global.user && Global.user?.uid === 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.currentSession !== null && Global.bLive === true) {
             if (JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer])) {
-                Global.user && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
-                    firebaseData);
+                const tim = Shape.dateToTicks(new Date());
+                    set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),firebaseData);
                     console.log("DODANO do FB");
-                }
             }
+        }
         this.histStack.push(timStamp);
         this.histPointer++;
     }
@@ -664,6 +719,7 @@ class VitrualTable {
     carbonCopy() {
         if (!this.selectedNode) return;
         const node = this.selectedNode.carbonCopy(true);
+        node.id = this.id;
 
         // this.onNewShape(node);
         this.addShape(node);
@@ -673,6 +729,7 @@ class VitrualTable {
         if (!this.selectedNode) return;
         const node = this.selectedNode.clone();
 
+        node.id = this.id;
         this.onNewShape(node);
         this.type = cShape.SELECT;
     }

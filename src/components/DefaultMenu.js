@@ -43,6 +43,7 @@ class DefaultMenu extends Component {
 
             isOpenMsgWindow: false,
             isInputField: false,
+            isOKField: false,
             title: "",
             msg: "",
         };
@@ -51,9 +52,13 @@ class DefaultMenu extends Component {
     onZChangePlus() {
         this.props.action(cShape.ZPLUS);
     }
+    hideAudioBar() {
+        document.getElementById('audio1').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
+    }
 
     onNew() {
-        this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false});
+        this.hideAudioBar();
+        this.setState({...this.state, title:"Uwaga!", msg: "Czy usunąć wszystkie narysowane obiekty?", isOpenMsgWindow: true, isInputField: false, isOKField: false});
     }
 
     onSaveSVG() {
@@ -135,7 +140,7 @@ class DefaultMenu extends Component {
         return(
             <>
             <div className="w3-container w3-quarter">
-                <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
+                <button className="toolbutton "  id="new_doc" onClick = {this.onNew.bind(this) }>
                     <img className="toolimg" src={nowy}/>
                     <span className="tooltiptext">Utwórz nowy dokument</span>
                 </button>
@@ -143,9 +148,6 @@ class DefaultMenu extends Component {
                     <img className="toolimg" src={save}/>
                     <span className="tooltiptext">Zapisz widok tablicy do pliku w formacie SVG</span>
                 </button>
-                
-                
-                
                 <button className="toolbutton "  id="history_undo" onClick = {this.onUndo.bind(this) }>
                     <img className="toolimg" src={undo}/>
                     <span className="tooltiptext">Cofnij operację</span>
@@ -182,14 +184,14 @@ class DefaultMenu extends Component {
                 {/* <label>rotacja</label>
                 <input id="shape_angle" className="button_menu" placeholder="Kąt..." defaultValue="0"/> */}
             </div>
-            <div className="" >
+            <div className="w3-container" >
                 <button type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={Global.user?"LogOut":"Login"}>
                     {Global.user?"Wyloguj się ":"Zaloguj się "}
                     <img className="toolimg" src={Global.user?logged:unlogged}/>
                 </button>
                 
                 <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
-                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} action={this.responseMsg.bind(this)}/>
+                <MessageBox isVisible={this.state.isOpenMsgWindow} title={this.state.title} msg={this.state.msg} input={this.state.isInputField} ok={this.state.isOKField} action={this.responseMsg.bind(this)}/>
             </div>
             </>
             

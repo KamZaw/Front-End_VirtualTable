@@ -337,33 +337,35 @@ class Ngon extends Shape{
             x="${this.x - this.b/2}"
             y="${this.y - this.radius/2}" />`;
         }
-        else {  //NGON jako Path
+        else  {
             str += ` <path
             style="fill:#${Shape.pad(this.iColor.toString(16),6)};stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
             d="m `;
 
             let segmentCount = this.n;
-            const radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
+            let radius = this.radius*Math.SQRT2/2;//Math.sqrt((this.radius*this.radius + this.b * this.b)/4)
             const b = (this.b/this.radius);
             const pts = [];
 
+            const RAD = this.radius;
+            const rad = this.radius2;
+
             for (let i = 0; i < segmentCount; i++) {
                 let theta = ((i) / segmentCount) * Math.PI * 2 +this.offsetRot;
+                radius = (i % 2)?rad:RAD;
                 let x = Math.round(Math.cos(theta) * radius *b);
                 let y = Math.round(Math.sin(theta) * radius);
                 pts.push({x:x,y:y});
             }
 
-            
             str += `${pts[0].x + this.x},${pts[0].y + this.y} `;
             for(let i = 1; i < pts.length; i++)
                 str += `${(pts[i].x - pts[i-1].x)},${(pts[i].y - pts[i-1].y)} `;
             str += `z"
             id="${this.linie.name}" />\n`
         }
-
         return str;
-    }
+    }           
 }
 
 

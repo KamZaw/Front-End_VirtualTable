@@ -21,6 +21,7 @@ class TimeLapse {
         audio.removeAttribute("hidden");
     
         const that = this;
+        const live = false;
         audio.ontimeupdate = () => {
             const tim = audio.currentTime * 1000;
             
@@ -37,7 +38,7 @@ class TimeLapse {
                 const tm = TimeLapse.dateFromTicks(current) - TimeLapse.dateFromTicks(parseInt(this.startTime)); 
                 console.log(`tim: ${tim} tm: ${tm}`);
                 console.log("zmienia");
-                callback(that.mapa, current);
+                callback(that.mapa, current, live);
             }
     
         };

@@ -34,7 +34,7 @@ class Text extends Shape{
         this.mesh.material.color.setHex( color );
     }
     setDefaultColor() {
-        this.mesh.material.color.setHex( this.iColor );
+        this.mesh?.material?.color.setHex( this.iColor );
     }
     carbonCopy(bDraw) {
         

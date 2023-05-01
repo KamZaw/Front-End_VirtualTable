@@ -5,6 +5,7 @@ import Global from '../Global.js';
 class ChatMessage extends Shape {
     constructor(scene,  label, color) {
         super(cShape.CHATMSG, scene, 0, 0, label, color);
+        this.iColor = color;    //kolor to wzorzec w3c, np "w3-red"
     }
     drawShape() {}
     setMirrorX() {}
@@ -41,6 +42,7 @@ class ChatMessage extends Shape {
     }
     carbonCopy(obj) {
         if(!obj) return this;
+        super.carbonCopy(obj);
         obj.label = this.label;
         obj.iColor = this.iColor;
     }
@@ -48,6 +50,7 @@ class ChatMessage extends Shape {
     //tworzy i wraca kopię obiektu
     clone() {
         const obj = new ChatMessage(this.scene,this.label, this.iColor);
+        obj.id = this.id;
         obj.mesh = null;
         obj.scene = this.scene;
         this.linie = null;

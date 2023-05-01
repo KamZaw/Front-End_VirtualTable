@@ -32,7 +32,7 @@ class Student extends Component {
 
         return (
             <>
-                <h1  className={"w3-badge student_badge disable_select w3-red" }>
+                <h1  className={`w3-badge student_badge disable_select ${this.props.color}`}>
                     {this.props.value}
                     <span className="tooltipstudent">{this.props.name}</span>
                 </h1>

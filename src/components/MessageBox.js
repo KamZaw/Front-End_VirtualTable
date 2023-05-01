@@ -13,15 +13,19 @@ class MessageBox extends Component {
             title:props.title,
             msg: props.msg,
             isVisible: props.isVisible,
+            ok: false,
         };
         this.sessionName = Global.currentSession;
     }
     onYes() {
-        if(this.props.input) {
+        if(this.props.ok) {
+            this.props.action(false);       //zamyka dialog z poziomu komponentu Main
+        }
+        else if(this.props.input) {
             this.props.action(this.sessionName);
         }
         else
-            this.props.action(true);
+            this.props.action(true);        //zamyka dialog z poziomu komponentu "Parent" (MediaBar lub DefaultMenu)
     }
     onNo() {
         this.props.action(false);
@@ -48,7 +52,8 @@ class MessageBox extends Component {
                     <br/>
 
                     <button className="dlgbutton" onClick={this.onYes.bind(this)}>{this.props.input?'Zatwierdź':'Tak'}</button>
-                    <button className={this.props.input?'dlgbutton hidden':'dlgbutton'} onClick={this.onNo.bind(this)} >Nie</button>
+                    <p className="error_msg">{this.props.errmsg}</p>
+                    <button className={(this.props.input || this.props.ok) ?'dlgbutton hidden':'dlgbutton'} onClick={this.onNo.bind(this)} >Nie</button>
                     <br/>
                 </div>
             </div>

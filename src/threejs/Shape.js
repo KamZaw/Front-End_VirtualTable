@@ -25,6 +25,7 @@ class Shape {
         this.linie = null;
         this.date = dt.toISOString();
         this.ticks = `${Shape.dateToTicks(dt)}`;
+        this.id = Math.random()*100000000000000000;
         this.Z = Shape.Z;
         this.mirrorX = 1;
         this.mirrorY = 1;
@@ -124,12 +125,14 @@ class Shape {
             mirrorY: this.mirrorY,
             opacity: 1.0,
             rotate: this.rotate,
+            id: this.id,
         };
     }
     carbonCopy(obj) {
         if(!obj) return this;
         obj.mirrorX = this.mirrorX;
         obj.mirrorY = this.mirrorY;
+        obj.id = this.id;
         obj.Z = this.Z;
     }
 
@@ -157,7 +160,7 @@ class Shape {
             default:
                 break;
         }
-
+        obj.id = this.id;
 
         return obj;
     }
