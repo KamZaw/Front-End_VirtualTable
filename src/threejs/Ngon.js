@@ -9,7 +9,6 @@ class Ngon extends Shape{
 
     constructor(scene, x, y, label, radius, ngons, color, b, offsetRot, iNode, cornerCnt, radius2 ) {
         super(cShape.NGON, scene, y, x, label, color);
-        this.isBezier = false;
         this.radius = radius;
         this.radius2 = radius2 != null? radius2: radius;
         this.n = ngons;
@@ -33,48 +32,13 @@ class Ngon extends Shape{
     }
     mvShape(start, stop) {
 
-        //sprawdzamy czy do węzeła przywiązane jest ramię bezier
-        if(this.label.indexOf("bezier") === 0 ) {
-            super.mvShape(start, stop);
-            this.parent.arms[this.cornerCnt].visible = true
-            this.parent.arms[this.cornerCnt].geometry.attributes.position.needsUpdate = true; 
-            const linie = this.parent.arms[this.cornerCnt].geometry.attributes.position.array; 
-            linie[3] = this.x - this.parent.x;
-            linie[4] = this.y - this.parent.y;
-            this.parent.parent.recreateMesh(true);
-            return;
-        }
-        //jeśli przesuwamy węzeł powiązany z ramieniem bezier
-        if(this.parent) {
-            if(!this.isBezier) {
-                const n = this;
-                this.parent.node?.forEach((pt) => { 
-                    if(pt.isBezier) {
-                        if(n === pt.prev) {
-                            pt.arms[1].geometry.attributes.position.needsUpdate = true; 
-                            const linie = pt.arms[1].geometry.attributes.position.array; 
-                            linie[0] += stop[0] - start[0];
-                            linie[1] += stop[1] - start[1];
-                
-                        }
-                        if(n === pt.next) {
-                            pt.arms[0].geometry.attributes.position.needsUpdate = true; 
-                            const linie = pt.arms[0].geometry.attributes.position.array; 
-                            linie[0] += stop[0] - start[0];
-                            linie[1] += stop[1] - start[1];
-                
-                        }
-                    }
-                });
-            }
-        }
         if(!this.parent ) 
         {
             super.mvShape(start, stop);
             return;
         }
         
-        // //przesuwamy cornery
+        //przesuwamy cornery
 
         console.log("Wchodzi");
         this.parent.linie.geometry.attributes.position.needsUpdate = true;
@@ -100,11 +64,10 @@ class Ngon extends Shape{
         super.mvShape(start, stop);     //przesuwa same czarne cornery NGONa
         if(this.parent.type== cShape.POLYGON) {
             const cc = this.cornerCnt;
-            this.parent.recreateMesh(true);
+            // this.parent.recreateMesh(true);
             //this.node?.forEach(n => n.cornerCnt === cc && n.select(true));
             // this.select(true);
         }
-        //this.parent.recreateMesh(true);
     }
 
     //odtwarza obiekt z obiektu JSON przesłanego z bazy danych
@@ -171,9 +134,11 @@ class Ngon extends Shape{
                 this.mesh.add(chld);
                 chld.visible = true;
             });   //kopiuj linie i kornery
+            console.warn("Old: " +oldmesh.id);
             this.scene.remove(oldmesh);
         }
         bDraw && this.scene.add( this.mesh );
+        console.warn("New: " +this.mesh.id);
         
         
 
@@ -183,7 +148,6 @@ class Ngon extends Shape{
 
     rescale() {
         super.rescale();
-        //this.recreateMesh(true);
         this.mvShape([0, 0], [0, 0]);
     }
     toJSON() {

@@ -436,34 +436,6 @@ class PolygonMenu extends DefaultMenu {
     }
 }
 
-class CornerMenu extends DefaultMenu {
-    constructor(){
-        super();
-        this.state.defaultValue= "#F7B854";
-    }
-    onBezier(event) {
-        this.props.action(cShape.BEZIER);
-    }
-    onCorner(event) {
-        this.props.action(cShape.TO_CORNER);
-    }
-    render() {
-        return(
-            <div className="w3-row">
-                {super.render()} 
-                <div className="w3-container w3-quarter">
-                    <div id="menubar" className = "">
-                        <b>Wierzchołek: </b> 
-                        {/* <b>&nbsp; </b> */}
-                        <button className="toolbutton" id="bezier" onClick = {this.onBezier.bind(this)} value={true}>Bezier</button>
-                        <button className="toolbutton" id="corner" onClick = {this.onCorner.bind(this)} value={true}>Corner</button>
-                    </div>
-                </div>
-            </div>                
-            );
-    }
-}
-
 class FreePenMenu extends DefaultMenu {
     constructor(){
         super();
@@ -500,4 +472,4 @@ class FreePenMenu extends DefaultMenu {
             );
     }
 }
-export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu, StarMenu}
+export {EmptyMenu, RectangleMenu, NGONMenu, FreePenMenu, TEXTMenu, PolygonMenu, ChartMenu, StarMenu}

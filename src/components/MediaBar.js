@@ -78,7 +78,7 @@ class MediaBar extends Component {
             //     return;
             // }
             const lista = [...Global.listaAktulane, ...Global.listaArchiwalne];
-            lista.map( l => console.log(l.val));
+            // lista.map( l => console.log(l.val));
             if(lista.filter(s => s.val == val).length > 0) {
                 //alert("zgłoś błąd");
                 this.setState({...this.state, errmsg: `Sesja <<${val}>>jest już w systemie.`});

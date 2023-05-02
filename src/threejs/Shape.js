@@ -25,7 +25,7 @@ class Shape {
         this.linie = null;
         this.date = dt.toISOString();
         this.ticks = `${Shape.dateToTicks(dt)}`;
-        this.id = Math.random()*100000000000000000;
+        this.id = parseInt(Math.random()*100000000000000000);
         this.Z = Shape.Z;
         this.mirrorX = 1;
         this.mirrorY = 1;

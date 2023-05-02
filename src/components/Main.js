@@ -130,12 +130,13 @@ class Main extends Component {
             case cShape.NEW:
                 vt.clearAll()
                 vt.type = cShape.SELECT;
+                this.setState({...this.state, sessionName: ""});
                 break;
             case cShape.START_NEW_SESSION:
                 vt.clearAll();
                 vt.openLiveSession();
-                console.log(Global.user.uid);
-                console.log(Global.currentSession);
+                // console.log(Global.user.uid);
+                // console.log(Global.currentSession);
                 if(Global.user && Global.currentSession) {
                     Global.bLive = true;
                     //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
@@ -149,7 +150,7 @@ class Main extends Component {
                 if(Global.user && Global.currentSession) {
                     Global.bLive = true;
                     vt.openLiveSession();
-                    console.log("Opening Live ...");
+                    // console.log("Opening Live ...");
                     this.setState({...this.state, sessionName: Global.currentSession});
                 }
                 break;
@@ -159,6 +160,7 @@ class Main extends Component {
                         vt.onNewShape(new Shape(cShape.STOP_NEW_SESSION, this.scene,  0, 0, "czas stop", 0x000000 ));
                         Global.currentSession = null;
                         vt.clearAll();
+                        this.setState({...this.state, sessionName: ""});
                     }
                     break;
                     case cShape.CLOSE_DLG:
@@ -178,19 +180,11 @@ class Main extends Component {
             case cShape.LOAD_FIREBASE:
                 if(!Global.currentSession || Global.currentSession.length < 1) return;
                 vt.historyClear();
-                
                 vt.sceneClear();
                 vt.OBJECTS = [];
                 vt.meshes = [];
-                
-                this.setState({...this.state, sessionName: Global.currentSession});
                 vt.loadDataFromSession(Global.currentSession);
-                break;
-            case cShape.TO_CORNER:
-                vt.toCorner();
-                break;
-            case cShape.BEZIER:
-                vt.toBezier();
+                this.setState({...this.state, sessionName: "Archiv: "+Global.currentSession});
                 break;
             case cShape.SAVE_SVG:            
                 this.saveToSVG(vt);
@@ -212,11 +206,7 @@ class Main extends Component {
                 vt.selectedNode && vt.historyAdd();
                 break;
             case cShape.CHATMSG:
-                //alert(param);
                 vt.addChatMsg(param);
-                vt.historyAdd();
-                let tweet = param.split(Global.separator);
-                //this.updateChat([...tweet, Global.currentUserColor]);
                 break;
             case cShape.GRIDON_OFF:
                 this.gridSwitch();
@@ -389,8 +379,15 @@ class Main extends Component {
         renderer.domElement.addEventListener('mouseup', function(event) { vt.onClick(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousedown', function(event) { vt.onMouseDown(event, targetPanel, camera, wd, hd); }, false);
         renderer.domElement.addEventListener('mousemove', function(event) { vt.onMouseMove(event, targetPanel, camera, wd, hd); }, false);
-        document.addEventListener('keydown', this.onKeyDown.bind(this), false);
         
+        document.addEventListener('keydown', this.onKeyDown.bind(this), false);
+        // renderer.domElement.addEventListener('resize', this.addGrid(vt, scene));
+        this.addGrid(vt, scene);
+    }
+    addGrid(vt, scene) {
+        if(vt.grid) {
+            scene.remove(vt.grid);    
+        }
         vt.grid = new THREE.Group();
         const hiGrid = this.drawGrid(0x444444, 10, .7);
         const lowGrid = this.drawGrid(0x111111, 100, .7);
@@ -398,10 +395,13 @@ class Main extends Component {
         vt.grid.add(lowGrid);
         scene.add(vt.grid);
 
-        
+
         vt.crosshair = this.crosshair();
         vt.crosshair.visible = vt.gridSnap;
         vt.gridRes = 10;
+    }
+    componentDidUpdate() {
+        this.addGrid(this.vt, this.scene);
     }
 
     onKeyDown(event) {
@@ -478,7 +478,8 @@ class Main extends Component {
             path.moveTo(i%2 == 0?wd:0, (i+1) * gridRes);
         }
 
-        for(let i = Math.ceil(wd/gridRes) ; i>=0; i--) {
+        path.moveTo(wd, hd);
+        for(let i = 0 ; i <= Math.ceil(wd/gridRes); i++) {
             path.lineTo(i * gridRes, i%2 == 0?hd:0);
             path.moveTo(i * gridRes, (i+1)%2 == 0?hd:0);
         }

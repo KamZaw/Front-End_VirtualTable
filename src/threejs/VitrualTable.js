@@ -216,42 +216,27 @@ class VitrualTable {
         }
         this.action === cAction.POLYGON && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.FREEPEN && this.onMouseDown(event, targetPanel, camera, wd, hd);
-        this.action === cAction.BEZIER && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.action === cAction.CHART && this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.cShape === cAction.MOVE && this.selectedNode !== null && 
         this.onMouseDown(event, targetPanel, camera, wd, hd);
         this.type !== cShape.FREEPEN && this.tmpNodes && this.cancelFreePenFig(); //usuwa rysunek freePen jeśli nie zatwierdzony a kliknięto na inną opcję
-    }
-
-    //TODO: dorysować raminowa, zamienić punkt na bezier
-    toBezier() {
-        if (!this.selectedCorner) return;
-
-        const sc = this.selectedCorner;
-        this.selectedCorner = this.selectedCorner.parent.toBezier(sc);
-        this.selectedCorner.parent.recreateMesh(true);
-
-    }
-    
-    toCorner() {
-        if (!this.selectedCorner) return;
-
-        const sc = this.selectedCorner;
-        this.selectedCorner = this.selectedCorner.parent.toCorner(sc);
-        this.selectedCorner.parent.recreateMesh(true);
-        this.select(this.selectedCorner.mesh);
-        this.selectedCorner.mvShape([0,0], [0,0]);
-
     }
     addChatMsg(msg) {
         if(!Global.user || Global.currentSession == null || Global.bLive === false) return;
         const node = new ChatMessage(this.scene, msg, Global.currentUserColor.replace("#","0x"));
         this.onNewShape(node);
 
+        if(!Global.user) return;        //nie zalogowani więc nigdzie nie wysyłamy
         //dodaje do FB wpis dla usera innego niż profesor
-        Global.user && Global.user.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
-            [{...node.toJSON(), author: Global.user?.uid}]);
-        console.log("DODANO do FB Chat");
+        if(Global.user.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1') 
+        {
+            Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
+                [{...node.toJSON(), author: Global.user?.uid}]);
+        }
+        else {
+            this.historyAdd();
+        }
+        // console.log("DODANO do FB Chat");
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
 
@@ -312,7 +297,7 @@ class VitrualTable {
                     case cShape.MOVE:
 
                         if (!this.selectedNode) break;
-                        if (this.selectedCorner !== null && this.action !== cAction.BEZIER) {
+                        if (this.selectedCorner !== null ) {
                             if (Point.distance([this.selectedCorner.x, this.selectedCorner.y], [p.x, p.y]) > Global.cornerSize * 2) {
                                 this.selectedNode.node?.forEach(n => n.select(false)); //usuńzaznaczenie wszystkich węzłów figury
                                 this.onSelection(event, targetPanel); //sprawdź czy nie klikamy na drugi węzeł
@@ -412,28 +397,28 @@ class VitrualTable {
     }
     drawScene(mapa, last, live) {
         //this.clearAll();
-        
-
         for (const j in mapa[last]) {
             const o = mapa[last][j];
-            
-            let shape;
+            let shape = null;
+            const bAdd = o.author !== Global.user.uid || !live;
+            bAdd && this.removeMeshById(o.id);
             if (o.type === cShape.NGON) {
                 shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
                 shape.Z = o.Z;
                 shape.id = o.id;
-                shape.drawFromPoints(o.points);
-                // this.addShape(shape);
-            } else if (o.type === cShape.POLYGON) {
+                bAdd && shape.drawFromPoints(o.points);
+                bAdd && this.addShape(shape);
+                shape = null;   //nie dodajemy na końcu
+            } 
+            else if (o.type === cShape.POLYGON) {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
                 shape.Z = o.Z;
                 shape.id = o.id;
-                shape.drawShape();
+                
                 const pts = o.points.split(",").map(Number);
                 for (let i = 0; i < pts.length; i += 3) {
                     shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
                 }
-                // this.addShape(shape);
             }
             else if (o.type === cShape.FREEPEN) {
                 const pts = o.prev.split(",").map(Number);
@@ -447,8 +432,6 @@ class VitrualTable {
                 shape.id = o.id;
                 shape.mirrorX = o.mirrorX;
                 shape.mirrorY = o.mirrorY;
-                shape.drawShape();
-                // this.addShape(shape);
             } else if (o.type === cShape.TEXT) {
                 shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
                 shape.Z = o.Z;
@@ -473,12 +456,25 @@ class VitrualTable {
                 // console.log("koniec sesji");
 
             }
-            if(o.author !== Global.user.uid) this.addShape(shape);
+            //usuwa starą wersję obiektu (możliwe, ze z innego miejsca, koloru, kszatłtu)
+            
+            if(!bAdd && shape !== null ) {
+                this.drawShape(shape);
+                this.addShape(shape);
+            }
             this.select(null);
             this.type = cShape.SELECT;
         }
     }
 
+    removeMeshById(id) {
+        for(let o of this.OBJECTS) {
+            if(o.id === id) {
+                o.mesh && this.scene.remove(o.mesh);
+                o.linie && this.scene.remove(o.linie);
+            }
+        }
+    }
     clearAll() {
         this.updateChat(null);
         this.sceneClear();
@@ -505,9 +501,9 @@ class VitrualTable {
             ...timStamp[timStamp.length-1].toJSON(),
             author: Global.user?.uid
         });
-        console.log(Global.user?.uid);
-        console.log(Global.currentSession);
-        console.log(Global.bLive);
+        // console.log(Global.user?.uid);
+        // console.log(Global.currentSession);
+        // console.log(Global.bLive);
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
         if (Global.fb && Global.user && Global.user?.uid === 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.currentSession !== null && Global.bLive === true) {
@@ -664,8 +660,8 @@ class VitrualTable {
                                 selected.mvShape(this.prevPoint, [p.x, p.y]);
                             this.historyAdd(); 
                             this.prevPoint = null;
-                            if(this.selectedCorner && this.action === cAction.BEZIER) 
-                                this.select(this.selectedCorner.mesh);
+                            // if(this.selectedCorner ) //&& this.action === cAction.BEZIER
+                            //     this.select(this.selectedCorner.mesh);
                             this.action = cAction.SELECT;
                             break;
 
@@ -705,13 +701,18 @@ class VitrualTable {
         raycaster.set(mouse3D, new this.THREE.Vector3(0, 0, 1));
 
         const intersects = raycaster.intersectObjects(this.scene.children);
+        this.selectedNode = null;
 
         if (intersects.length > 0) {
             //TODO: dodac sortowanie po buferze Z
             // for(let i = intersects.length-1; i>=0; i--)
             // if(intersects[i].object.visible)
-            const i = intersects.length - 1;
-            this.select(intersects[i].object);
+            const inter = intersects.filter(o => o.object.isMesh)
+            for(let o of inter) {
+                this.select(o.object);
+                if(this.selectedNode)
+                    break;
+            }
             return;
         } else
             this.select(null);
@@ -760,35 +761,7 @@ class VitrualTable {
                 }
             }
             return;
-        } //sprawdź czy nie chwytamy za róg ramienia beziera
-        if (this.selectedNode && pole != null && pole.name.indexOf("bezier") === 0) {
-            for (let shapeNode of this.selectedNode.node) {
-                if (shapeNode.isBezier) {
-                    shapeNode.mesh.visible = shapeNode.linie.visible = true;
-                    shapeNode.node.forEach( n => n.mesh.visible = true);
-                    shapeNode.arms.forEach( n => n.visible = true);
-                    for (let shape of shapeNode.node) {
-
-                        if (pole === shape.mesh) {
-                            shape.select(true);
-                            this.action = cAction.BEZIER;
-                            shape.mesh.visible = true;
-                            shape.linie.visible = true;
-                            shape.setFillColor(0xffffff);
-                            this.selectedCorner = shape;
-                            break;
-                        }
-                    }
-                } else {
-                    shapeNode.setFillColor(0x000000);
-                    shapeNode === this.selectedCorner && (this.selectedCorner = null);
-                }
-            }
-            this.group = null;
-            return;
-        }
-
-
+        } 
 
         for (let shape of this.OBJECTS) {
             if (pole === null || (shape.mesh?.id !== pole.id)) {

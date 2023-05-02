@@ -30,7 +30,7 @@ class ChatWindow extends Component {
         
         // this.state.msgs.push(tweet);
         // this.setState({...this.state, msgs:  this.state.msgs});  
-        console.log("dodało " + Global.user.uid);
+        // console.log("dodało " + Global.user.uid);
         document.getElementById("message_input").value="";
         this.props.action(cShape.CHATMSG, `${tweet[0]}${Global.separator}${tweet[1]}${Global.separator}${Global.user.uid}`);
     }

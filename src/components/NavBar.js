@@ -11,7 +11,7 @@ import chart from '../assets/navbar/chart.png';
 import star from '../assets/navbar/star.png';
 
 // import {BrowserRouter as Router, Link, Route, Routes} from 'react-router-dom';
-import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, CornerMenu, ChartMenu, StarMenu } from "./DefaultMenu";
+import { RectangleMenu, NGONMenu,FreePenMenu, EmptyMenu, TEXTMenu, PolygonMenu, ChartMenu, StarMenu } from "./DefaultMenu";
 class NavBar extends Component {
     constructor(props){
         super(props);
@@ -59,10 +59,7 @@ class NavBar extends Component {
             case cShape.STAR:
                 this.component = <StarMenu action={this.props.action}/>;
                 break;
-            case cShape.CORNER:
-                this.component = <CornerMenu action={this.props.action}/>;
-                break;
-                case cShape.DELETE:     //nie zmieniaj menu
+            case cShape.DELETE:     //nie zmieniaj menu
                 break;
             case cShape.NONE:
                 break;

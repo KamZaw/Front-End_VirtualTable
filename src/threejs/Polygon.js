@@ -1,7 +1,6 @@
 import {Shape} from './Shape.js'
 import Point from './Point.js'
 import {Ngon} from './Ngon.js'
-import {Bezier} from './Bezier.js'
 import { cShape } from '../shapetype.js';
 import * as THREE from 'three';
 import Global from '../Global.js';
@@ -26,17 +25,7 @@ class Polygon extends Shape {
         path.moveTo(linie[0], linie[1]);
         for(let i = 3; i < linie.length; i+=3)
         {
-            if(this.node && this.node.length > 0) {
-                const nn = this.node[parseInt(i/3) % this.node.length];
-                if(nn.isBezier) {
-                    const j = (i+3)%linie.length;
-                    path.bezierCurveTo(nn.node[0].x-this.x,nn.node[0].y-this.y,nn.node[1].x-this.x,nn.node[1].y-this.y, linie[j], linie[j+1] )
-                }
-                else
-                    path.lineTo(linie[i], linie[i+1] );
-            }
-            else
-                path.lineTo(linie[i], linie[i+1] );
+            path.lineTo(linie[i], linie[i+1] );
         }
         //jak będzie gotowe MESH
         //(linii nie trzeba zmieniać, te się same modyfikują)
@@ -225,23 +214,7 @@ class Polygon extends Shape {
         });
         return this.node;
     }
-    //zamienia ramię NGon na Bezier
-    toBezier(node) {
-        for(let i =0; i < this.node.length; i++) {
-            if(this.node[i] === node) {
-                const n = this.node[i];
-                const bezier = new Bezier(n.scene, n.x, n.y, n.label, n.radius, n.ngons, n.iColor, n.b, n.offsetRot, n.iNode, n.cornerCnt, 
-                    n,
-                    this.node[(this.node.length + i - 1)%this.node.length],         //prev
-                    this.node[(i + 1)%this.node.length] );                          //next
-                this.node[i] = bezier;
 
-                bezier.drawShape();
-                return bezier;
-            }
-        }
-        return null;
-    }
     //zamienia ramię NGon na Corner
     toCorner(node) {
         for(let i =0; i < this.node.length; i++) {
@@ -358,27 +331,6 @@ class Polygon extends Shape {
         }
         super.mvShape(start, stop);
         // this.recreateMesh(true);
-        
-        
-        // let isBezier = false;
-        // this.node?.forEach((pt) => {
-        //     if(pt.isBezier) {
-        //         isBezier = true;
-        //         pt.mvShape(start, stop, true);
-        //         pt.arms.forEach( arm => {
-        //             arm.position.x += stop[0] - start[0]; 
-        //             arm.position.y += stop[1] - start[1]; 
-        //         });
-        //     }
-        //     else {
-        //         pt.x += stop[0] - start[0];
-        //         pt.y += stop[1] - start[1];
-        //         pt.mesh && pt.mesh.position.set(pt.x, pt.y, pt.mesh.position.z);
-        //         pt.linie && pt.linie.position.set(pt.x, pt.y, pt.linie.position.z);
-        //     }
-        // });
-        // if(isBezier)
-        //     this.recreateMesh(true);
     }
     
 }

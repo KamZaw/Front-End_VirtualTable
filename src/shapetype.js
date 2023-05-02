@@ -34,8 +34,6 @@ const cShape ={
     GRIDON_OFF:     30,
     GRID_SNAP_ON_OFF:     31,
     POLY_CLOSE:     32,
-    BEZIER:         33,
-    TO_CORNER:         34,
     START_NEW_SESSION:  35,
     STOP_NEW_SESSION:  36,
     ROTATEZ:        37,
@@ -56,7 +54,6 @@ const cAction = {
     CIRCLE:     3,
     POLYGON:    4,
     FREEPEN:    5,
-    BEZIER:     6,
     MOVE:       7,
     CHART:      8,
 }

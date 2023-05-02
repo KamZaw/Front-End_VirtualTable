@@ -30,7 +30,12 @@ class MessageBox extends Component {
     onNo() {
         this.props.action(false);
     }
-
+    onKeyUp = event => {
+        //klik na ENTER w okienku edit
+        if (event.which === 13) {
+            this.onYes();
+        }
+    }   
     onInputChange(event) {
         this.sessionName = event.target.value;
     }  
@@ -48,12 +53,12 @@ class MessageBox extends Component {
                         <h2>{this.props.title}</h2>
                     </div>
                     <p className="message_text">{this.props.msg}</p>
-                    <input type="text" className={!this.props.input?'hidden':''} onChange={this.onInputChange.bind(this)} defaultValue={this.sessionName}/>
+                    <input type="text" className={!this.props.input?'hidden':''} onChange={this.onInputChange.bind(this)} onKeyUp={this.onKeyUp.bind(this)} defaultValue={this.sessionName}/>
                     <br/>
 
-                    <button className="dlgbutton" onClick={this.onYes.bind(this)}>{this.props.input?'Zatwierdź':'Tak'}</button>
-                    <p className="error_msg">{this.props.errmsg}</p>
+                    <button className="dlgbutton" onClick={this.onYes.bind(this)}>{this.props.input?'Zatwierdź':(this.props.ok?'OK':'Tak')}</button>
                     <button className={(this.props.input || this.props.ok) ?'dlgbutton hidden':'dlgbutton'} onClick={this.onNo.bind(this)} >Nie</button>
+                    <p className="error_msg">{this.props.errmsg}</p>
                     <br/>
                 </div>
             </div>
