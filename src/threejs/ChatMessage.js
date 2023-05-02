@@ -40,6 +40,7 @@ class ChatMessage extends Shape {
             rotate: 0,
         };
     }
+    drawShape() {}
     carbonCopy(obj) {
         if(!obj) return this;
         super.carbonCopy(obj);

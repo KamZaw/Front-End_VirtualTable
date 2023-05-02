@@ -134,13 +134,9 @@ class Ngon extends Shape{
                 this.mesh.add(chld);
                 chld.visible = true;
             });   //kopiuj linie i kornery
-            console.warn("Old: " +oldmesh.id);
             this.scene.remove(oldmesh);
         }
         bDraw && this.scene.add( this.mesh );
-        console.warn("New: " +this.mesh.id);
-        
-        
 
         //this.linie.position.set(-this.x,-this.y,0);
         
