@@ -459,7 +459,7 @@ class VitrualTable {
             //usuwa starą wersję obiektu (możliwe, ze z innego miejsca, koloru, kszatłtu)
             
             if(!bAdd && shape !== null ) {
-                node.drawShape();
+                shape.drawShape();
                 this.addShape(shape);
             }
             this.select(null);
