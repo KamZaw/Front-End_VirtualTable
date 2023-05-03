@@ -73,7 +73,7 @@ class Polygon extends Shape {
             
             if(bDraw) {
                 this.scene.add( this.mesh ); 
-                this.linie.position.set(0,0,1);
+                this.linie.position.set(0,0,this.mesh.position.z + 1);
                 this.mesh.add(this.linie);
                 this.setRotate(oldrot);
             }
@@ -135,7 +135,7 @@ class Polygon extends Shape {
         });
         
         this.linie = new THREE.Line(geometryL, mat);
-        this.linie.position.set(this.x, this.y, this.Z+1);
+        this.linie.position.set(this.x, this.y, 1);
         
         this.linie.name = `${this.label}_${this.x}x${this.y}_linie`;
         this.scene.add(this.linie);
@@ -315,7 +315,7 @@ class Polygon extends Shape {
             this.parent.linie.geometry.attributes.position.needsUpdate = true;
             this.parent.mesh.geometry.attributes.position.needsUpdate = true;
             const linie = this.parent.linie.geometry.attributes.position.array;
-            const mesh = this.parent.mesh.geometry.attributes.position.array;
+            // const mesh = this.parent.mesh.geometry.attributes.position.array;
 
             linie[this.cornerCnt*3] += stop[0] - start[0];
             linie[this.cornerCnt*3+1] += stop[1] - start[1];

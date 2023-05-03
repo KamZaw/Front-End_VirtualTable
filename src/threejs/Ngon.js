@@ -63,7 +63,6 @@ class Ngon extends Shape{
         //przetwarzamy mesh
         super.mvShape(start, stop);     //przesuwa same czarne cornery NGONa
         if(this.parent.type== cShape.POLYGON) {
-            const cc = this.cornerCnt;
             // this.parent.recreateMesh(true);
             //this.node?.forEach(n => n.cornerCnt === cc && n.select(true));
             // this.select(true);
@@ -88,8 +87,7 @@ class Ngon extends Shape{
         });        
         const geometryL = new THREE.BufferGeometry().setFromPoints(points);
         this.linie = new THREE.Line(geometryL, materialL);
-        //this.linie.position.set(this.x, this.y, this.linie.position.z);
-        this.recreateMesh(true);
+        this.recreateMesh(true);        
         this.mesh.add(this.linie);
         this.node = [];
         this.node.push(new Ngon(this.mesh, pts[0] , pts[1] , "corner",cornerSize,4, "0x000000", cornerSize, true, true, 0));
@@ -125,17 +123,17 @@ class Ngon extends Shape{
         const oldmesh = this.mesh;
         const geometry = new THREE.ShapeGeometry(path);
         this.mesh = new THREE.Mesh( geometry, material );
-        this.mesh.position.set(this.x, this.y, this.mesh.position.z);
+        this.mesh.position.set(this.x, this.y, this.Z);
+        // this.node = [];
         if(bDraw && oldmesh) {
-            this.mesh.rotateZ(oldmesh.rotation.z);
-            console.log(oldmesh.children.length);
-            oldmesh.children.forEach(chld => {
-                oldmesh.remove(chld);
-                this.mesh.add(chld);
-                chld.visible = true;
-            });   //kopiuj linie i kornery
             this.scene.remove(oldmesh);
         }
+        this.setRotate(this.rotate);
+
+        this.setScaleX(this.scaleX);
+        this.setScaleY(this.scaleY);
+        this.mX(this.mirrorX);
+        this.mY(this.mirrorY);
         bDraw && this.scene.add( this.mesh );
 
         //this.linie.position.set(-this.x,-this.y,0);
@@ -175,7 +173,8 @@ class Ngon extends Shape{
             this.mesh.geometry.clone(), 
             material,
         );
-
+        
+        bDraw && obj.scene.add(obj.mesh);
         if(this.linie) {
             obj.linie = new THREE.Line( 
                 this.linie.geometry.clone(), 
@@ -183,19 +182,19 @@ class Ngon extends Shape{
             );
             obj.linie.name=this.linie.name;
             obj.scene = this.scene;
-            bDraw && obj.scene.add(obj.linie);
-
+            
             obj.recreateMesh(bDraw);
             obj.mesh.name=this.mesh.name;
-            
-            bDraw && obj.scene.add(obj.mesh);
+            obj.linie.position.z = obj.mesh.position.z + 1;
+            bDraw && obj.mesh.add(obj.linie);
         }
         
         this.node && (obj.node = []);
-        this.node?.forEach((n)=>{
-            const crn = n.carbonCopy(bDraw);
-            crn.parent = obj;
-            obj.node.push(crn);
+        this.node?.forEach((n, i)=>{
+            let o = new Ngon(obj.mesh, n.x , n.y , "corner",Global.cornerSize,4, "0x000000", Global.cornerSize, true, true, i);
+            obj.node.push(o);
+            o.drawShape();
+            o.parent = obj;
         });
 
         bDraw && this.node && obj.mvShape([0,0],[0,0]);
@@ -279,9 +278,10 @@ class Ngon extends Shape{
             this.node?.push(node);
         }
 
+        const Z = this.Z;
         this.node?.forEach((pt) =>{ 
             pt.drawShape();
-            pt.mesh.position.z = 1;
+            pt.mesh.position.z = 2;
         });
     }
     

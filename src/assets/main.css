@@ -170,6 +170,9 @@ h1 {
   animation-name: tooltip;
 }
 
+#json_chart {
+  min-width: 200px;
+}
 /* .w3-third {
   color: silver;
   position: fixed;

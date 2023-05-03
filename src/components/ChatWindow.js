@@ -44,7 +44,7 @@ class ChatWindow extends Component {
                 {/* <div className="tweet">dno </div> */}
             </div>
             <input id="message_input" className="button_menu" type="text" placeholder="Wpisz wiadomość..."  onChange = {this.onChange} onKeyUp={this.onKeyUp.bind(this)}></input>
-            <button className="toolbutton" id="send_tweet" onClick={this.send.bind(this)} ><img className="toolimg" src={send}/><span className="tooltiptext">Wyślij</span></button>
+            <button className="toolbutton" id="send_tweet" onClick={this.send.bind(this)} ><img alt="" className="toolimg" src={send}/><span className="tooltiptext">Wyślij</span></button>
             </div>
             </>
         );

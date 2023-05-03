@@ -182,8 +182,16 @@ class Chart extends Shape{
         node.drawShape();
         node.linie.visible = false;
         node.mesh.position.z = 0;
-
     }
+    toJSON() {
+        const obj = super.toJSON()
+        return { ...obj, 
+            json: JSON.stringify(this.json),
+            width: this.width,
+            height: this.height,
+        };
+    }
+
 }
 
 export default Chart;

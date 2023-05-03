@@ -45,7 +45,20 @@ class MediaBar extends Component {
         this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !false});
     }
     onLoadFBLive () {
-        this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !true});
+        if(Global.sessionOn === true) {
+            
+            //wychodzimy z sesji
+            Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+            {
+                refreshed: Shape.dateToTicks(new Date()),
+                session: null,
+            });
+            Global.currentSession = null;
+            Global.sessionOn = false;
+            this.setState({...this.state,title:""});
+        }
+        else
+            this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !true});
     }
     onOpenChat () {
         this.setState({...this.state, chatWindow: !this.state.chatWindow});
@@ -61,6 +74,7 @@ class MediaBar extends Component {
         else if (val === cShape.JOIN_ACIVE_SESSION) {
             this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
             this.props.action(cShape.JOIN_ACIVE_SESSION);
+            Global.sessionOn = true;
 
         }
         
@@ -81,7 +95,7 @@ class MediaBar extends Component {
             // }
             const lista = [...Global.listaAktulane, ...Global.listaArchiwalne];
             // lista.map( l => console.log(l.val));
-            if(lista.filter(s => s.val == val).length > 0) {
+            if(lista.filter(s => s.val === val).length > 0) {
                 //alert("zgłoś błąd");
                 this.setState({...this.state, errmsg: `Sesja <<${val}>>jest już w systemie.`});
                 return;
@@ -195,7 +209,6 @@ class NewSession extends Component {
 
     onNew() {
         this.props.action(!Global.sessionOn);
-        
     }
     render() {
         // if(!Global.user || Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'   ) {
@@ -204,7 +217,7 @@ class NewSession extends Component {
         return (
             <>
                 <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
-                    <img className="toolimg" src={Global.sessionOn?newsessionoff:newsession}/>
+                    <img alt="" className="toolimg" src={Global.sessionOn?newsessionoff:newsession} />
                     <span className="tooltiptext">{Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'?" Dołącz do sesji":"Nowa sesja"}</span>
                 </button>
                 <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>
@@ -227,7 +240,7 @@ class ChatSession extends Component {
             <>
             {!this.props.visible === true?<ChatWindow action={this.props.actionSnd}  msgs={this.props.msgs} />:""}
             <button className="toolbutton "  id="chatwnd" onClick = {this.onOpenChat.bind(this) }>
-                    <img className="toolimg" src={chat}/>
+                    <img alt="" className="toolimg" src={chat}/>
                     <span className="tooltiptext">Otwórz komunikator</span>
                 </button>
             </>
@@ -249,7 +262,7 @@ class LoadArchiveSessions extends Component {
         return (
             <>
                 <button className="toolbutton "  id="load_firebase" onClick = {this.onLoadFB.bind(this) }>
-                    <img className="toolimg" src={load}/>
+                    <img alt="" className="toolimg" src={load}/>
                     <span className="tooltiptext">Wczytaj sesje z chmury</span>
                 </button>
             </>

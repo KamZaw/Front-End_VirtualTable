@@ -60,6 +60,7 @@ class LoginForm extends Component {
         Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
         {
             loggedIn: false,
+            session: null,
         });
 
         //console.log("!!!!!!!!!!!");

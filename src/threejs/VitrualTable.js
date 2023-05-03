@@ -63,8 +63,8 @@ class VitrualTable {
         this.freePenSeparator = false; //klika gdy luzujemy przycisk myszki, ważne 
         this.selectMenu = selectMenuCallback;
         this.updateChat = updateChat;
-        this.histStack = [];
-        this.histPointer = -1;
+        this.histStack = [[]];
+        this.histPointer = 0;
         this.timeLapse = new TimeLapse(); 
         this.init();
     }
@@ -240,10 +240,13 @@ class VitrualTable {
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
 
+
         const p = {
             x: (this.gridOn && this.gridSnap) ? parseInt((event.clientX - targetPanel.offsetLeft) / this.gridRes) * this.gridRes : (event.clientX - targetPanel.offsetLeft),
             y: (this.gridOn && this.gridSnap) ? parseInt((event.clientY - targetPanel.offsetTop) / this.gridRes) * this.gridRes : (event.clientY - targetPanel.offsetTop),
         }
+
+        if(Global.live && !Global.adminRights.includes(Global.user?.uid)) return;
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
@@ -332,7 +335,7 @@ class VitrualTable {
     }
     historyRedo() {
         this.histPointer += 2;
-        console.log(this.histPointer);
+        console.log("Pointer: "+this.histPointer);
         this.historyPop();
     }
     //zapamiętuje stan tablicy w okreslonym momencie czasu
@@ -439,6 +442,10 @@ class VitrualTable {
                 this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
                 // this.onNewShape(shape);
             }
+            else if (o.type === cShape.CHART) {
+                shape = new Chart(this.scene, o.x, o.y, o.width, o.height, o.json, "0x" + o.color.toString(16));
+                
+            }
             else if(o.type == cShape.STOP_NEW_SESSION) {
                 //zamykamy sesję i likwidujemy listenera - trzeba wyświetlić dialog - koniec sesji
                 (live && Global.liveRef) && off(Global.liveRef);
@@ -451,10 +458,13 @@ class VitrualTable {
 
             if(bAdd && shape !== null ) {
                 shape.id = o.id;
-                shape.Z = o.Z;
                 
-                if (o.type !== cShape.NGON)
-                    shape.drawShape();
+                if (o.type !== cShape.NGON)                    
+                shape.drawShape();
+                if (o.type === cShape.CHART)
+                shape.fillChart();
+                
+                shape.setZ(o.Z);
                 shape.setRotate(o.rotate);
                 shape.setScaleX(o.scaleX);
                 shape.setScaleY(o.scaleY);
@@ -463,7 +473,7 @@ class VitrualTable {
                 shape.mY(o.mirrorY);
                 this.addShape(shape);
             }
-            this.select(null);
+            //this.select(null);
             this.type = cShape.SELECT;
         }
     }
@@ -494,7 +504,9 @@ class VitrualTable {
         const timStamp = [];
         const firebaseData = [];
         this.OBJECTS.forEach(obj => {
-            const o = obj.carbonCopy(false);
+            let o = obj;
+            if(obj.mesh !== null)
+                o = obj.carbonCopy(false);
             timStamp.push(o);
         });
         
@@ -516,6 +528,9 @@ class VitrualTable {
         }
         this.histStack.push(timStamp);
         this.histPointer++;
+        // console.log("Pointer: "+this.histPointer);
+        // console.log("SCENE: "+this.scene.children.length);
+
     }
 
     sceneClear() {
@@ -534,27 +549,34 @@ class VitrualTable {
             
     }
     historyClear() {
-        this.histStack = [];
+        this.histStack = [[]];
     }
     historyPop() {
+        this.histPointer--;
+
         if (this.histStack.length <= this.histPointer) {
             this.histPointer = this.histStack.length - 1;
-            console.log(this.histPointer);
             //return;
         }
+        if(this.histPointer < 0)
+            this.histPointer = 0;
         //this.histStack.pop();
         
         const list = this.histStack[this.histPointer];
-        this.histPointer--;
-        console.log(this.histPointer);
+        
+        console.log("Pointer: "+this.histPointer);
         this.OBJECTS = [];
         this.meshes = [];
         list?.forEach(obj => {
-            const o = obj.carbonCopy(true);
+            let o = obj;
+            if(obj.mesh) {
+                o = obj.carbonCopy(true);
+            }
             this.OBJECTS.push(o);
             this.meshes.push(o);
         });
         list && this.select(null);
+        console.log("SCENE: "+this.scene.children.length);
     }
     //wybiera obiekty do przeglądania przy klikaniu
     //obsluga zdarzenia kliku na planszę
@@ -659,7 +681,8 @@ class VitrualTable {
                             const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
                             if(selected) 
                                 selected.mvShape(this.prevPoint, [p.x, p.y]);
-                            this.historyAdd(); 
+                            if(this.prevPoint[0] !== p.x && this.prevPoint[1] !== p.y)  //nie dodawaj do historii selekcji obiektu
+                                this.historyAdd();
                             this.prevPoint = null;
                             // if(this.selectedCorner ) //&& this.action === cAction.BEZIER
                             //     this.select(this.selectedCorner.mesh);
@@ -702,18 +725,29 @@ class VitrualTable {
         raycaster.set(mouse3D, new this.THREE.Vector3(0, 0, 1));
 
         const intersects = raycaster.intersectObjects(this.scene.children);
-        this.selectedNode = null;
 
         if (intersects.length > 0) {
             //TODO: dodac sortowanie po buferze Z
             // for(let i = intersects.length-1; i>=0; i--)
             // if(intersects[i].object.visible)
             const inter = intersects.filter(o => o.object.isMesh)
+            let selNode = null;
+            let bInsideSelected = false;
+            if(inter.length > 0)
+                selNode = this.selectedNode;
             for(let o of inter) {
+                
                 this.select(o.object);
-                if(this.selectedNode)
+                if(this.selectedNode == selNode) { //może chwytamy za corner - sprawdź
+                    continue;
+                    bInsideSelected = true;
+                }
+                if(this.selectedNode)   
                     break;
             }
+
+            if(selNode && bInsideSelected && !this.selectedNode)  //to nie był corner więc wróc starą selekcję
+                this.selectedNode = selNode;
             return;
         } else
             this.select(null);

@@ -5,9 +5,9 @@ import * as THREE from 'three';
 const rozmiarPola = 50;
 
 class Shape {
-    static Z = -100;       //pozycja na osi Z
-    static Zmin = -100;       //pozycja na osi Z
-    static Zmax = -100;       //pozycja na osi Z
+    static Z = 0;       //pozycja na osi Z
+    static Zmin = -500;       //pozycja na osi Z
+    static Zmax = 500;       //pozycja na osi Z
     static dateToTicks = (date) => date.getTime() * 10000 + 621355968000000000;
     static pad = (num, size) => String(num).padStart(size, '0')
     constructor(shapeType, scene,  y, x, label, color, ignoreZ) {
@@ -31,8 +31,8 @@ class Shape {
         this.mirrorY = 1;
         this.rotate = 0;
         
-        !ignoreZ ? Shape.Z++:this.Z--;
-        !ignoreZ && (Shape.Zmax = Shape.Z+1);
+        // !ignoreZ ? Shape.Z++:this.Z--;
+        // !ignoreZ && (Shape.Zmax = Shape.Z+1);
     }
     drawShape() {}
     setMirrorX() {
@@ -57,7 +57,8 @@ class Shape {
     }
 
     setRotate(rot) {
-        if(!rot) return;
+        if(rot !== 0)
+            if(!rot) return;
         try {
             this.rotate = rot;
             rot = -(Math.PI * rot)/180.0;
@@ -72,29 +73,25 @@ class Shape {
     }
     ZPlus(){
 //        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu
-        this.Z+=2;
+        this.Z+=10;
         this.mesh && (this.mesh.position.z = this.Z);
-        this.linie && (this.linie.position.z = this.Z+1);
-        this.node  && this.node.forEach(pt=> {
-            pt.mesh && (pt.mesh.position.z = this.Z);
-            pt.linie && (pt.linie.position.z = this.Z+1);
-        });
+        // this.linie && (this.linie.position.z = this.Z+1);
     }
     ZMinus(){
   //      if(this.Z <= -100) return;       //nie ma potrzeby dodawać, już jest na dnie
-        this.Z-=2;
-        this.mesh && (this.mesh.position.z = this.Z);
-        this.linie && (this.linie.position.z = this.Z+1);
-        this.node  && this.node.forEach(pt=> {
-            pt.mesh && (pt.mesh.position.z = this.Z);
-            pt.linie && (pt.linie.position.z = this.Z+1);
-        });
+        this.Z-=10;
+        this.mesh && (this.mesh.position.z-=4);
+        // this.linie && (this.linie.position.z-=4);
+    }
+    setZ(Z) {
+        this.Z = Z;
+        this.mesh && (this.mesh.position.z = Z);
     }
     //metoda do przysłonięcia w każdej klasie
     toSVG() {}
 
     setScaleX(val) {
-        if(!val || val == 0) return;
+        if(!val || val === 0) return;
         this.scaleX = val;
         this.rescale();
     }
@@ -108,7 +105,7 @@ class Shape {
     }
 
     setScaleY(val) {
-        if(!val || val == 0) return;
+        if(!val || val === 0) return;
         this.scaleY = val;
         this.rescale();
     }
@@ -145,6 +142,8 @@ class Shape {
         };
     }
     carbonCopy(obj) {
+
+        if(typeof obj === "boolean") return this;        //to nie jest obiekt graficzny
         if(!obj) return this;
         obj.mirrorX = this.mirrorX;
         obj.mirrorY = this.mirrorY;

@@ -5,7 +5,7 @@ import { Component } from "react";
 // import {initializeApp} from "firebase/app"
 // import {firebaseConfig} from "../firebase-config"
 import Global from "../Global";
-import {ref,  child, get, off, onValue} from "firebase/database";
+import {ref,  child, off, onValue} from "firebase/database";
 import { cShape } from "../shapetype";
 class SessionDialog extends Component {
     constructor(props){

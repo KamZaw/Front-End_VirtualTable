@@ -1,6 +1,5 @@
 import {Shape} from './Shape.js'
 import { cShape } from '../shapetype.js';
-import Global from '../Global.js';
 
 class ChatMessage extends Shape {
     constructor(scene,  label, color) {
@@ -12,6 +11,8 @@ class ChatMessage extends Shape {
     setRotate(rot) {}
     setMirrorY() {}
     //ignoruj wszystkie metody graficzne
+    mX(v) {}
+    mY(v) {}
     ZPlus(){}
     ZMinus(){}
     toSVG() {}
@@ -40,7 +41,6 @@ class ChatMessage extends Shape {
             rotate: 0,
         };
     }
-    drawShape() {}
     carbonCopy(obj) {
         if(!obj) return this;
         super.carbonCopy(obj);

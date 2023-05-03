@@ -114,7 +114,7 @@ class MenuOption extends Component {
             <>
                 <button id={this.props.id} onClick={() => this.click(this.props.type)} 
                 className={"toolbutton " + (this.props.type === this.props.select ?"checked ":" ")}>
-                    <img className="toolimg" src={this.props.src}/></button> 
+                    <img alt="" className="toolimg" src={this.props.src}/></button> 
             </>
             ) 
         }

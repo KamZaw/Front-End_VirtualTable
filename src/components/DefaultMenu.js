@@ -141,29 +141,29 @@ class DefaultMenu extends Component {
             <>
             <div className="w3-container w3-quarter">
                 <button className="toolbutton "  id="new_doc" onClick = {this.onNew.bind(this) }>
-                    <img className="toolimg" src={nowy}/>
+                    <img alt="" className="toolimg" src={nowy}/>
                     <span className="tooltiptext">Utwórz nowy dokument</span>
                 </button>
                 <button className="toolbutton "  id="save" onClick = {this.onSaveSVG.bind(this) }>
-                    <img className="toolimg" src={save}/>
+                    <img alt="" className="toolimg" src={save}/>
                     <span className="tooltiptext">Zapisz widok tablicy do pliku w formacie SVG</span>
                 </button>
                 <button className="toolbutton "  id="history_undo" onClick = {this.onUndo.bind(this) }>
-                    <img className="toolimg" src={undo}/>
+                    <img alt="" className="toolimg" src={undo}/>
                     <span className="tooltiptext">Cofnij operację</span>
                 </button>
                 <button className="toolbutton "  id="history_redo" onClick = {this.onRedo.bind(this) }>
-                    <img className="toolimg" src={redo}/>
+                    <img alt="" className="toolimg" src={redo}/>
                     <span className="tooltiptext">Przywróć operację</span>
                 </button>
                 <button className={"toolbutton "+(this.state.chkGrid ?"checked ":" ") } 
                     type="" id="grid" name="grid"  onClick = {this.onCheckedGrid.bind(this)}>
-                    <img className="toolimg" src={grid}/>
+                    <img alt="" className="toolimg" src={grid}/>
                     <span className="tooltiptext">Rysuj siatkę</span>
                 </button>
                 <button className={"toolbutton "+(this.state.chkSnap && this.state.chkGrid ?"checked ":" ")} 
                     type="" id="gridsnap" name="gridsnap" onClick = {this.onCheckedGridSnap.bind(this)}>
-                    <img className="toolimg" src={snap}/>
+                    <img alt="" className="toolimg" src={snap}/>
                     <span className="tooltiptext">Narzędzie "snap"</span>
                 </button>
             </div>
@@ -174,11 +174,11 @@ class DefaultMenu extends Component {
                         onChange = {this.onChange} />
                 </span>  
                 <button className="toolbutton" id="z_plus" onClick={this.onZChangePlus}>
-                    <img className="toolimg" src={zplus}/>
+                    <img alt="" className="toolimg" src={zplus}/>
                     <span className="tooltiptext">Zwiększ wartość indeksu Z dla zaznaczonego obiektu</span>
                 </button>
                 <button className="toolbutton" id="z_minus" onClick={this.onZChangeMinus}>
-                    <img className="toolimg" src={zminus}/>
+                    <img alt="" className="toolimg" src={zminus}/>
                     <span className="tooltiptext">Zmniejsz wartość indeksu Z dla zaznaczonego obiektu</span>
                 </button>
                 {/* <label>rotacja</label>
@@ -187,7 +187,7 @@ class DefaultMenu extends Component {
             <div className="w3-container" >
                 <button type="button" className="right" id="open_loginform" onClick = {this.openLogin } defaultValue={Global.user?"LogOut":"Login"}>
                     {Global.user?"Wyloguj się ":"Zaloguj się "}
-                    <img className="toolimg" src={Global.user?logged:unlogged}/>
+                    <img alt="" className="toolimg" src={Global.user?logged:unlogged}/>
                 </button>
                 
                 <LoginForm isVisible={this.state.isLoginWindow} login={this.state.login} logout={this.state.logout} action={this.hideLoginWindow.bind(this)}/>
@@ -235,7 +235,7 @@ class EmptyMenu extends DefaultMenu {
         <div className="w3-container w3-quarter">
             <div id="menubar" >
                 <button className="toolbutton" id="carbon_copy" onClick = {this.copyFig}>
-                    <img className="toolimg" src={copy}/>
+                    <img alt="" className="toolimg" src={copy}/>
                     <span className="tooltiptext">Kopiuj obiekt</span>
                 </button>
                 <b>Obróć:</b>
@@ -265,9 +265,9 @@ class RectangleMenu extends DefaultMenu {
             <div id="menubar" className = "">
                 <b>Prostokąt </b> 
                 szer:
-                <input id="rect_width" className="button_menu" placeholder="Szer..." defaultValue="320"/>
+                <input id="rect_width" className="button_menu" placeholder="Szer..." defaultValue="150"/>
                  wys:
-                <input id="rect_height" className="button_menu" placeholder="Wys..." defaultValue="150" />
+                <input id="rect_height" className="button_menu" placeholder="Wys..." defaultValue="75" />
             </div>
             </div>
             </div>
@@ -288,8 +288,7 @@ class ChartMenu extends DefaultMenu {
             {super.render()}
             <div className="w3-container w3-quarter">
             <div id="menubar" className = "">
-                <b>Dane wykresu </b> 
-                json:
+                <b>Dane json:</b> 
                 <input id="json_chart" className="button_menu" placeholder="dane JSON..." defaultValue='{
                     "title": "PLN/EUR",
                     "data": [{
@@ -340,7 +339,7 @@ class NGONMenu extends DefaultMenu {
                     <div id="menubar" className = "">
                         <b>Wielokąt </b>
                         n:<input id="ngons" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
-                        r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="150"/>
+                        r:<input id="radius" className="button_menu" placeholder="Promień..." defaultValue="100"/>
                         
                     </div>
                 </div>
@@ -362,8 +361,8 @@ class StarMenu extends DefaultMenu {
                 <div className="w3-container w3-quarter">
                     <div id="menubar" className = "">
                         <b>Gwiazda </b>
-                        n:<input id="n" className="button_menu" placeholder="Liczba boków" defaultValue="6"/>
-                        r1:<input id="radius1" className="button_menu" placeholder="Promień zew..." defaultValue="200"/>
+                        n:<input id="n" className="button_menu" placeholder="Liczba boków" defaultValue="7"/>
+                        r1:<input id="radius1" className="button_menu" placeholder="Promień zew..." defaultValue="120"/>
                         r2:<input id="radius2" className="button_menu" placeholder="Promień wew..." defaultValue="50"/>
                     </div>
                 </div>
@@ -395,11 +394,11 @@ class TEXTMenu extends DefaultMenu {
                         rozmiar:<input id="txt_size" className="button_menu" placeholder="rozmiar czcionki" defaultValue="50"/>
                         {/* wysokość:<input id="txt_height" className="button_menu" placeholder="wysokość czcionki" defaultValue="10"/> */}
                         <button className="toolbutton" id="mirrorX" onClick = {this.onMirrorX.bind(this)}>
-                            <img className="toolimg" src={mirrorx}/>
+                            <img alt="" className="toolimg" src={mirrorx}/>
                             <span className="tooltiptext">Odbicie wertykalne</span>
                         </button>
                         <button className="toolbutton" id="mirrorY" onClick = {this.onMirrorY.bind(this)}>
-                            <img className="toolimg" src={mirrory}/>
+                            <img alt="" className="toolimg" src={mirrory}/>
                             <span className="tooltiptext">Odbicie horyzontalne</span>
                         </button>
                     </div>
@@ -458,11 +457,11 @@ class FreePenMenu extends DefaultMenu {
                         {/* <b>&nbsp; </b> */}
                         Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
                         <button className="toolbutton" id="addFig" onClick = {this.onFinalizeFig}>
-                            <img className="toolimg" src={freelinefinish}/>
+                            <img alt="" className="toolimg" src={freelinefinish}/>
                             <span className="tooltiptext">Zakończ rysować figurę</span>    
                         </button>
                         <button className="toolbutton" id="rmFig" onClick = {this.onCancelFig.bind(this)}>
-                            <img className="toolimg" src={freelinecancel}/>
+                            <img alt="" className="toolimg" src={freelinecancel}/>
                             <span className="tooltiptext">Anuluj rysowanie figury"</span>    
                         </button>
 
