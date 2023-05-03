@@ -406,84 +406,103 @@ class VitrualTable {
 
     }
     drawScene(mapa, last, live) {
-        //this.clearAll();
-        for (const j in mapa[last]) {
-            const o = mapa[last][j];
-            let shape = null;
-            const bAdd = o.author !== Global.user.uid || !live;
-            bAdd && this.removeMeshById(o.id);
-            if (o.type === cShape.NGON) {
-                shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
-                
-                bAdd && shape.drawFromPoints(o.points);
-            } 
-            else if (o.type === cShape.POLYGON) {
-                shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
-                const pts = o.points.split(",").map(Number);
-                for (let i = 0; i < pts.length; i += 3) {
-                    shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
-                }
+        if(!live) {
+            this.clearAll();
+            for (const j in mapa.get(last)) {
+                const o = mapa.get(last)[j];
+                this.draw(o, live);
             }
-            else if (o.type === cShape.FREEPEN) {
-                const pts = o.prev.split(",").map(Number);
-                const points = [];
-                for (let i = 0; i < pts.length - 1; i += 2) {
-                    points.push([pts[i], pts[i + 1]]);
-                }
-                shape = new FreePen(this.scene, points[0],
-                    points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
-            } else if (o.type === cShape.TEXT) {
-                shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
-                // this.onNewShape(shape);
-            }else if (o.type === cShape.CHATMSG) {
-                shape = new ChatMessage(this.scene, o.label, o.color);
-                let str = o.label.split(Global.separator);
-                console.log(str[1]);
-                this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
-                // this.onNewShape(shape);
+        }
+        else {
+            for (const j in mapa[last]) {
+                const o = mapa[last][j];
+                this.draw(o, live);
             }
-            else if (o.type === cShape.CHART) {
-                shape = new Chart(this.scene, o.x, o.y, o.width, o.height, o.json, "0x" + o.color.toString(16));
-                
-            }
-            else if(o.type == cShape.STOP_NEW_SESSION) {
-                //zamykamy sesję i likwidujemy listenera - trzeba wyświetlić dialog - koniec sesji
-                (live && Global.liveRef) && off(Global.liveRef);
-                this.endOfLiveSession(`Koniec sesji <<${Global.currentSession}>>`);
-                Global.bLive = false;
-                // console.log("koniec sesji");
-
-            }
-            //usuwa starą wersję obiektu (możliwe, ze z innego miejsca, koloru, kszatłtu)
-
-            if(bAdd && shape !== null ) {
-                shape.id = o.id;
-                
-                if (o.type !== cShape.NGON)                    
-                shape.drawShape();
-                if (o.type === cShape.CHART)
-                shape.fillChart();
-                
-                shape.setZ(o.Z);
-                shape.setRotate(o.rotate);
-                shape.setScaleX(o.scaleX);
-                shape.setScaleY(o.scaleY);
-                
-                shape.mX(o.mirrorX);
-                shape.mY(o.mirrorY);
-                this.addShape(shape);
-            }
-            //this.select(null);
-            this.type = cShape.SELECT;
         }
     }
+    
+    draw(o, live) {
+        let shape = null;
+        const bAdd = o.author !== Global.user.uid || !live;
+        bAdd && this.removeMeshById(o.id);
+        if (o.type === cShape.NGON) {
+            shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
+
+            bAdd && shape.drawFromPoints(o.points);
+        }
+        else if (o.type === cShape.POLYGON) {
+            shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
+            const pts = o.points.split(",").map(Number);
+            for (let i = 0; i < pts.length; i += 3) {
+                shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
+            }
+        }
+        else if (o.type === cShape.FREEPEN) {
+            const pts = o.prev.split(",").map(Number);
+            const points = [];
+            for (let i = 0; i < pts.length - 1; i += 2) {
+                points.push([pts[i], pts[i + 1]]);
+            }
+            shape = new FreePen(this.scene, points[0],
+                points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
+        } else if (o.type === cShape.TEXT) {
+            shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
+            // this.onNewShape(shape);
+        } else if (o.type === cShape.CHATMSG) {
+            shape = new ChatMessage(this.scene, o.label, o.color);
+            let str = o.label.split(Global.separator);
+            console.log(str[1]);
+            this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
+            // this.onNewShape(shape);
+        }
+        else if (o.type === cShape.CHART) {
+            shape = new Chart(this.scene, o.x, o.y, o.width, o.height, o.json, "0x" + o.color.toString(16));
+
+        }
+        else if (o.type === cShape.DELETE) {
+        }
+        else if (o.type == cShape.STOP_NEW_SESSION) {
+            //zamykamy sesję i likwidujemy listenera - trzeba wyświetlić dialog - koniec sesji
+            (live && Global.liveRef) && off(Global.liveRef);
+            this.endOfLiveSession(`Koniec sesji <<${Global.currentSession}>>`);
+            Global.bLive = false;
+            // console.log("koniec sesji");
+        }
+        //usuwa starą wersję obiektu (możliwe, ze z innego miejsca, koloru, kszatłtu)
+        if (bAdd && shape !== null) {
+            shape.id = o.id;
+
+            if (o.type !== cShape.NGON)
+                shape.drawShape();
+            if (o.type === cShape.CHART)
+                shape.fillChart();
+
+            shape.setZ(o.Z);
+            shape.setRotate(o.rotate);
+            shape.setScaleX(o.scaleX);
+            shape.setScaleY(o.scaleY);
+
+            shape.mX(o.mirrorX);
+            shape.mY(o.mirrorY);
+            this.addShape(shape);
+        }
+        //this.select(null);
+        this.type = cShape.SELECT;
+    }
+
 
     removeMeshById(id) {
+        let rmObj = null;
         for(let o of this.OBJECTS) {
             if(o.id === id) {
-                o.mesh && this.scene.remove(o.mesh);
-                o.linie && this.scene.remove(o.linie);
+                rmObj = o;
+                break;
             }
+        }
+        if(rmObj) {
+            this.OBJECTS = this.OBJECTS.filter((obj) => obj !== rmObj);
+            this.meshes = this.meshes.filter((obj) => obj !== rmObj.mesh);
+            rmObj.rmShape();
         }
     }
     clearAll() {
@@ -495,7 +514,7 @@ class VitrualTable {
     }
 
     
-    historyAdd() {
+    historyAdd(updateFB) {
         //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
         //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
         while (this.histStack.length > 0 && this.histPointer < (this.histStack.length - 1)) {
@@ -519,7 +538,7 @@ class VitrualTable {
         // console.log(Global.bLive);
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if (Global.fb && Global.user && Global.user?.uid === 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.currentSession !== null && Global.bLive === true) {
+        if (!updateFB && Global.fb && Global.user && Global.user?.uid === 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.currentSession !== null && Global.bLive === true) {
             if (JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer])) {
                 const tim = Shape.dateToTicks(new Date());
                     set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),firebaseData);

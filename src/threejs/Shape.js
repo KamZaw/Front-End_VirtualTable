@@ -130,8 +130,6 @@ class Shape {
             Z: this.Z,
             label: this.label,
             color: this.iColor,
-            wireframe: false,
-            transparent: false,
             mirrorX: this.mirrorX,
             mirrorY: this.mirrorY,
             scaleX: this.scaleX,

@@ -8,11 +8,16 @@ class TimeLapse {
     }
 
     setMap(mapa) {
-        this.mapa = mapa;
+        this.mapa = new Map();
         for (const i in mapa) {
             this.startTime = parseInt(i);
             break;
         }
+        const list = [];
+        for (const i in mapa) {
+            list.push(mapa[i][0]);
+            this.mapa.set(parseInt(i), [...list]);
+        }    
     }
     //odpala podmianę 
     start(callback) {
@@ -26,8 +31,8 @@ class TimeLapse {
             const tim = audio.currentTime * 1000;
             
             let current = that.startTime;
-            for (const i in that.mapa) {
-                const tm = TimeLapse.dateFromTicks(parseInt(i)) - TimeLapse.dateFromTicks(parseInt(this.startTime)); 
+            for(let i of this.mapa.keys() ) {
+                const tm = TimeLapse.dateFromTicks(parseInt(i)) - TimeLapse.dateFromTicks((this.startTime)); 
                 if(tm >= tim) 
                 break;
                 else
@@ -35,7 +40,7 @@ class TimeLapse {
             }
             if(that.lastOne !== current) {
                 that.lastOne = current;
-                const tm = TimeLapse.dateFromTicks(current) - TimeLapse.dateFromTicks(parseInt(this.startTime)); 
+                const tm = TimeLapse.dateFromTicks(current) - TimeLapse.dateFromTicks((this.startTime)); 
                 console.log(`tim: ${tim} tm: ${tm}`);
                 console.log("zmienia");
                 callback(that.mapa, current, live);

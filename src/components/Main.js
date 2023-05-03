@@ -6,7 +6,7 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import {initializeApp} from "firebase/app"
-import { getDatabase, ref, update } from "firebase/database";
+import { getDatabase, ref, update, set } from "firebase/database";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
@@ -248,8 +248,14 @@ class Main extends Component {
     
             case cShape.DELETE:     //usuwaj zaznaczony obiekt
                 if (vt.selectedNode) {
+                    set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),[{ 
+                        type: cShape.DELETE,
+                        id: vt.selectedNode.id,
+                    }]
+                    );
                     this.delete(vt.selectedNode);
-                    vt.historyAdd();
+                    console.log("DODANO do FB");
+                    vt.historyAdd(true);
                 }
                 break;
             case cShape.COLORCHANGE:     //usuwaj zaznaczony obiekt
@@ -428,7 +434,7 @@ class Main extends Component {
                 this.snapToGrid(vt);
                 vt.selectedNode.mvShape([0,0],[-1*multiply,0]);
             }else if (keyCode === event.DOM_VK_DELETE) {
-                this.delete(vt.selectedNode);
+                this.itemPicked(cShape.DELETE, null);
             }
         }
     }
