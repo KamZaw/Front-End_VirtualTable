@@ -11,6 +11,8 @@ import AudioBroadcast from "./AudioBroadcast"
 import load from '../assets/navbar/load.png';
 import chat from '../assets/navbar/chat.png';
 import MessageBox from "./MessageBox"
+import {Shape} from "../threejs/Shape"
+import { ref, update } from "firebase/database";
 
 /*
     Pasek do komunikacji i interakcji, rozpoczynania sesji, przekazywania praw rysowania itp
@@ -98,7 +100,13 @@ class MediaBar extends Component {
         else {
             Global.sessionOn = false;
             this.props.action(cShape.CLOSE_DLG);
-        }
+            //dodajemy użytkownika do sesji
+            Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+            {
+                refreshed: Shape.dateToTicks(new Date()),
+                session: null,
+            });
+            }
         this.setState({...this.state, title:"", msg: "", input: false, isOpenMsgWindow: false, errmsg:"", });
     }
 
@@ -124,7 +132,7 @@ class MediaBar extends Component {
         switch(this.state.type) {
 
         }
-        
+            
         return(
             <>
                 {this.component}
@@ -171,6 +179,11 @@ class NewSession extends Component {
             this.updateAudio.current.stop(Global.currentSession);
             this.props.stop();     //kończymy sesję
             console.log("Session LIVE stop");
+            Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+            {
+                refreshed: Shape.dateToTicks(new Date()),
+                session: null,
+            });
         }
     }
     onPlay() {
@@ -192,7 +205,7 @@ class NewSession extends Component {
             <>
                 <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
                     <img className="toolimg" src={Global.sessionOn?newsessionoff:newsession}/>
-                    <span className="tooltiptext">Nowa sesja</span>
+                    <span className="tooltiptext">{Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'?" Dołącz do sesji":"Nowa sesja"}</span>
                 </button>
                 <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>
             </>

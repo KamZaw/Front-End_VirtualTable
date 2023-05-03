@@ -16,9 +16,9 @@ class ChatMessage extends Shape {
     ZMinus(){}
     toSVG() {}
     setScaleX(val) {}
+    setScaleY(val) {}
     rescale() {}
 
-    setScaleY(val) {}
 
     rmShape() {}
     mvShape(start, stop) {}

@@ -46,7 +46,7 @@ class Main extends Component {
             Global.fb = getDatabase(Global.firebaseApp );
               Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
             {
-                // refreshed: Shape.dateToTicks(new Date()),
+                refreshed: Shape.dateToTicks(new Date()),
                 loggedIn: currentUser!= null
             });
             this.setState({...this.state, loggedIn: currentUser!= null})

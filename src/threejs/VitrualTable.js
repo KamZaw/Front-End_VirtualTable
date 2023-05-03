@@ -371,6 +371,13 @@ class VitrualTable {
             alert("nie zalogowany");
             return;
         }
+        //dodajemy użytkownika do sesji
+        Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+        {
+            refreshed: Shape.dateToTicks(new Date()),
+            session: Global.currentSession,
+        });
+
         if (Global.nodeRef)
             off(Global.nodeRef);
 
@@ -404,17 +411,11 @@ class VitrualTable {
             bAdd && this.removeMeshById(o.id);
             if (o.type === cShape.NGON) {
                 shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
-                shape.Z = o.Z;
-                shape.id = o.id;
+                
                 bAdd && shape.drawFromPoints(o.points);
-                bAdd && this.addShape(shape);
-                shape = null;   //nie dodajemy na końcu
             } 
             else if (o.type === cShape.POLYGON) {
                 shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
-                shape.Z = o.Z;
-                shape.id = o.id;
-                
                 const pts = o.points.split(",").map(Number);
                 for (let i = 0; i < pts.length; i += 3) {
                     shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
@@ -428,21 +429,11 @@ class VitrualTable {
                 }
                 shape = new FreePen(this.scene, points[0],
                     points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
-                shape.Z = o.Z;
-                shape.id = o.id;
-                shape.mirrorX = o.mirrorX;
-                shape.mirrorY = o.mirrorY;
             } else if (o.type === cShape.TEXT) {
                 shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
-                shape.Z = o.Z;
-                shape.id = o.id;
-                shape.mirrorX = o.mirrorX;
-                shape.mirrorY = o.mirrorY;
-
                 // this.onNewShape(shape);
             }else if (o.type === cShape.CHATMSG) {
                 shape = new ChatMessage(this.scene, o.label, o.color);
-                shape.id = o.id;
                 let str = o.label.split(Global.separator);
                 console.log(str[1]);
                 this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
@@ -457,9 +448,19 @@ class VitrualTable {
 
             }
             //usuwa starą wersję obiektu (możliwe, ze z innego miejsca, koloru, kszatłtu)
-            
-            if(!bAdd && shape !== null ) {
-                shape.drawShape();
+
+            if(bAdd && shape !== null ) {
+                shape.id = o.id;
+                shape.Z = o.Z;
+                
+                if (o.type !== cShape.NGON)
+                    shape.drawShape();
+                shape.setRotate(o.rotate);
+                shape.setScaleX(o.scaleX);
+                shape.setScaleY(o.scaleY);
+                
+                shape.mX(o.mirrorX);
+                shape.mY(o.mirrorY);
                 this.addShape(shape);
             }
             this.select(null);

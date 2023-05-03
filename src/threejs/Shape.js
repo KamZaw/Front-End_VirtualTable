@@ -39,10 +39,28 @@ class Shape {
         this.mirrorX *= -1;
         this.rescale();
     }
+    mX(mX) {
+        if(!mX) return;
+        this.mirrorX = mX;
+        this.rescale();
+    }
+    
+    mY(mY) {
+        if(!mY) return;
+        this.mirrorY = mY;
+        this.rescale();
+    }
+
+    setMirrorY() {
+        this.mirrorY *= -1;
+        this.rescale();
+    }
+
     setRotate(rot) {
+        if(!rot) return;
         try {
-            rot = -(Math.PI * rot)/180.0;
             this.rotate = rot;
+            rot = -(Math.PI * rot)/180.0;
             this.mesh && (this.mesh.rotation.z = rot);
             this.node?.forEach(n => {
                 n.mesh && (n.label !== 'linie' && (n.mesh.rotation.z = -rot));   //nie obracaj węzłów
@@ -51,10 +69,6 @@ class Shape {
         catch(err) {
             
         }
-    }
-    setMirrorY() {
-        this.mirrorY *= -1;
-        this.rescale();
     }
     ZPlus(){
 //        if(this.Z >= Shape.Zmax) return;       //nie ma potrzeby dodawać, już jest na wierzchu
@@ -123,6 +137,8 @@ class Shape {
             transparent: false,
             mirrorX: this.mirrorX,
             mirrorY: this.mirrorY,
+            scaleX: this.scaleX,
+            scaleY: this.scaleY,
             opacity: 1.0,
             rotate: this.rotate,
             id: this.id,
@@ -134,6 +150,9 @@ class Shape {
         obj.mirrorY = this.mirrorY;
         obj.id = this.id;
         obj.Z = this.Z;
+        obj.rotate = this.rotate;
+        obj.scaleX = this.scaleX;
+        obj.scaleY = this.scaleY;
     }
 
     //tworzy i wraca kopię obiektu

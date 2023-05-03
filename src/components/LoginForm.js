@@ -45,10 +45,11 @@ class LoginForm extends Component {
                 nazwisko: this.state.lastName,
                 loggedIn: true,
                 rola: cRole.READONLY,
+                session: null,
 
             });
 
-            console.log(user);
+            // console.log(user);
             this.props.action(false);       //chowaj okno
         }catch(err) {
             console.log(err.message);

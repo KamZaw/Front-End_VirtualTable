@@ -75,16 +75,17 @@ class Sessionbar extends Component {
     }
 
     render() {
-        if(this.state.students.length === 0)
+
+        if(this.state.students.length === 0 || !Global.currentSession)
             return (<></>);
-        
+
         return(<>
         <div className="sessionbar">
         <p id="session_name">{this.props.name}</p>
             <div>
                 {this.state.students.map((s) => {
                     // console.log(s);
-                    if(s.loggedIn)
+                    if(s.loggedIn && s.session === Global.currentSession)
                         return(
                             <Student key={s.imie+' '+s.nazwisko} name={s.imie+' '+s.nazwisko}  color={s.color} value={s.imie.charAt(0)+s.nazwisko.charAt(0)}> </Student>
                         )
