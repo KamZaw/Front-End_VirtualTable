@@ -39,7 +39,8 @@ class MediaBar extends Component {
         if(state) {
             this.setState({...this.state, title:"Utwórz sesję", msg: "Podaj nazwę nowej sesji", isOpenMsgWindow: state, isInputField: state});
         }
-        this.sessionRef.current.onNewSession(state);       //kończymy nagranie audio i wysyłamy plik na serwer
+        else 
+            this.sessionRef.current.onNewSession(false);       //kończymy nagranie audio i wysyłamy plik na serwer
     }
     onLoadFB () {
         this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !false});
@@ -105,8 +106,8 @@ class MediaBar extends Component {
             // this.props.action(cShape.LOAD_FIREBASE);
             //            this.props.action(cShape.LOAD_FIREBASE);
             this.hideAudioBar();
-            this.sessionRef.current.onNewSession(true);
             this.props.action(cShape.START_NEW_SESSION);
+            this.sessionRef.current.onNewSession(true);
             console.log("Session LIVE start");
         }
         else if(val)
@@ -189,7 +190,8 @@ class NewSession extends Component {
         this.setState({...this.state, clicked: Global.sessionOn});
         if(Global.sessionOn)
             this.updateAudio.current.run();
-        else {
+        else
+        {
             this.updateAudio.current.stop(Global.currentSession);
             this.props.stop();     //kończymy sesję
             console.log("Session LIVE stop");

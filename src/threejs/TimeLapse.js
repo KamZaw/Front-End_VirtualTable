@@ -19,6 +19,12 @@ class TimeLapse {
             this.mapa.set(parseInt(i), [...list]);
         }    
     }
+    stop() {
+        const audio = document.getElementById("audio1");
+        audio.setAttribute("hidden", true);
+        audio.currentTime = 0;
+        audio.pause();
+    }
     //odpala podmianę 
     start(callback) {
         this.lastOne = 0;

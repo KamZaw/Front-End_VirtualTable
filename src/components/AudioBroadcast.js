@@ -18,7 +18,6 @@ class AudioBroadcast extends Component {
         
  
     }
-    componentDidUpdate
 
     run() {
         this.state.broadcast.broadcast();
@@ -36,7 +35,7 @@ class AudioBroadcast extends Component {
         
         this.setState({...this.state, chkMic: !this.state.chkMic});
         if(!this.state.chkMic) 
-        this.state.broadcast.broadcast();
+            this.state.broadcast.broadcast();
     }
     render() {
         if(!Global.user ) {
@@ -45,7 +44,7 @@ class AudioBroadcast extends Component {
         return (
             <>
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <img className="toolimg" src={this.state.chkMic?mic_on:mic_off} alt="mic"/>
+                <img className="toolimg" src={(Global.sessionOn && Global.bLive)?mic_on:mic_off} alt="mic"/>
                 {/* <button className={"toolbutton "+(this.state.chkMic ?"checked ":" ") } 
                     type="" id="mic" name="mic"  onClick = {this.onCheckedMic.bind(this)}>
                     <span className="tooltiptext">{(this.state.chkMic ?"Wyłącz mikrofon ":"Włącz mikrofon")}</span>

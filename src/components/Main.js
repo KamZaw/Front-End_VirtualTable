@@ -129,6 +129,10 @@ class Main extends Component {
         switch(type) {
             case cShape.NEW:
                 vt.clearAll();
+                if(vt.timeLapse) {
+                    vt.timeLapse.stop();
+                    vt.timeLapse = null;
+                }
                 if(Global.liveRef)
                     off(Global.liveRef)
                 Global.liveRef = null;
@@ -141,6 +145,10 @@ class Main extends Component {
                 break;
             case cShape.START_NEW_SESSION:
                 vt.clearAll();
+                if(vt.timeLapse) {
+                    vt.timeLapse.stop();
+                    vt.timeLapse = null;
+                }
                 if(Global.liveRef)
                     off(Global.liveRef)
                 Global.liveRef = null;
@@ -160,6 +168,10 @@ class Main extends Component {
                 break;
             case cShape.JOIN_ACIVE_SESSION:
                 vt.clearAll();
+                if(vt.timeLapse) {
+                    vt.timeLapse.stop();
+                    vt.timeLapse = null;
+                }
                 if(Global.liveRef)
                     off(Global.liveRef)
                 Global.liveRef = null;
