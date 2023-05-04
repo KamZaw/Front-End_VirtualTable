@@ -1,7 +1,9 @@
 import "../assets/w3.css"
 import "../assets/loginform.css"
+// import "../assets/fontawsome.css"
+import "../assets/socialmedia.css"
 import { Component } from "react";
-import {createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth"
+import {createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider , signInWithPopup } from "firebase/auth"
 import Global from "../Global";
 import {getDatabase, off, set, ref, update} from "firebase/database"
 import {Shape} from "../threejs/Shape"
@@ -69,6 +71,26 @@ class LoginForm extends Component {
         await signOut(getAuth(Global.firebaseApp));
         this.props.action(false);       //potrzeba aby zmienić status przycisku z LogIN na LogOUT        
     }
+    onFaceBook() {
+        const provider = new FacebookAuthProvider();
+        provider.setCustomParameters({
+            'display': 'popup'
+          });
+        //   this.socialSignIn(provider,FacebookAuthProvider);
+        
+        }
+    onGithub() {
+        
+        const provider = new GithubAuthProvider();
+        provider.addScope('repo');
+        this.socialSignIn(provider,GithubAuthProvider);
+            
+    }
+    onGoogle() {
+        const provider = new GoogleAuthProvider();
+        // provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        this.socialSignIn(provider,GoogleAuthProvider);
+    }
     // Program wypchałem już do Githuba (front end, na razie backend jest odłączony, front komunikuje się bezpośrednio z bazą firebase aby opóźnienie było minimalne, backend będzie miał ograniczoną rolę do synchronizacji czasu oraz przesyłania historycznych sesji)
     onLogin = async (event) => {
 
@@ -96,6 +118,59 @@ class LoginForm extends Component {
             this.setState({...this.state, errorMessage: errorCode});
         });
     }    
+    socialSignIn(provider,Provider) {
+        const auth = getAuth(Global.firebaseApp);
+        auth.languageCode = 'pl';
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                // This gives you a Google Access Token. You can use it to access the Google API.
+                const credential = Provider.credentialFromResult(result);
+                const token = credential.accessToken;
+                // The signed-in user info.
+                const user = result.user;
+                // IdP data available using getAdditionalUserInfo(result)
+                // ...
+                let str = user.displayName.split(" ");
+                let imie = null;
+                let nazwisko = null;
+                if (str.length < 2) {
+                    if (!this.validateRegisterFields()) {
+                        this.setState({ ...this.state, errorMessage: "Konto nie zawiera imienia i nzazwiska. Należy podać imię i nazwisko" });
+                    }
+                    else {
+                        imie = this.state.firstName;
+                        nazwisko = this.state.lastName;
+                    }
+                }
+                else {
+                    imie = str[0];
+                    nazwisko = str[1];
+                }
+
+                const fb = getDatabase(Global.firebaseApp);
+
+                user && fb && set(ref(fb, `Students/${user.uid}/`),
+                    {
+                        refreshed: Shape.dateToTicks(new Date()),
+                        imie: imie,
+                        nazwisko: nazwisko,
+                        loggedIn: true,
+                        rola: cRole.READONLY,
+                        session: null,
+                    });
+
+                // console.log(user);
+                this.registrationComplete = true;
+                this.props.action(false); //chowaj okno
+
+                //alert("google " + user.displayName);
+            }).catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                this.setState({ ...this.state, errorMessage: errorMessage });
+            });
+    }
+
     onPasswordChange(event) {
         this.setState({...this.state, password: event.target.value, errorMessage: ""})
     }   
@@ -160,16 +235,24 @@ class LoginForm extends Component {
                         <button onClick={this.onLogin}>Zaloguj się</button>
                         <hr/>
                         <button id="btnreg" onClick={this.onRegister}>Rejestracja</button>
+                        <hr/>
+                        {/* <a className="btn btn-icon btn-facebook" href="#" onClick={this.onFaceBook.bind(this)}><i className="fa fa-facebook"></i><span>Facebook</span></a> */}
+
+                        <a className="btn btn-icon btn-github" href="#" onClick={this.onGithub.bind(this)}><i className="fa fa-github"></i><span>Github</span></a>
+
+                        <a className="btn btn-icon btn-googleplus" href="#" onClick={this.onGoogle.bind(this)}><i className="fa fa-google-plus"></i><span>Google+</span></a>                        
                         {/* <button onClick={this.onLogOut.bind(this)}>Wyloguj się</button> */}
-                        <br/>
-                        {/* <a href="#"><p className="small">Forgot your password?</p></a> */}
+
+                        {/* <a href="#"><p className="small">Zapomniałeś hasła?</p></a> */}
                         <p className="error_msg">{this.state.errorMessage}</p>
                     </div>
                 </div>
                 </div>
             </div>
+            <div >
 
-            </>
+        </div>
+        </>
         );
     }
 }

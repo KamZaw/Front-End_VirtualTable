@@ -23,17 +23,16 @@ class Polygon extends Shape {
         const path = new THREE.Shape();
         const linie = this.linie.geometry.attributes.position.array;
         path.moveTo(linie[0], linie[1]);
-        for(let i = 3; i < linie.length; i+=3)
+        for(let i = 0; i < linie.length-3; i+=3)
         {
             path.lineTo(linie[i], linie[i+1] );
         }
         //jak będzie gotowe MESH
         //(linii nie trzeba zmieniać, te się same modyfikują)
         if(this.figureIsClosed) {
-            const oldrot = this.mesh?.rotate;
             this.scene.remove(this.mesh);
-            this.scene.remove(this.linie);
-            this.node?.forEach(n => this.scene.remove(n.rmShape()));
+            const oldrot = this.mesh?.rotate;
+            //this.node?.forEach(n => this.scene.remove(n.rmShape()));
             
             const material = new THREE.MeshStandardMaterial({
                 color: this.iColor, //0xE9E9E9,
@@ -67,6 +66,9 @@ class Polygon extends Shape {
                 transparent: false,
             });        
             const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+
+            this.scene.remove(this.linie);
+            this.mesh.remove(this.linie);
             this.linie = new THREE.Line(geometryL, materialL);
             //this.linie.position.set(this.x, this.y, this.linie.position.z);
             
@@ -102,6 +104,8 @@ class Polygon extends Shape {
     }
     addPoint(p) {
         
+        if(this.figureIsClosed === true) return;
+
         const cornerSize = Global.cornerSize;
         
         //path.moveTo(this.startPoint.x, this.startPoint.y);
@@ -141,8 +145,9 @@ class Polygon extends Shape {
         this.scene.add(this.linie);
         
         
-        if(dist < cornerSize/2) {
+        if(dist <= cornerSize/2) {
             this.figureIsClosed = true;
+            this.node?.forEach((n)=>{ n.rmShape();  });
             this.recreateMesh(true);
         }
 
@@ -214,47 +219,7 @@ class Polygon extends Shape {
         });
         return this.node;
     }
-
-    //zamienia ramię NGon na Corner
-    toCorner(node) {
-        for(let i =0; i < this.node.length; i++) {
-            if(this.node[i] === node) {
-                const n = this.node[i];
-                const node = new Ngon(n.scene, n.x, n.y, n.label, n.radius, n.ngons, n.iColor, n.b, n.offsetRot, n.iNode, n.cornerCnt);
-                
-                const material = new THREE.MeshStandardMaterial({
-                    color: n.iColor, 
-                    side:  THREE.DoubleSide,
-                });
-        
-                node.mesh= new THREE.Mesh( 
-                    n.mesh.geometry.clone(), 
-                    material,
-                );
-        
-                if(this.linie) {
-                    node.linie = new THREE.Line( 
-                        n.linie.geometry.clone(), 
-                        new THREE.LineBasicMaterial().copy( n.linie.material )
-                    );
-                    node.linie.name=n.linie.name;
-                    node.scene.add(node.linie);
-                    //node.recreateMesh(bDraw);
-                    node.mesh.name=n.mesh.name;
-                    node.scene.add(node.mesh);
-                    node.mesh.visible = true;
-                }
-
-                this.node[i] = node;
-                n.rmShape();
-                node.drawShape();
-                node.parent = this;
-                return node;
-            }
-        }
-        return null;
-    }
-    
+ 
     toSVG() {
         let str = "";
 
@@ -286,20 +251,21 @@ class Polygon extends Shape {
             );
             obj.linie.name=this.linie.name;
             obj.scene = this.scene;
-            bDraw && obj.scene.add(obj.linie);
-
-            obj.recreateMesh(bDraw);
+        
+            
+            // obj.recreateMesh(bDraw);
+            // bDraw && obj.mesh?.add(obj.linie);
             // obj.mesh.name=this.mesh.name;
             
             // bDraw && obj.scene.add(obj.mesh);
         }
         
-        this.node && (obj.node = []);
-        this.node?.forEach((n)=>{
-            const crn = n.carbonCopy(bDraw);
-            crn.parent = obj;
-            obj.node.push(crn);
-        });
+        // this.node && (obj.node = []);
+        // this.node?.forEach((n)=>{
+        //     const crn = n.carbonCopy(bDraw);
+        //     crn.parent = obj;
+        //     obj.node.push(crn);
+        // });
 
         bDraw && this.node && obj.mvShape([0,0],[0,0]);
         
@@ -317,15 +283,16 @@ class Polygon extends Shape {
             const linie = this.parent.linie.geometry.attributes.position.array;
             // const mesh = this.parent.mesh.geometry.attributes.position.array;
 
-            linie[this.cornerCnt*3] += stop[0] - start[0];
-            linie[this.cornerCnt*3+1] += stop[1] - start[1];
+            // linie[(this.cornerCnt+0)*3] += stop[0] - start[0];
+            // linie[(this.cornerCnt+0)*3+1] += stop[1] - start[1];
             // if(this.cornerCnt === 0) {
             //     linie[(linie.length  - 3)] += stop[0] - start[0];
             //     linie[(linie.length - 3)+1] += stop[1] - start[1];
             //     // mesh[mesh.length - 3] += stop[0] - start[0];
             //     // mesh[mesh.length - 3 + 1] += stop[1] - start[1];
             // }
-            this.parent.recreateMesh(true);
+            
+            // this.parent.recreateMesh(true);
             //this.parent.mvShape([0,0],[0,0]);
             return;
         }

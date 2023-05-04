@@ -423,7 +423,7 @@ class VitrualTable {
     
     draw(o, live) {
         let shape = null;
-        const bAdd = o.author !== Global.user.uid || !live;
+        const bAdd = Global.user && (o.author !== Global.user.uid) || !live;
         bAdd && this.removeMeshById(o.id);
         if (o.type === cShape.NGON) {
             shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
@@ -522,6 +522,8 @@ class VitrualTable {
         }
         const timStamp = [];
         const firebaseData = [];
+        if(this.OBJECTS.length <= 0)
+            return;
         this.OBJECTS.forEach(obj => {
             let o = obj;
             if(obj.mesh !== null)

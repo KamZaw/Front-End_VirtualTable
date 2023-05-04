@@ -1,0 +1,89 @@
+@import url(//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css);
+
+
+
+.btn {
+    font-weight: 400;
+	font-size: 1.2em;
+  clear:both;
+  white-space:nowrap;
+  font-size:.8em;
+  display:inline-block;
+  border-radius:0px;
+  margin:2px;
+  overflow:hidden
+}
+
+
+.btn:focus {
+  box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btn > span,.btn-icon > i {
+  float:left;
+  padding:11px 16px 6px 6px;
+  -webkit-transition:all .35s;
+  -moz-transition:all .35s;
+  transition:all .35s;
+  line-height:.9em
+}
+
+.btn > span {
+  padding:11px 10px 10px;
+  white-space:nowrap;
+  color:#FFF;
+  background:#b8b8b8
+}
+
+.btn:focus > span {
+  background:#9a9a9a
+}
+
+.btn-icon > i {
+  border-radius:5px 0 0 5px;
+  position:relative;
+  width:10px;
+  text-align:center;
+  font-size:1.35em;
+  color:#fff;
+  background:#212121
+}
+
+.btn-icon > i:after {
+  content:"";
+  border:8px solid;
+  border-color:transparent transparent transparent #222;
+  position:absolute;
+  top:8px;
+  right:-15px
+}
+
+.btn-icon:hover > i,.btn-icon:focus > i {
+  color:#FFF
+}
+
+.btn-icon > span {
+  border-radius:0 0px 0px 0
+}
+
+/*Facebook*/
+
+.btn-facebook > span, .btn-github > span, .btn-googleplus > span {
+  background-color: #3c4b58;
+}
+
+.btn-facebook > span:hover {
+  background:#3b5998;
+}
+
+/*Github*/
+
+.btn-github > span:hover {
+  background:#969696
+}
+
+/*Google*/
+.btn-googleplus > span:hover {
+  background:#dd4b39
+}
+
