@@ -72,6 +72,14 @@ class VitrualTable {
 
     init() {
         Text.loadFontOnce(); //inicjacja fotnów
+
+        // const shape = new Polygon(this.scene, { x: 200, y: 200 }, "0x6655aa" );
+            
+        // shape.addPoint({ x: 200, y: 600 });
+        // shape.addPoint({ x: 800, y: 200 });
+        // shape.addPoint({ x: 200, y: 200 });
+        // this.addShape(shape);
+
     }
 
 
@@ -211,6 +219,8 @@ class VitrualTable {
     }
 
     onMouseMove(event, targetPanel, camera, wd, hd) {
+        if(Global.bLive && !Global.adminRights.includes(Global.user?.uid)) return;
+
         if (this.gridOn && this.gridSnap) {
             this.crosshair.position.set(parseInt((event.clientX - targetPanel.offsetLeft) / this.gridRes) * this.gridRes, parseInt((event.clientY - targetPanel.offsetTop) / this.gridRes) * this.gridRes, 100);
         }
@@ -228,7 +238,7 @@ class VitrualTable {
 
         if(!Global.user) return;        //nie zalogowani więc nigdzie nie wysyłamy
         //dodaje do FB wpis dla usera innego niż profesor
-        if(Global.user.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1') 
+        if(!Global.adminRights.includes(Global.user?.uid)) 
         {
             Global.fb && set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),
                 [{...node.toJSON(), author: Global.user?.uid}]);
@@ -240,13 +250,13 @@ class VitrualTable {
     }
     onMouseDown(event, targetPanel, camera, wd, hd) {
 
+        if(Global.bLive && !Global.adminRights.includes(Global.user?.uid)) return;
 
         const p = {
             x: (this.gridOn && this.gridSnap) ? parseInt((event.clientX - targetPanel.offsetLeft) / this.gridRes) * this.gridRes : (event.clientX - targetPanel.offsetLeft),
             y: (this.gridOn && this.gridSnap) ? parseInt((event.clientY - targetPanel.offsetTop) / this.gridRes) * this.gridRes : (event.clientY - targetPanel.offsetTop),
         }
 
-        if(Global.live && !Global.adminRights.includes(Global.user?.uid)) return;
         switch (event.which) {
             case 1: //left
                 switch (this.type) {
@@ -262,7 +272,7 @@ class VitrualTable {
                         break;
                     }
                     case cShape.POLYGON:
-                        if (this.selectedNode ) {
+                        if (this.selectedNode && this.action === cAction.POLYGON) {
                             //console.log(p);
                             if(this.selectedNode.updateLastPos)
                                 this.selectedNode.updateLastPos(p);
@@ -294,6 +304,7 @@ class VitrualTable {
                         break;
                     }
                     case cShape.SELECT:
+                        console.error("WHODZI!!!!");
                         if (!this.selectedNode)
                             this.onSelection(event, targetPanel);
                     case cShape.CORNER:
@@ -363,7 +374,7 @@ class VitrualTable {
                 console.log("Brak danych dla sesji");
             }
         }, {
-            onlyOnce: true //dla załadowania sesji tylko raz   //Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
+            onlyOnce: true //dla załadowania sesji tylko raz   //Global.adminRights.includes(Global.user?.uid)
         });
     }
 
@@ -401,7 +412,7 @@ class VitrualTable {
                 console.log("Brak danych dla sesji");
             }
         }, {
-            onlyOnce: false    //Global.user.uid == 'VRGQyqLSB0axkDKbmgye3wyDGJo1'
+            onlyOnce: false    //Global.adminRights.includes(Global.user?.uid)
         });
 
     }
@@ -427,15 +438,29 @@ class VitrualTable {
         bAdd && this.removeMeshById(o.id);
         if (o.type === cShape.NGON) {
             shape = new Ngon(this.scene, o.x, o.y, o.label, o.radius, o.n, "0x" + o.color.toString(16), o.b, o.offsetRot);
-
+            shape.radius2 = o.radius2;
             bAdd && shape.drawFromPoints(o.points);
         }
         else if (o.type === cShape.POLYGON) {
-            shape = new Polygon(this.scene, { x: parseInt(o.x), y: parseInt(o.y) }, "0x" + o.color.toString(16));
+            if(!bAdd) return;
             const pts = o.points.split(",").map(Number);
-            for (let i = 0; i < pts.length; i += 3) {
-                shape.addPoint({ x: parseInt(pts[i]) + shape.x, y: parseInt(pts[i + 1]) + shape.y });
-            }
+            shape = new Polygon(this.scene, { x: parseInt(o.x)+parseInt(pts[0]), y: parseInt(o.y)+parseInt(pts[1]) }, "0x" + o.color.toString(16));
+            shape.x = parseInt(o.x);
+            shape.y = parseInt(o.y);
+            bAdd && shape.drawFromPoints(o.points);
+
+            shape.id = o.id;
+            shape.setZ(o.Z);
+            shape.setRotate(o.rotate);
+            shape.setScaleX(o.scaleX);
+            shape.setScaleY(o.scaleY);
+
+            shape.mX(o.mirrorX);
+            shape.mY(o.mirrorY);
+            this.addShape(shape);
+            this.select(null);
+            this.type = cShape.SELECT;
+            return;
         }
         else if (o.type === cShape.FREEPEN) {
             const pts = o.prev.split(",").map(Number);
@@ -445,6 +470,8 @@ class VitrualTable {
             }
             shape = new FreePen(this.scene, points[0],
                 points[1], points, "freePen", o.size, "0x" + o.color.toString(16));
+            shape.x = o.x;
+            shape.y = o.y;
         } else if (o.type === cShape.TEXT) {
             shape = new Text(this.scene, o.x, o.y, o.label, "0x" + o.color.toString(16), o.size, o.height);
             // this.onNewShape(shape);
@@ -472,11 +499,10 @@ class VitrualTable {
         if (bAdd && shape !== null) {
             shape.id = o.id;
 
-            if (o.type !== cShape.NGON)
+            if (o.type !== cShape.NGON && o.type !== cShape.POLYGON)
                 shape.drawShape();
             if (o.type === cShape.CHART)
                 shape.fillChart();
-
             shape.setZ(o.Z);
             shape.setRotate(o.rotate);
             shape.setScaleX(o.scaleX);
@@ -486,7 +512,7 @@ class VitrualTable {
             shape.mY(o.mirrorY);
             this.addShape(shape);
         }
-        //this.select(null);
+        this.select(null);
         this.type = cShape.SELECT;
     }
 
@@ -524,6 +550,7 @@ class VitrualTable {
         const firebaseData = [];
         if(this.OBJECTS.length <= 0)
             return;
+
         this.OBJECTS.forEach(obj => {
             let o = obj;
             if(obj.mesh !== null)
@@ -540,7 +567,7 @@ class VitrualTable {
         // console.log(Global.bLive);
 
         //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
-        if (!updateFB && Global.fb && Global.user && Global.user?.uid === 'VRGQyqLSB0axkDKbmgye3wyDGJo1' && Global.currentSession !== null && Global.bLive === true) {
+        if (!updateFB && Global.fb && Global.user && Global.adminRights.includes(Global.user?.uid) && Global.currentSession !== null && Global.bLive === true) {
             if (JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer])) {
                 const tim = Shape.dateToTicks(new Date());
                     set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),firebaseData);
@@ -585,7 +612,7 @@ class VitrualTable {
         
         const list = this.histStack[this.histPointer];
         
-        console.log("Pointer: "+this.histPointer);
+        // console.log("Pointer: "+this.histPointer);
         this.OBJECTS = [];
         this.meshes = [];
         list?.forEach(obj => {
@@ -597,15 +624,50 @@ class VitrualTable {
             this.meshes.push(o);
         });
         list && this.select(null);
-        console.log("SCENE: "+this.scene.children.length);
+        // console.log("SCENE: "+this.scene.children.length);
+
+        const timStamp = [];
+        const firebaseData = [];
+        if(this.OBJECTS.length <= 0)
+            return;
+
+        this.OBJECTS.forEach(obj => {
+            let o = obj;
+            if(obj.mesh !== null)
+                o = obj.carbonCopy(false);
+            timStamp.push(o);
+        });
+        
+        firebaseData.push({
+            ...timStamp[timStamp.length-1].toJSON(),
+            author: Global.user?.uid
+        });
+        // console.log(Global.user?.uid);
+        // console.log(Global.currentSession);
+        // console.log(Global.bLive);
+
+        //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
+        if (Global.fb && Global.user && Global.adminRights.includes(Global.user?.uid) && Global.currentSession !== null && Global.bLive === true) {
+            // if (JSON.stringify(timStamp) != JSON.stringify(this.histStack[this.histPointer])) 
+            {
+                const tim = Shape.dateToTicks(new Date());
+                    set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),firebaseData);
+                    console.log("DODANO do FB");
+            }
+        }
+
+
     }
     //wybiera obiekty do przeglądania przy klikaniu
     //obsluga zdarzenia kliku na planszę
     onClick(event, targetPanel, camera, wd, hd) {
 
+        // console.warn(Global.bLive);
+        // console.warn(!Global.adminRights.includes(Global.user?.uid));
+        // console.warn((Global.user?.uid));
+        
         //nie pozwalaj klikać po zalogowaniu na ekran użytkownikowi, który nie jest nauczycielem
-        if(Global.user && (Global.user.uid !== "VRGQyqLSB0axkDKbmgye3wyDGJo1")) return; 
-
+        if(Global.bLive && !Global.adminRights.includes(Global.user?.uid)) return;
         const p = {
             x: (this.gridOn && this.gridSnap) ? parseInt((event.clientX - targetPanel.offsetLeft) / this.gridRes) * this.gridRes : (event.clientX - targetPanel.offsetLeft),
             y: (this.gridOn && this.gridSnap) ? parseInt((event.clientY - targetPanel.offsetTop) / this.gridRes) * this.gridRes : (event.clientY - targetPanel.offsetTop),

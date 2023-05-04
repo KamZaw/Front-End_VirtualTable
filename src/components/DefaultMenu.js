@@ -455,7 +455,7 @@ class FreePenMenu extends DefaultMenu {
                     <div id="menubar" className = "">
                         <b>Free Pen </b> 
                         {/* <b>&nbsp; </b> */}
-                        Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="2"/>px
+                        Szerokość:<input id="size" className="button_menu" placeholder="szer..." defaultValue="6"/>px
                         <button className="toolbutton" id="addFig" onClick = {this.onFinalizeFig}>
                             <img alt="" className="toolimg" src={freelinefinish}/>
                             <span className="tooltiptext">Zakończ rysować figurę</span>    

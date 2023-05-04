@@ -148,6 +148,7 @@ class Ngon extends Shape{
         const obj = super.toJSON()
         return { ...obj, 
             radius: this.radius,
+            radius2: this.radius2,
             n: this.n,
             b: this.b, 
             offsetRot: this.offsetRot,
@@ -161,6 +162,7 @@ class Ngon extends Shape{
         
         let obj = new Ngon(this.scene,this.x,this.y,this.label,this.radius,this.n,this.iColor,this.b, this.offsetRot, this.node == null, this.cornerCnt);
         super.carbonCopy(obj);
+        obj.radius2 = this.radius2;
         const material = new THREE.MeshStandardMaterial({
             color: this.iColor, //0xE9E9E9,
                 //wireframe: true,

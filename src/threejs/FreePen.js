@@ -227,7 +227,7 @@ class FreePen extends Shape{
             str += `"\nid="${this.linie.name+"_"+i}" />\n`;
         }
                 
-        
+        this.mesh.position.set(this.x,this.y,this.Z);
 
 
         return str;
@@ -236,6 +236,8 @@ class FreePen extends Shape{
     carbonCopy(bDraw) {
         let obj = new FreePen(this.scene,this.x,this.y, this.prev, this.label,this.size,this.iColor, this.ignoreZ);
         super.carbonCopy(obj);
+        obj.x = this.x;
+        obj.y = this.y;
         //obj = new Shape(this.type,THREE,this.scene,this.y,this.x,this.label);
 
         obj.mesh= new THREE.Mesh( 

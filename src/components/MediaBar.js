@@ -211,14 +211,14 @@ class NewSession extends Component {
         this.props.action(!Global.sessionOn);
     }
     render() {
-        // if(!Global.user || Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'   ) {
+        // if(!Global.user || !Global.adminRights.includes(Global.user?.uid)   ) {
         //     return (<></>);
         // }
         return (
             <>
                 <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
                     <img alt="" className="toolimg" src={Global.sessionOn?newsessionoff:newsession} />
-                    <span className="tooltiptext">{Global.user?.uid !== 'VRGQyqLSB0axkDKbmgye3wyDGJo1'?" Dołącz do sesji":"Nowa sesja"}</span>
+                    <span className="tooltiptext">{!Global.adminRights.includes(Global.user?.uid)?" Dołącz do sesji":"Nowa sesja"}</span>
                 </button>
                 <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>
             </>

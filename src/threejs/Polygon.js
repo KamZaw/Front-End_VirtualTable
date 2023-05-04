@@ -19,6 +19,46 @@ class Polygon extends Shape {
     init() {
     
     }
+
+    getPts() {
+        
+        if(!this.node) {
+            this.pts = JSON.parse(JSON.stringify(this.pts));
+            return;
+        }
+        this.pts = [];
+        for(let i = 0; i < this.node.length; i++) {
+            this.pts.push({x:this.node[i].x, y:this.node[i].y});
+        }
+        this.pts.push({x:this.node[0].x, y:this.node[0].y});
+    }
+    drawFromPoints(pointsS){
+        this.figureIsClosed = true;
+        const pts = pointsS.split(",").map(Number);
+        this.pts = [];//pts;
+        const path = new THREE.Shape();
+        path.moveTo(pts[0],pts[1]);
+        const cornerSize = Global.cornerSize;
+
+        this.pts.push({x:pts[0], y:pts[1]});
+        for(let i = 3; i < pts.length; i+=3) {
+            path.lineTo(pts[i], pts[i+1]);
+            this.pts.push({x:pts[i], y:pts[i+1]});
+        }    
+
+
+        const points = path.getPoints();
+        const materialL = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            linewidth: 1,
+            transparent: false,
+        });        
+        const geometryL = new THREE.BufferGeometry().setFromPoints(points);
+        this.linie = new THREE.Line(geometryL, materialL);
+        this.recreateMesh(true);        
+        this.mesh.add(this.linie);
+    }
+
     recreateMesh(bDraw) {
         const path = new THREE.Shape();
         const linie = this.linie.geometry.attributes.position.array;
@@ -27,6 +67,7 @@ class Polygon extends Shape {
         {
             path.lineTo(linie[i], linie[i+1] );
         }
+        path.lineTo(linie[0], linie[1]);
         //jak będzie gotowe MESH
         //(linii nie trzeba zmieniać, te się same modyfikują)
         if(this.figureIsClosed) {
@@ -86,7 +127,7 @@ class Polygon extends Shape {
         // const wd = targetPanel.offsetWidth ; // parseInt(dh.offsetWidth);
         // const hd = targetPanel.offsetHeight; //parseInt(window.innerHeight * .6);
         const cornerSize = Global.cornerSize;
-        
+        if(this.x + this.y === 0 ) return;
         const node = new Ngon(this.scene, this.x, this.y, "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
         node.parent = this;
         node.drawShape();
@@ -122,7 +163,7 @@ class Polygon extends Shape {
         
         const dist = Point.distance([p.x,p.y],[this.pts[0].x, this.pts[0].y]);
         //console.log(dist);
-        if(dist > cornerSize/2) {
+        if(dist > cornerSize/2 || this.pts.length == 1) {
             path.lineTo(p.x+1, p.y);
             const node = new Ngon(this.scene, p.x + this.x , p.y + this.y , "corner",cornerSize,4, "0x000000", cornerSize, true, true, this.node.length)
             node.parent = this;
@@ -148,6 +189,7 @@ class Polygon extends Shape {
         if(dist <= cornerSize/2) {
             this.figureIsClosed = true;
             this.node?.forEach((n)=>{ n.rmShape();  });
+            // this.scene.remove(this.linie);
             this.recreateMesh(true);
         }
 
@@ -226,7 +268,8 @@ class Polygon extends Shape {
         str += ` <path
         style="fill:#${Shape.pad(this.iColor.toString(16),6)};stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
         d="m `;
-        const pts = JSON.parse(JSON.stringify(this.pts));
+        this.getPts()
+        const pts = this.pts; //JSON.parse(JSON.stringify(this.pts));
         pts.pop();
         
         str += `${pts[0].x + this.x},${pts[0].y + this.y} `;
@@ -244,6 +287,21 @@ class Polygon extends Shape {
         super.carbonCopy(obj);
         obj.figureIsClosed = this.figureIsClosed;
         
+
+        const material = new THREE.MeshStandardMaterial({
+            color: this.iColor, //0xE9E9E9,
+                //wireframe: true,
+            // transparent: this.cornerCnt?false:true,
+            // opacity: 0.7,
+            side:  THREE.DoubleSide,
+        });
+
+        obj.mesh= new THREE.Mesh( 
+            this.mesh.geometry.clone(), 
+            material,
+        );
+        
+        bDraw && obj.scene.add(obj.mesh);
         if(this.linie) {
             obj.linie = new THREE.Line( 
                 this.linie.geometry.clone(), 
@@ -251,21 +309,12 @@ class Polygon extends Shape {
             );
             obj.linie.name=this.linie.name;
             obj.scene = this.scene;
-        
             
-            // obj.recreateMesh(bDraw);
-            // bDraw && obj.mesh?.add(obj.linie);
-            // obj.mesh.name=this.mesh.name;
-            
-            // bDraw && obj.scene.add(obj.mesh);
+            obj.recreateMesh(bDraw);
+            obj.mesh.name=this.mesh.name;
+            obj.linie.position.z = obj.mesh.position.z + 1;
+            bDraw && obj.mesh.add(obj.linie);
         }
-        
-        // this.node && (obj.node = []);
-        // this.node?.forEach((n)=>{
-        //     const crn = n.carbonCopy(bDraw);
-        //     crn.parent = obj;
-        //     obj.node.push(crn);
-        // });
 
         bDraw && this.node && obj.mvShape([0,0],[0,0]);
         
@@ -292,11 +341,13 @@ class Polygon extends Shape {
             //     // mesh[mesh.length - 3 + 1] += stop[1] - start[1];
             // }
             
-            // this.parent.recreateMesh(true);
-            //this.parent.mvShape([0,0],[0,0]);
-            return;
+            this.parent.recreateMesh(true);
+            // this.parent.mvShape([0,0],[0,0]);
+            // return;
         }
-        super.mvShape(start, stop);
+        else
+            super.mvShape(start, stop);
+        
         // this.recreateMesh(true);
     }
     

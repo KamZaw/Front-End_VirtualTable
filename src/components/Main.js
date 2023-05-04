@@ -6,7 +6,7 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import {initializeApp} from "firebase/app"
-import { getDatabase, ref, update, set } from "firebase/database";
+import { getDatabase, ref, update, set, off } from "firebase/database";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
@@ -40,7 +40,7 @@ class Main extends Component {
             //currentUser ? console.log(">>>"+currentUser.email): console.log(">>> logOut"); 
             Global.user = currentUser;
             // Global.user.hasMic = false;
-            // if(Global.user.uid === "VRGQyqLSB0axkDKbmgye3wyDGJo1")
+            // if(Global.adminRights.includes(Global.user?.uid))
             //     Global.user.hasMic = true;      //tylko nauczyciel ma mikrofon
 
             Global.fb = getDatabase(Global.firebaseApp );
@@ -128,12 +128,25 @@ class Main extends Component {
         const vt = this.vt;
         switch(type) {
             case cShape.NEW:
-                vt.clearAll()
+                vt.clearAll();
+                if(Global.liveRef)
+                    off(Global.liveRef)
+                Global.liveRef = null;
+                if(Global.nodeRef)
+                    off(Global.nodeRef);
+                Global.nodeRef = null;
+                
                 vt.type = cShape.SELECT;
                 this.setState({...this.state, sessionName: ""});
                 break;
             case cShape.START_NEW_SESSION:
                 vt.clearAll();
+                if(Global.liveRef)
+                    off(Global.liveRef)
+                Global.liveRef = null;
+                if(Global.nodeRef)
+                    off(Global.nodeRef);
+                Global.nodeRef = null;
                 vt.openLiveSession();
                 // console.log(Global.user.uid);
                 // console.log(Global.currentSession);
@@ -147,6 +160,12 @@ class Main extends Component {
                 break;
             case cShape.JOIN_ACIVE_SESSION:
                 vt.clearAll();
+                if(Global.liveRef)
+                    off(Global.liveRef)
+                Global.liveRef = null;
+                if(Global.nodeRef)
+                    off(Global.nodeRef);
+                Global.nodeRef = null;
                 if(Global.user && Global.currentSession) {
                     Global.bLive = true;
                     vt.openLiveSession();
@@ -156,6 +175,13 @@ class Main extends Component {
                 break;
                 case cShape.STOP_NEW_SESSION:
                     if(Global.user && Global.currentSession) {
+                        if(Global.liveRef)
+                            off(Global.liveRef)
+                        Global.liveRef = null;
+                        if(Global.nodeRef)
+                            off(Global.nodeRef);
+                        Global.nodeRef = null;
+    
                         //dodaj obiekt pusty oznaczający rozpoczęsie liczenia czasu
                         vt.onNewShape(new Shape(cShape.STOP_NEW_SESSION, this.scene,  0, 0, "czas stop", 0x000000 ));
                         Global.currentSession = null;
