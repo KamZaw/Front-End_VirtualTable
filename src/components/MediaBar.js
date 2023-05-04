@@ -70,19 +70,20 @@ class MediaBar extends Component {
             Global.bLive = false;
             this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
             this.props.action(cShape.LOAD_FIREBASE);
+            Global.sessionOn = false;
             this.sessionRef.current.onPlay();
         }
         else if (val === cShape.JOIN_ACIVE_SESSION) {
             this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
             this.props.action(cShape.JOIN_ACIVE_SESSION);
             Global.sessionOn = true;
-
         }
         
         this.setState({...this.state, title:"", msg: "", input: false, isOpenSessionWindow: false,});
     }
     hideAudioBar() {
         document.getElementById('audio1').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
+        document.getElementById('audio2').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
     }
 
 

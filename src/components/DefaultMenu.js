@@ -54,6 +54,7 @@ class DefaultMenu extends Component {
     }
     hideAudioBar() {
         document.getElementById('audio1').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
+        document.getElementById('audio2').setAttribute("hidden",true);      //usuwaj pasek jeśli jest
     }
 
     onNew() {

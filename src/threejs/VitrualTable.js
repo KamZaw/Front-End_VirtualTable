@@ -598,6 +598,7 @@ class VitrualTable {
     }
     historyClear() {
         this.histStack = [[]];
+        this.histPointer = 0;
     }
     historyPop() {
         this.histPointer--;

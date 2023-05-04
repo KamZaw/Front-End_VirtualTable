@@ -19,6 +19,7 @@ class AudioBroadcast extends Component {
  
     }
 
+    //rec
     run() {
         this.state.broadcast.broadcast();
     }

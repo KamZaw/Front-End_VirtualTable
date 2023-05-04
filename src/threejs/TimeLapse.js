@@ -20,7 +20,7 @@ class TimeLapse {
         }    
     }
     stop() {
-        const audio = document.getElementById("audio1");
+        const audio = document.getElementById("audio2");
         audio.setAttribute("hidden", true);
         audio.currentTime = 0;
         audio.pause();
@@ -28,7 +28,7 @@ class TimeLapse {
     //odpala podmianę 
     start(callback) {
         this.lastOne = 0;
-        const audio = document.getElementById("audio1");
+        const audio = document.getElementById("audio2");
         audio.removeAttribute("hidden");
     
         const that = this;

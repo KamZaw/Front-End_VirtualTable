@@ -22,8 +22,9 @@ class Broadcast {
         const storage = getStorage();
         getDownloadURL(ref(storage, `${src}.ogg`)) //audio_sesje/
             .then((url) => {
-                const playAudio = document.getElementById('audio1');
+                const playAudio = document.getElementById('audio2');
                 playAudio.setAttribute("controls", "");
+                playAudio.muted = false;
                 playAudio.src = url;
                 playAudio.play();
             })
