@@ -40,7 +40,6 @@ class Sessionbar extends Component {
                 const students = [];
                 
                 // for(let i =0; i < 100; i++)
-                //     students.push({imie:"Mirek", loggedIn: true, nazwisko:"Kowalski", color: colors[~~(Math.random()*colors.length-1)], rola: 0});
 
             
                 let cnt = 0;
