@@ -38,7 +38,7 @@ function App() {
   return (
     <div id="menu" className="App">
       
-      {/* {isMobileDevice?<NoMobile/>:<Main/>} */}
+      {isMobileDevice?<NoMobile/>:<Main/>}
       <Main/>
         
         {/* { <Router>
