@@ -45,7 +45,7 @@ class AudioBroadcast extends Component {
         return (
             <>
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <img className="toolimg" src={(Global.sessionOn && Global.bLive)?mic_on:mic_off} alt="mic"/>
+                <img className="toolimg" src={(Global.sessionOn && Global.bLive && Global.adminRights.includes(Global.user.uid))?mic_on:mic_off} alt="mic"/>
                 {/* <button className={"toolbutton "+(this.state.chkMic ?"checked ":" ") } 
                     type="" id="mic" name="mic"  onClick = {this.onCheckedMic.bind(this)}>
                     <span className="tooltiptext">{(this.state.chkMic ?"Wyłącz mikrofon ":"Włącz mikrofon")}</span>

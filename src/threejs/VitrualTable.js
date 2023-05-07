@@ -80,6 +80,8 @@ class VitrualTable {
         // shape.addPoint({ x: 200, y: 200 });
         // this.addShape(shape);
 
+
+
     }
 
 
@@ -233,6 +235,13 @@ class VitrualTable {
     }
     addChatMsg(msg) {
         if(!Global.user || Global.currentSession == null || Global.bLive === false) return;
+        
+        //za[pobiegaj dublom]
+        if(msg.split(Global.separator)[2] != Global.user.uid) {
+            alert("są różne!");
+            return;
+        }
+
         const node = new ChatMessage(this.scene, msg, Global.currentUserColor.replace("#","0x"));
         this.onNewShape(node);
 
@@ -357,8 +366,10 @@ class VitrualTable {
             alert("nie zalogowany");
             return;
         }
-        if (Global.nodeRef)
+        if (Global.nodeRef) {
             off(Global.nodeRef);
+            Global.nodeRef = null;
+        }
 
         const dbRef = ref(Global.fb);
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
@@ -392,8 +403,11 @@ class VitrualTable {
             session: Global.currentSession,
         });
 
-        if (Global.nodeRef)
-            off(Global.nodeRef);
+
+        if (Global.liveRef) {
+            off(Global.liveRef);
+            Global.liveRef = null;
+        }
 
         const dbRef = ref(Global.fb);
         //console.log(`Sessions/${Global.currentSession+"/"+Global.user.uid}/`);
@@ -421,18 +435,18 @@ class VitrualTable {
             this.clearAll();
             for (const j in mapa.get(last)) {
                 const o = mapa.get(last)[j];
-                this.draw(o, live);
+                this.draw(o, live, j);
             }
         }
         else {
             for (const j in mapa[last]) {
                 const o = mapa[last][j];
-                this.draw(o, live);
+                this.draw(o, live, j);
             }
         }
     }
     
-    draw(o, live) {
+    draw(o, live, datetick) {
         let shape = null;
         const bAdd = Global.user && (o.author !== Global.user.uid) || !live;
         bAdd && this.removeMeshById(o.id);
@@ -479,7 +493,7 @@ class VitrualTable {
             shape = new ChatMessage(this.scene, o.label, o.color);
             let str = o.label.split(Global.separator);
             console.log(str[1]);
-            this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)]);
+            this.updateChat([...str, "#" + ('00000' + (shape.iColor).toString(16).toUpperCase()).slice(-6)],datetick);
             // this.onNewShape(shape);
         }
         else if (o.type === cShape.CHART) {
@@ -490,7 +504,9 @@ class VitrualTable {
         }
         else if (o.type == cShape.STOP_NEW_SESSION) {
             //zamykamy sesję i likwidujemy listenera - trzeba wyświetlić dialog - koniec sesji
-            (live && Global.liveRef) && off(Global.liveRef);
+            off(Global.liveRef);
+            Global.liveRef = null;
+            
             this.endOfLiveSession(`Koniec sesji <<${Global.currentSession}>>`);
             Global.bLive = false;
             // console.log("koniec sesji");
@@ -512,7 +528,8 @@ class VitrualTable {
             shape.mY(o.mirrorY);
             this.addShape(shape);
         }
-        this.select(null);
+        if(!Global.adminRights.includes(Global.user.uid))
+            this.select(null);
         this.type = cShape.SELECT;
     }
 
@@ -539,7 +556,38 @@ class VitrualTable {
         this.meshes = [];
     }
 
-    
+    historyAddShape(shape) {
+        //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
+        //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
+        while (this.histStack.length > 0 && this.histPointer < (this.histStack.length - 1)) {
+            this.histStack.pop();
+        }
+        const timStamp = [];
+        const firebaseData = [];
+        this.OBJECTS.forEach(obj => {
+            let o = obj;
+            if(obj.mesh !== null)
+                o = obj.carbonCopy(false);
+            timStamp.push(o);
+        });
+        timStamp.push(shape);
+
+        firebaseData.push({
+            ...timStamp[timStamp.length-1].toJSON(),
+            author: Global.user?.uid
+        });
+        //tylko jeśli nowy ślad różni się od poprzedniego wpisu (ignoruje ruchy typu selekcja == mvShape(0,0))
+        if (Global.fb && Global.user && Global.adminRights.includes(Global.user?.uid) && Global.currentSession !== null && Global.bLive === true) {
+            const tim = Shape.dateToTicks(new Date());
+            set(ref(Global.fb, `Sessions/${Global.currentSession}/${Shape.dateToTicks(new Date())}`),firebaseData);
+            console.log("DODANO shape do FB ");
+        }
+        this.histStack.push(timStamp);
+        this.histPointer++;
+        // console.log("Pointer: "+this.histPointer);
+        // console.log("SCENE: "+this.scene.children.length);
+
+    }  
     historyAdd(updateFB) {
         //jesli dodajemy nowy obiekt to usuwamy historię (jesli jakakolwiek jest!) wszystkich elementów do przodu
         //czyli wskaźnik zawsze przy dodawaniu musi wskazywać na aktualny element 
@@ -763,10 +811,11 @@ class VitrualTable {
                             if (!this.prevPoint) return;
 
                             const selected = this.selectedCorner !== null ? this.selectedCorner : this.selectedNode;
-                            if(selected) 
+                            if(selected) {
                                 selected.mvShape(this.prevPoint, [p.x, p.y]);
-                            if(this.prevPoint[0] !== p.x && this.prevPoint[1] !== p.y)  //nie dodawaj do historii selekcji obiektu
-                                this.historyAdd();
+                                if(this.prevPoint[0] !== p.x && this.prevPoint[1] !== p.y)  //nie dodawaj do historii selekcji obiektu
+                                    this.historyAddShape(selected);
+                            }
                             this.prevPoint = null;
                             // if(this.selectedCorner ) //&& this.action === cAction.BEZIER
                             //     this.select(this.selectedCorner.mesh);

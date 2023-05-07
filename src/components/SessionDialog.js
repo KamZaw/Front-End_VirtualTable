@@ -111,6 +111,7 @@ class SessionDialog extends Component {
     } 
     render() {
         if(!this.props.isVisible) {
+
             return (<></>);
         }
         if(!this.props.live)

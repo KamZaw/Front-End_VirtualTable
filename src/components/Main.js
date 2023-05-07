@@ -6,7 +6,7 @@ import Global from '../Global';
 import {Shape} from '../threejs/Shape'
 import NavBar from './NavBar';
 import {initializeApp} from "firebase/app"
-import { getDatabase, ref, update, set, off } from "firebase/database";
+import { getDatabase, ref, update, set, off , child, onValue} from "firebase/database";
 import {getAuth, onAuthStateChanged, signOut} from "firebase/auth"
 import {firebaseConfig} from "../firebase-config"
 import {cShape} from '../shapetype';
@@ -29,6 +29,8 @@ class Main extends Component {
         this.selectMenuCallback = this.selectMenuCallback.bind(this);     
         this.navbar = React.createRef();
 
+        this.adminRef = null;
+        this.msgMap = new Map();
         this.state = {
             loggedIn: false,
             msgs: [],
@@ -49,10 +51,22 @@ class Main extends Component {
                 refreshed: Shape.dateToTicks(new Date()),
                 loggedIn: currentUser!= null
             });
+            this.getAdmins();
             this.setState({...this.state, loggedIn: currentUser!= null})
       } ).bind(this);
     }
+    async onLogOut() {
+        if(!Global.user ) return;
+        Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
+        {
+            loggedIn: false,
+            session: null,
+        });
 
+        if(Global.nodeRef)
+            off(Global.nodeRef);
+        await signOut(getAuth(Global.firebaseApp));
+    }
     //dialog zamykania sesji LIVE
     endOfLiveSession(msg) {
         this.setState({...this.state, isOKField:true, msg: msg, title: "Uwaga"});
@@ -65,23 +79,49 @@ class Main extends Component {
             nazwisko: nazwisko,
         });
     }
+    getAdmins() {
+        const dbRef = ref(Global.fb);
+        this.adminRef = child(dbRef, `Admins/`);
+        onValue(this.adminRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const mapa = snapshot.val();
+                const admins = [];
+                
+                for(const i in mapa) {
+                    admins.push(i);
+                }
+                Global.adminRights = admins;
+            } 
+        }, {
+            onlyOnce: false
+        });
+    }
     componentDidMount() {
 
-        //console.log("MAIN* * * ")
+        console.log("MAIN* * * ")
         this.initTHREE(targetPanelString, 1);
         //aktualizacja ekranu threejs
         this.animate();
 
-        //listener na zmianach w bazie danych
-        //this.FBListener();
-        
-        //czytaj z BACKENDU dane o obiektach
-        //this.getShapes();
-        //TODO:analogiczne dla innych obiektów (np getTexts())
-
+ 
     }
     componentWillUnmount() {
+        console.log("MAIN* * * OFF")
         signOut(getAuth(Global.firebaseApp));
+        if(this.adminRef)
+            off(this.adminRef); 
+        if(Global.user)
+        //on logout
+        if(Global.bLive && Global.adminRights.includes(Global.user?.uid))
+            this.itemPicked(cShape.STOP_NEW_SESSION);
+        if(Global.liveRef)
+            off(Global.liveRef)
+        Global.liveRef = null;
+        if(Global.nodeRef)
+            off(Global.nodeRef);
+        Global.nodeRef = null;
+        this.onLogOut();
+
     }
     //pobierz obiekty kształtów z backendu
     async getShapesRequest(url) {
@@ -204,15 +244,15 @@ class Main extends Component {
                     case cShape.CLOSE_DLG:
                         this.setState({...this.state, isOKField:false, msg: "", title: ""});
                         break;
-                        case cShape.UNDO:
+                    case cShape.UNDO:
+                        vt.sceneClear();
+                        vt.historyPop();
+                    break;
+                    case cShape.REDO:
+                        if (vt.isRedo()) {
                             vt.sceneClear();
-                            vt.historyPop();
-                            break;
-                            case cShape.REDO:
-                                if (vt.isRedo()) {
-                                    vt.sceneClear();
-                                    vt.historyRedo();
-                                }
+                            vt.historyRedo();
+                        }
                 break;
                 
             case cShape.LOAD_FIREBASE:
@@ -229,19 +269,19 @@ class Main extends Component {
                 break;
             case cShape.MIRRORX:
                 vt.selectedNode && vt.selectedNode.setMirrorX();
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.MIRRORY:
                 vt.selectedNode && vt.selectedNode.setMirrorY();
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.ZPLUS:
                 vt.selectedNode && vt.selectedNode.ZPlus();
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.ZMINUS:
                 vt.selectedNode && vt.selectedNode.ZMinus();
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.CHATMSG:
                 vt.addChatMsg(param);
@@ -262,7 +302,7 @@ class Main extends Component {
                     break;
                 };
                 vt.selectedNode && vt.selectedNode.setScaleX(sX);
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.SCALEY:
                 const sY = parseFloat(document.getElementById("scaleY").value);
@@ -271,7 +311,7 @@ class Main extends Component {
                     break;
                 };
                 vt.selectedNode && vt.selectedNode.setScaleY(sY);
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
             case cShape.ROTATEZ:
                 const rot = parseFloat(document.getElementById("rotateZ").value);
@@ -281,7 +321,7 @@ class Main extends Component {
                 };
 
                 vt.selectedNode && vt.selectedNode.setRotate(rot);
-                vt.selectedNode && vt.historyAdd();
+                vt.selectedNode && vt.historyAddShape(vt.selectedNode);
                 break;
     
             case cShape.DELETE:     //usuwaj zaznaczony obiekt
@@ -300,7 +340,7 @@ class Main extends Component {
                 if (vt.selectedNode && document.getElementById("color").value) {
                     vt.selectedNode.iColor = Number("0X"+document.getElementById("color").value.substr(1),);
                     vt.selectedNode.mesh?.material.color.setHex(vt.selectedNode.iColor);
-                    vt.historyAdd();
+                    vt.historyAddShape(vt.selectedNode);
                 }
                 break;
 
@@ -546,12 +586,18 @@ class Main extends Component {
     }
 
     //tweet = [author,label]
-    updateChat(tweet) {
-
-        if(tweet === null)
+    updateChat(tweet, datetick) {
+        if(tweet === null) {
             this.state.msgs = [];
-        else
-            this.state.msgs.push(tweet);
+            this.msgMap.clear();
+        }
+        else {
+            //if(!this.msgMap.has(datetick)) 
+            {
+                this.msgMap.set(datetick, tweet);
+                this.state.msgs.push(tweet);
+            }
+        }
         
         this.setState({...this.state, msgs:  this.state.msgs});  
 

@@ -12,7 +12,7 @@ import load from '../assets/navbar/load.png';
 import chat from '../assets/navbar/chat.png';
 import MessageBox from "./MessageBox"
 import {Shape} from "../threejs/Shape"
-import { ref, update } from "firebase/database";
+import { ref, update, off } from "firebase/database";
 
 /*
     Pasek do komunikacji i interakcji, rozpoczynania sesji, przekazywania praw rysowania itp
@@ -57,6 +57,10 @@ class MediaBar extends Component {
             Global.currentSession = null;
             Global.sessionOn = false;
             this.setState({...this.state,title:""});
+            //zamykamy sesję
+            if(Global.liveRef)
+                off(Global.liveRef)
+                Global.liveRef = null;
         }
         else
             this.setState({...this.state, title:"Wirtualna Tablica", msg: "Podaj nazwę sesji", isOpenSessionWindow: true, isInputField: true, loadLive: !true});
@@ -117,6 +121,12 @@ class MediaBar extends Component {
             Global.sessionOn = false;
             this.props.action(cShape.CLOSE_DLG);
             //dodajemy użytkownika do sesji
+            if(Global.liveRef)
+                off(Global.liveRef)
+            Global.liveRef = null;
+            if(Global.nodeRef)
+                off(Global.nodeRef);
+            Global.nodeRef = null;
             Global.user && Global.fb && update(ref(Global.fb, `Students/${Global.user.uid}/`), 
             {
                 refreshed: Shape.dateToTicks(new Date()),
@@ -220,7 +230,7 @@ class NewSession extends Component {
         return (
             <>
                 <button className="toolbutton "  id="new" onClick = {this.onNew.bind(this) }>
-                    <img alt="" className="toolimg" src={Global.sessionOn?newsessionoff:newsession} />
+                    <img alt="" className="toolimg" src={Global.sessionOn?newsessionoff:newsession} />  
                     <span className="tooltiptext">{!Global.adminRights.includes(Global.user?.uid)?" Dołącz do sesji":"Nowa sesja"}</span>
                 </button>
                 <AudioBroadcast value={Global.sessionOn} ref={this.updateAudio}/>

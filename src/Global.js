@@ -21,7 +21,7 @@ class Global {
     static sessionOn = false;
     static students = new Map();
     static separator = "!@!";
-    static adminRights = ['VRGQyqLSB0axkDKbmgye3wyDGJo1'];
+    static adminRights = [];
     static listaAktulane = [];
     static listaArchiwalne = [];
 }
